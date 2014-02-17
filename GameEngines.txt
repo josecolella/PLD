@@ -1,0 +1,19 @@
+Godot
+  Sitio: http://www.godotengine.org/wiki/doku.php
+  Plataforma: osx, linux, windows
+  Usa editor y scripting
+
+Turbulenz
+  Sitio: https://github.com/turbulenz/turbulenz_engine
+  Plataforma: osx, linux, windows
+  Usa HTML5, Javscript
+
+MelonJS
+  Sitio: http://melonjs.org/
+  Plataforma: todo
+  Usa JavaScript
+
+Juegos Open-Source:
+  Clone de Flappy Bird https://github.com/ellisonleao/clumsy-bird
+  Code Combat: https://github.com/codecombat/codecombat
+
