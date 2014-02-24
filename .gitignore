@@ -1,0 +1,7 @@
+# Fichero generados de latex
+*.aux
+*.synctex.gz
+*.log
+*.out
+
+
