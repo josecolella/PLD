@@ -3,10 +3,12 @@
 \usepackage[T1]{fontenc}
 \usepackage[spanish]{babel}
 \usepackage{listings}
-\usepackage{hyperref} 
+\usepackage{hyperref}
+\usepackage{graphicx}
 \usepackage{gensymb}
 \usepackage{comment}
 \usepackage{listings}
+\usepackage[official]{eurosym}
 \usepackage{color}
 \definecolor{lightgray}{rgb}{.9,.9,.9}
 \definecolor{darkgray}{rgb}{.4,.4,.4}
@@ -45,35 +47,86 @@
 
 
 
-\title{PLD: Idea del Juego}
-\author{Jose Miguel Colella y\\José Manuel Gómez González}
+\title{PLD: Propuesta del Juego}
+\author{Jose Miguel Colella (Y1453965B) y\\José Manuel Gómez González (45920481-S)}
+
 
 \begin{document}
 
 \maketitle
 
-Un juego en dos dimensiones por turno. Dos jugados básicos con un tercer 
+\section{Propuesta}
 
-Un juego de infiltración donde un jugador tiene que entrar en un sitio, y la IA te lo impide.
-El jugador se encuentra dentro de un escenario en el cual tiene que encontrar un objeto especifico y salir de la escena. El jugador tiene que encontrar este objetivo en un tiempo determinado. Para enforzar este tiempo, hay una plaga que se va comiendo el escenario, hasta que el tiempo se acaba.
-También hay otro enemigo, que tiene un grado de visión, cual objetivo es destruir el jugador principal. Este enemigo también tiene la habilidad de coger el objeto en cuestion para el mismo.
+\begin{description}
+  \item[Título provisional del videojuego] \hfill \\
+  Nuestro juego tiene el siguiente título provisional: \textbf{Treasure Hunter}
+  \item[Descripción general] \hfill \\
+   Se tratará de un juego en 2D de estrategia por turnos. El
+escenario es el interior de un complejo secreto (habitaciones, pasillos,
+corredores ...). El objetivo consiste en robar un objeto del que se
+conocen posibles ubicaciones que el jugador deberá probar para
+finalmente huir con el objeto. Un jugador adversario controlado por IA
+tendrá el mismo objetivo. Adicionalmente, otra IA controlará varios
+agentes encargados de vigilar y atacar a cualquier intruso (el propio
+jugador y la otra IA). Como elementos adicionales sobre el escenario
+tenemos: interruptores de control, puertas y lasers. Los interruptores
+de control abren/cierran (o activan/desactivan) puertas y lasers. Los
+lasers a la altura de la cintura solo afectan a los jugadores (usuario e
+IA) quitandoles puntos de vida. Las puertas afectan a todos al bloquear
+el paso. La dificultad vendrá dada por la IA y por el propio mapa.
+Otro punto interesante aunque complementario sería la
+posibilidad de generar mapas de manera automática.
+  \item[Género] \hfill \\
+  \href{http://en.wikipedia.org/wiki/Video_game_genre#Turn-based_strategy}{Turn Based Strategy Game}
+  \item[Audiencia]
+  Cualquier tipo de persona es capaz de juegar el juego aunque tiene una tematica de puede
+  ser influencial en jovenes
 
-La plaga se vaya moviendo cada vez que el usuario termina su turno. 
+  \item[3 videojuegos del mismo segmeto]
+    \begin{enumerate}
+      \item \hfill \\
+      \begin{description}
+        \item[Título] \hfill \\
+        Rome Total War 2
+        \item[Compañia] \hfill \\
+        Creative Assembly \\Sega
+        \item[Plataforma] \hfill \\
+        PC (Microsoft Windows, Linux)
+        \item[Comercialización] \hfill \\
+        DVD, Descarga por Steam 54,99 \euro{}
+        \item[Página web] \hfill \\
+        \hyperlink{http://www.totalwar.com/en_us/rome2/}{Rome Total War 2}
+        \item[Capturas de pantalla] \hfill \\
+        \begin{figure}[ht!]
+        \centering
+        \includegraphics[width=90mm]{./Total-War-Rome-2-11.jpg}
+        \caption{Campaña Turn Based Strategy}
+        \label{overflow}
+        \end{figure}
+        \begin{figure}[ht!]
+        \centering
+        \includegraphics[width=90mm]{./images.jpeg}
+        \caption{El juegador controla ciudades y pelea por establecer su dominio}
+        \label{overflow2}
+        \end{figure}
+        \item[3 características destacadas] \hfill \\
+          \begin{enumerate}
+            \item Las gráficas del juego son extraordinarias
+            \item La inteligencia artificial es robusta
+            \item Basado en hechos reales
+          \end{enumerate}
+        \item[3 limitaciones observadas] \hfill \\
+          \begin{enumerate}
+            \item Cuando se juega en modo difícil la inteligencia artificial toma mucho tiempo
+            en hacer una decisión
+            \item Unas veces IA no toma decisiones que beneficia el grupo que representa
+            \item Tienes que tener capacidades gráficas muy buenas para tener muy buenas FPS (Frames per seconds).
+          \end{enumerate}
+      \end{description}
 
-\section{Requisitos}
+    \end{enumerate}
 
-
-\section{Plataforma}
-
-
-\section{Herramientas de Desarrollo}
-
-
-
-\section{Integración de Inteligencia Artificial}
-
-
-
+\end{description}
 
 \end{document}
 
