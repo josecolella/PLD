@@ -139,9 +139,9 @@ La tabla queda de la siguiente forma:
 \begin{tabular}{ |l| *{11}{c|} }
 \hline
 Alternativa  & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10 & 11 \\ \hline \hline
-PyGame & +& ---& +& +& +& ++& ++& ---& ++& ---& ++\\
+PyGame & +& ---& +& ---& ---& ++& ++& ---& ++& ---& ++\\
 Moleculejs & ++& ++& ---& ---& ---& ---& ---& ---& ++& ++& ---\\
-Three.js & & & & & & & & & & & \\
+Three.js & ++& ++& ---& ---& ---& ---& ++& ++& ++& +& ++\\
 \hline
 \end{tabular}
 \end{center}
