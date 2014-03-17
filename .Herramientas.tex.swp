@@ -147,6 +147,7 @@ Three.js & ++& ++& ---& ---& ---& ---& ++& ++& ++& +& ++\\
 \end{center}
 
 \subsection{Conclusión}
+A la vista de los datos de la tabla, la mejor alternativa a considerar para el desarrollo del juego es \emph{Three.js}.
 
 \end{document}
 
