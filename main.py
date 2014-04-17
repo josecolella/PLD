@@ -11,6 +11,10 @@ pygame.init()  # Initialize Pygame
 pygame.font.init()  # Font initializer
 pygame.mixer.init()  # Music initializer
 
+# Main theme music
+pygame.mixer.music.load("audio/laberynth.ogg")
+pygame.mixer.music.play(-1)  # Continuous Loop
+
 screenwidth = 1024
 screenheight = 768
 
