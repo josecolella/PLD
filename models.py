@@ -91,23 +91,15 @@ class Tile(pygame.Rect):
     total_tiles = 1
     H, V = 1, 22
 
-    invalids = [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 20, 21, 22,
-                23, 26, 28, 29, 30, 32, 35, 36, 41, 44,
-                45, 58, 59, 61, 62, 64, 66,
-                67, 70, 77, 78, 88,
-                89, 92, 94, 95, 99, 100, 102, 103, 105, 106, 107, 108, 110,
-                111, 112, 113, 117, 119, 124, 128,
-                133, 139, 141, 142, 143, 146, 152, 154,
-                155, 156, 157, 158, 159, 168, 172, 174, 176,
-                177, 181, 182, 184, 187, 188, 189, 190, 191, 192,
-                194, 197, 198,
-                199, 204, 206, 208, 209, 212, 214, 215, 220,
-                221, 241, 242,
-                243, 251, 264,
-                265, 270, 273, 275, 278, 280, 281, 283, 285, 286,
-                287, 288, 289, 290, 291, 292, 293, 294, 295, 296,
-                297, 298, 299,
-                300, 301, 302, 303, 304, 305, 306, 307, 308]
+    topColumnList = [i for i in range(65)]
+    leftColumnList = [i * 64 + 1for i in range(48)]
+    rightColumnList = [i for i in range(64, 64 * 48 + 1, 64)]
+    bottomColumnList = [i for i in range(48 * 64 - 63, 48 * 64 + 1)]
+    invalids = []
+    invalids.extend(topColumnList)
+    invalids.extend(leftColumnList)
+    invalids.extend(rightColumnList)
+    invalids.extend(bottomColumnList)
 
     def __init__(self, x, y, Type):
 

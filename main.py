@@ -18,8 +18,8 @@ screenheight = 768
 screen = pygame.display.set_mode((screenwidth, screenheight))
 
 
-for y in range(0, screen.get_height(), 64):
-    for x in range(0, screen.get_width(), 48):
+for y in range(0, screen.get_height(), 16):
+    for x in range(0, screen.get_width(), 16):
         if Tile.total_tiles in Tile.invalids:
             Tile(x, y, 'solid')
         else:
