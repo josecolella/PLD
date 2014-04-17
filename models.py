@@ -3,6 +3,7 @@
 # This includes the characters, enemies, and objects of the game
 import pygame
 from random import randint
+from levels import Level
 
 
 class MainCharacter(object):
@@ -60,13 +61,13 @@ class Treasure(object):
 class Tile(pygame.Rect):
 
     # The tuple of posible tile images
-    TileImageTuple = ('radioactive_tile.png',
-                      'brown_tile.png',
-                      'dark_gray_tile.png',
-                      'dark_red_tile.png',
-                      'light_gray_tile.png',
-                      'red_tile.png',
-                      'sewer_tile.png'
+    TileImageTuple = ('img/radioactive_tile.png',
+                      'img/brown_tile.png',
+                      'img/dark_gray_tile.png',
+                      'img/dark_red_tile.png',
+                      'img/light_gray_tile.png',
+                      'img/red_tile.png',
+                      'img/sewer_tile.png'
                       )
     middlelevel = ["xxxxxxxxxxxxxxx",
                    "xs............x",
@@ -91,9 +92,13 @@ class Tile(pygame.Rect):
     total_tiles = 1
     H, V = 1, 22
 
+    # The top boundary
     topColumnList = [i for i in range(65)]
-    leftColumnList = [i * 64 + 1for i in range(48)]
+    # The left boundary
+    leftColumnList = [i * 64 + 1 for i in range(48)]
+    # The right boundary
     rightColumnList = [i for i in range(64, 64 * 48 + 1, 64)]
+    # the bottom boundary
     bottomColumnList = [i for i in range(48 * 64 - 63, 48 * 64 + 1)]
     invalids = []
     invalids.extend(topColumnList)
@@ -101,13 +106,19 @@ class Tile(pygame.Rect):
     invalids.extend(rightColumnList)
     invalids.extend(bottomColumnList)
 
-    def __init__(self, x, y, Type):
+    level = Level()
+    invalids.extend(level.leve1())
+
+    def __init__(self, x, y, Type, image):
 
         self.parent = None
         self.H, self.G, self.F = 0, 0, 0
 
         self.type = Type
         self.number = Tile.total_tiles
+        # randomImage = Tile.TileImageTuple[
+            # randint(0, len(Tile.TileImageTuple) - 1)]
+        self.image = pygame.image.load(image)
         Tile.total_tiles += 1
 
         if Type == 'empty':
@@ -128,5 +139,7 @@ class Tile(pygame.Rect):
     @staticmethod
     def draw_tiles(screen):
         for tile in Tile.List:
-            if not(tile.type == 'empty'):
-                pygame.draw.rect(screen, [40, 40, 40], tile)
+            if tile.type != 'empty':
+                screen.blit(tile.image, (tile.x, tile.y))
+            # if not(tile.type == 'empty'):
+                # pygame.draw.rect(screen, [40, 40, 40], tile)

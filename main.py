@@ -21,9 +21,9 @@ screen = pygame.display.set_mode((screenwidth, screenheight))
 for y in range(0, screen.get_height(), 16):
     for x in range(0, screen.get_width(), 16):
         if Tile.total_tiles in Tile.invalids:
-            Tile(x, y, 'solid')
+            Tile(x, y, 'solid', 'img/wall.png')
         else:
-            Tile(x, y, 'empty')
+            Tile(x, y, 'empty', 'img/wall.png')
 
 
 clock = pygame.time.Clock()  # Initialize Game Clock
