@@ -12,7 +12,7 @@ pygame.font.init()  # Font initializer
 pygame.mixer.init()  # Music initializer
 
 # Main theme music
-#pygame.mixer.music.load("audio/laberynth.ogg")
+# pygame.mixer.music.load("audio/laberynth.ogg")
 # pygame.mixer.music.play(-1)  # Continuous Loop
 
 screenwidth = 1024
@@ -31,12 +31,15 @@ for y in range(0, screen.get_height(), 16):
 
 
 clock = pygame.time.Clock()  # Initialize Game Clock
-FPS = 30
+FPS = 20
 total_frames = 0
 
+level1 = pygame.image.load('img/level1.png')
 
 # Game Loop
 while True:
+
+    screen.blit(level1, (0, 0))
 
     interaction(screen)
     Tile.draw_tiles(screen)

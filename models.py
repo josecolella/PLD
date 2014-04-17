@@ -88,7 +88,8 @@ class Tile(pygame.Rect):
     invalids.extend(bottomColumnList)
 
     level = Level()
-    invalids.extend(level.leve1())
+    level1 = level.leve1()
+    invalids.extend(level1)
 
     def __init__(self, x, y, Type):
 
@@ -120,8 +121,13 @@ class Tile(pygame.Rect):
     @staticmethod
     def draw_tiles(screen):
         for tile in Tile.List:
-            if tile.type != 'empty':
-                screen.blit(
-                    pygame.image.load('img/dark_gray_tile.png'), (tile.x, tile.y))
-            else:
-                screen.blit(pygame.image.load(tile.image), (tile.x, tile.y))
+            pass
+            # if tile.type != 'empty' and tile not in Tile.level1:
+            #     screen.blit(
+            #         pygame.image.load('img/dark_gray_tile.png'), (tile.x, tile.y))
+            # elif tile in Tile.level1:
+            #     screen.blit(
+            #         pygame.image.load('img/wall.png'), (tile.x, tile.y))
+            # else:
+            #     screen.blit(
+            #         pygame.image.load('img/light_gray_tile.png'), (tile.x, tile.y))
