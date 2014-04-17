@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-import numpy as np
-
 
 class Level:
 
@@ -53,9 +51,7 @@ class Level:
         self.labyrinthList.extend([i + (64 * 22) for i in range(38, 44)])
         self.labyrinthList.extend([i * 64 + 43 for i in range(22, 31)])
         self.labyrinthList.extend([i * 64 + 39 for i in range(25, 34)])
-
         self.labyrinthList.extend([i + (64 * 33) for i in range(39, 46)])
-
         self.labyrinthList.extend([i * 64 + 45 for i in range(34, 41)])
         self.labyrinthList.extend([i + (64 * 40) for i in range(45, 58)])
         self.labyrinthList.extend([i * 64 + 48 for i in range(33, 38)])
@@ -70,4 +66,7 @@ class Level:
         self.labyrinthList.extend([i * 64 + 42 for i in range(15)])
         self.labyrinthList.extend([i * 64 + 57 for i in range(7, 10)])
         self.labyrinthList.extend([i + (64 * 10) for i in range(42, 58)])
-        return np.array(self.labyrinthList)
+        self.labyrinthList.extend([i + (64 * 7) for i in range(57, 62)])
+        self.labyrinthList.extend([i + (64 * 3) for i in range(57, 65)])
+
+        return self.labyrinthList

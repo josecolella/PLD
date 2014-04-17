@@ -12,8 +12,8 @@ pygame.font.init()  # Font initializer
 pygame.mixer.init()  # Music initializer
 
 # Main theme music
-pygame.mixer.music.load("audio/laberynth.ogg")
-pygame.mixer.music.play(-1)  # Continuous Loop
+#pygame.mixer.music.load("audio/laberynth.ogg")
+# pygame.mixer.music.play(-1)  # Continuous Loop
 
 screenwidth = 1024
 screenheight = 768
@@ -25,9 +25,9 @@ screen = pygame.display.set_mode((screenwidth, screenheight))
 for y in range(0, screen.get_height(), 16):
     for x in range(0, screen.get_width(), 16):
         if Tile.total_tiles in Tile.invalids:
-            Tile(x, y, 'solid', 'img/wall.png')
+            Tile(x, y, 'solid')
         else:
-            Tile(x, y, 'empty', 'img/wall.png')
+            Tile(x, y, 'empty')
 
 
 clock = pygame.time.Clock()  # Initialize Game Clock

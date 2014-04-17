@@ -61,30 +61,11 @@ class Treasure(object):
 class Tile(pygame.Rect):
 
     # The tuple of posible tile images
-    TileImageTuple = ('img/radioactive_tile.png',
-                      'img/brown_tile.png',
-                      'img/dark_gray_tile.png',
-                      'img/dark_red_tile.png',
-                      'img/light_gray_tile.png',
-                      'img/red_tile.png',
-                      'img/sewer_tile.png'
-                      )
-    middlelevel = ["xxxxxxxxxxxxxxx",
-                   "xs............x",
-                   "x.........x...x",
-                   "x.........x...x",
-                   "x......x..x...x",
-                   "x.....x...x...x",
-                   "x..p.xxxxxx...x",
-                   "x.....x.......x",
-                   "x.x....x......x",
-                   "x.x...........x",
-                   "x.x...x.......x",
-                   "x.x....x......x",
-                   "x.xxxxxxx..n..x",
-                   "x......x......x",
-                   "x.....x.......x",
-                   "xxxxxxxxxxxxxxx"]
+    TileImageTuple = (
+        'img/wall.png',
+        'img/light_gray_tile.png',
+        'img/sewer_tile.png'
+    )
 
     List = []
     # Determines the height and width of the labyrith tilek
@@ -109,16 +90,16 @@ class Tile(pygame.Rect):
     level = Level()
     invalids.extend(level.leve1())
 
-    def __init__(self, x, y, Type, image):
+    def __init__(self, x, y, Type):
 
         self.parent = None
         self.H, self.G, self.F = 0, 0, 0
 
         self.type = Type
         self.number = Tile.total_tiles
-        # randomImage = Tile.TileImageTuple[
-            # randint(0, len(Tile.TileImageTuple) - 1)]
-        self.image = pygame.image.load(image)
+        self.randomImage = Tile.TileImageTuple[
+            randint(0, len(Tile.TileImageTuple) - 1)]
+        self.image = self.randomImage
         Tile.total_tiles += 1
 
         if Type == 'empty':
@@ -140,6 +121,7 @@ class Tile(pygame.Rect):
     def draw_tiles(screen):
         for tile in Tile.List:
             if tile.type != 'empty':
-                screen.blit(tile.image, (tile.x, tile.y))
-            # if not(tile.type == 'empty'):
-                # pygame.draw.rect(screen, [40, 40, 40], tile)
+                screen.blit(
+                    pygame.image.load('img/dark_gray_tile.png'), (tile.x, tile.y))
+            else:
+                screen.blit(pygame.image.load(tile.image), (tile.x, tile.y))
