@@ -37,6 +37,7 @@ total_frames = 0
 
 level1 = pygame.image.load('img/level1.png')
 mainCharacter = MainCharacter(1 * 48, 10 * 64)
+
 # Game Loop
 while True:
 
@@ -47,9 +48,10 @@ while True:
 
     mainCharacter.movement()
 
-    #A_Star(screen, mainCharacter, total_frames, FPS)
+    # A_Star(screen, mainCharacter, total_frames, FPS)
     interaction(screen, mainCharacter)
     Tile.draw_tiles(screen)
+
     mainCharacter.draw(screen)
     # Robot.draw_zombies(screen)
 
