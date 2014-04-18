@@ -127,7 +127,10 @@ class MainCharacter(Character):
             # screen.blit(img, (self.x + h, self.y - h))
 
     def rotate(self, direction):
-
+        """
+        Method created to manage the rotation of the Character
+        and to set the appropriate image
+        """
         path = 'img/thief_'
         png = '.png'
 
@@ -262,25 +265,13 @@ class Tile(pygame.Rect):
     )
 
     List = []
-    # Determines the height and width of the labyrith tilek
+    # Determines the height and width of the labyrith tiles
     width, height = 16, 16
+    # The total tiles of the labyrinth
     total_tiles = 1
     H, V = 1, 22
 
-    # The top boundary
-    topColumnList = [i for i in range(65)]
-    # The left boundary
-    leftColumnList = [i * 64 + 1 for i in range(48)]
-    # The right boundary
-    rightColumnList = [i for i in range(64, 64 * 48 + 1, 64)]
-    # the bottom boundary
-    bottomColumnList = [i for i in range(48 * 64 - 63, 48 * 64 + 1)]
     invalids = []
-    invalids.extend(topColumnList)
-    invalids.extend(leftColumnList)
-    invalids.extend(rightColumnList)
-    invalids.extend(bottomColumnList)
-
     level = Level()
     level1 = level.leve1()
     invalids.extend(level1)
@@ -315,12 +306,10 @@ class Tile(pygame.Rect):
     @staticmethod
     def draw_tiles(screen):
         pass
-            # if tile.type != 'empty' and tile not in Tile.level1:
-            #     screen.blit(
-            #         pygame.image.load('img/dark_gray_tile.png'), (tile.x, tile.y))
-            # elif tile in Tile.level1:
-            #     screen.blit(
-            #         pygame.image.load('img/wall.png'), (tile.x, tile.y))
-            # else:
-            #     screen.blit(
-            # pygame.image.load('img/light_gray_tile.png'), (tile.x, tile.y))
+        # for tile in Tile.List:
+        #     if tile.type != 'empty' and tile not in Tile.level1:
+        #         screen.blit(
+        #             pygame.image.load('img/dark_gray_tile.png'), (tile.x, tile.y))
+        #     else:
+        #         screen.blit(
+        # pygame.image.load('img/light_gray_tile.png'), (tile.x, tile.y))

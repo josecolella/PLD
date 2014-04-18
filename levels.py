@@ -11,9 +11,19 @@ class Level:
     def __init__(self):
         """
         Creates a Level instance that has a list that determines
-        the walls for the user
+        the walls for the user. The initial wall are the outer boundaries
+        for the game
         """
         self.labyrinthList = []
+        # The top boundary
+        self.labyrinthList.extend([i for i in range(65)])
+        # The left boundary
+        self.labyrinthList.extend([i * 64 + 1 for i in range(48)])
+        # The right boundary
+        self.labyrinthList.extend([i for i in range(64, 64 * 48 + 1, 64)])
+        # the bottom boundary
+        self.labyrinthList.extend(
+            [i for i in range(48 * 64 - 63, 48 * 64 + 1)])
 
     def leve1(self):
         """
@@ -69,4 +79,4 @@ class Level:
         self.labyrinthList.extend([i + (64 * 7) for i in range(57, 62)])
         self.labyrinthList.extend([i + (64 * 3) for i in range(57, 65)])
 
-        return self.labyrinthList
+        return sorted(self.labyrinthList)
