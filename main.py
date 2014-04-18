@@ -6,6 +6,7 @@ Main Module
 import pygame
 from models import *
 from interaction import *
+from A_Star import A_Star
 
 pygame.init()  # Initialize Pygame
 pygame.font.init()  # Font initializer
@@ -35,15 +36,23 @@ FPS = 20
 total_frames = 0
 
 level1 = pygame.image.load('img/level1.png')
-mainCharacter = MainCharacter(16 * 2, 16 * 4)
+mainCharacter = MainCharacter(1 * 48, 10 * 64)
 # Game Loop
 while True:
 
-    screen.blit(level1, (0, 0))
+    screen.blit(level1, (0, 0))  # blit the background
 
+    # Robot.spawn(total_frames, FPS)
+    # Robot.movement()
+
+    mainCharacter.movement()
+
+    #A_Star(screen, mainCharacter, total_frames, FPS)
     interaction(screen, mainCharacter)
     Tile.draw_tiles(screen)
     mainCharacter.draw(screen)
+    # Robot.draw_zombies(screen)
+
     pygame.display.flip()
     clock.tick(FPS)
     total_frames += 1

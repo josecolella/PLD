@@ -12,7 +12,7 @@ class Character(pygame.Rect):
     This class is an abstract concept of what all
     classes should contain
     """
-    width, height = 32, 32
+    width, height = 16, 16
 
     def __init__(self, x, y):
 
@@ -84,7 +84,7 @@ class MainCharacter(Character):
             X = self.x - self.tx
             Y = self.y - self.ty
 
-            vel = 8
+            vel = 1
 
             if X < 0:  # --->
                 self.x += vel
@@ -152,18 +152,77 @@ class MainCharacter(Character):
                 self.img = pygame.image.load(path + self.direction + png)
 
 
-class Robot(object):
+class Robot(Character):
 
     """
     The class that represents the robots that
     defend the Treasure
     """
 
-    def __init__(self, arg):
-        pass
+    List = []
+    spawn_tiles = (9, 42, 91, 134, 193, 219, 274)
+    original_img = pygame.image.load('img/zombie.png')
+    health = 100
+
+    def __init__(self, x, y):
+
+        self.direction = 'w'
+        self.health = Robot.health
+        self.img = Robot.original_img
+        Character.__init__(self, x, y)
+        Robot.List.append(self)
+
+    @staticmethod
+    def draw_zombies(screen):
+        for robot in Robot.List:
+            screen.blit(robot.img, (robot.x, robot.y))
+
+            if robot.health <= 0:
+                Robot.List.remove(robot)
+
+    @staticmethod
+    def movement():
+        for robot in Robot.List:
+            # Target is set
+            if robot.tx is not None and robot.ty is not None:
+
+                X = robot.x - robot.tx
+                Y = robot.y - robot.ty
+
+                vel = 4
+                if X < 0:  # --->
+                    robot.x += vel
+                    robot.rotate('e', Robot.original_img)
+
+                elif X > 0:  # <----
+                    robot.x -= vel
+                    robot.rotate('w', Robot.original_img)
+
+                if Y > 0:  # up
+                    robot.y -= vel
+                    robot.rotate('n', Robot.original_img)
+
+                elif Y < 0:  # dopwn
+                    robot.y += vel
+                    robot.rotate('s', Robot.original_img)
+
+                if X == 0 and Y == 0:
+                    robot.tx, robot.ty = None, None
+
+    @staticmethod
+    def spawn(total_frames, FPS):
+        if total_frames % (FPS * 10) == 0:
+
+            sound = pygame.mixer.Sound('audio/findseekanddestroy.ogg')
+            sound.play()
+
+            r = randint(0, len(Robot.spawn_tiles) - 1)
+            tile_num = Robot.spawn_tiles[r]
+            spawn_node = Tile.get_tile(tile_num)
+            Robot(spawn_node.x, spawn_node.y)
 
 
-class Enemy(object):
+class Enemy(Character):
 
     """
     The class that represents the enemy that the
@@ -255,8 +314,7 @@ class Tile(pygame.Rect):
 
     @staticmethod
     def draw_tiles(screen):
-        for tile in Tile.List:
-            pass
+        pass
             # if tile.type != 'empty' and tile not in Tile.level1:
             #     screen.blit(
             #         pygame.image.load('img/dark_gray_tile.png'), (tile.x, tile.y))
