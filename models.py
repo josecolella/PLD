@@ -6,15 +6,150 @@ from random import randint
 from levels import Level
 
 
-class MainCharacter(object):
+class Character(pygame.Rect):
+
+    """
+    This class is an abstract concept of what all
+    classes should contain
+    """
+    width, height = 32, 32
+
+    def __init__(self, x, y):
+
+        self.tx, self.ty = None, None
+        pygame.Rect.__init__(self, x, y, Character.width, Character.height)
+
+    def __str__(self):
+        return str(self.get_number())
+
+    def set_target(self, next_tile):
+        if self.tx is None and self.ty is None:
+            self.tx = next_tile.x
+            self.ty = next_tile.y
+
+    def get_number(self):
+
+        return ((self.x / self.width) + Tile.H) + ((self.y / self.height) * Tile.V)
+
+    def get_tile(self):
+
+        return Tile.get_tile(self.get_number())
+
+    def rotate(self, direction, original_img):
+
+        if direction == 'n':
+            if self.direction != 'n':
+                self.direction = 'n'
+                south = pygame.transform.rotate(original_img, 90)  # CCW
+                self.img = pygame.transform.flip(south, False, True)
+
+        if direction == 's':
+            if self.direction != 's':
+                self.direction = 's'
+                self.img = pygame.transform.rotate(original_img, 90)  # CCW
+
+        if direction == 'e':
+            if self.direction != 'e':
+                self.direction = 'e'
+                self.img = pygame.transform.flip(original_img, True, False)
+
+        if direction == 'w':
+            if self.direction != 'w':
+                self.direction = 'w'
+                self.img = original_img
+
+
+class MainCharacter(Character):
 
     """
     This class represents the MainCharacter for the
     game
     """
 
-    def __init__(self, arg):
-        pass
+    def __init__(self, x, y):
+        """
+        Initializes the main character in the specified
+        x and y coordinates of the map
+        """
+        self.current = 0  # 0 -> pistol, 1 -> shotgun, 2 -> automatic
+        self.direction = 'w'
+        self.img = pygame.image.load('img/thief_w.png')
+
+        Character.__init__(self, x, y)
+
+    def movement(self):
+
+        if self.tx is not None and self.ty is not None:  # Target is set
+
+            X = self.x - self.tx
+            Y = self.y - self.ty
+
+            vel = 8
+
+            if X < 0:  # --->
+                self.x += vel
+            elif X > 0:  # <----
+                self.x -= vel
+
+            if Y > 0:  # up
+                self.y -= vel
+            elif Y < 0:  # dopwn
+                self.y += vel
+
+            if X == 0 and Y == 0:
+                self.tx, self.ty = None, None
+
+    def draw(self, screen):
+
+        screen.blit(self.img, (self.x, self.y))
+
+        h = self.width / 2
+        # img = MainCharacter.guns_img[self.current]
+
+        if self.direction == 'w':
+            pass
+            # screen.blit(img, (self.x, self.y + h))
+
+        elif self.direction == 'e':
+            pass
+            # img = pygame.transform.flip(img, True, False)
+            # screen.blit(img, (self.x + h, self.y + h))
+
+        elif self.direction == 's':
+            pass
+            # img = pygame.transform.rotate(img, 90)  # CCW
+            # screen.blit(img, (self.x + h, self.y + h))
+
+        elif self.direction == 'n':
+            pass
+            # south = pygame.transform.rotate(img, 90)
+            # img = pygame.transform.flip(south, False, True)
+            # screen.blit(img, (self.x + h, self.y - h))
+
+    def rotate(self, direction):
+
+        path = 'img/thief_'
+        png = '.png'
+
+        if direction == 'n':
+            if self.direction != 'n':
+                self.direction = 'n'
+                self.img = pygame.image.load(path + self.direction + png)
+
+        if direction == 's':
+            if self.direction != 's':
+                self.direction = 's'
+                self.img = pygame.image.load(path + self.direction + png)
+
+        if direction == 'e':
+            if self.direction != 'e':
+                self.direction = 'e'
+                self.img = pygame.image.load(path + self.direction + png)
+
+        if direction == 'w':
+            if self.direction != 'w':
+                self.direction = 'w'
+                self.img = pygame.image.load(path + self.direction + png)
 
 
 class Robot(object):
@@ -130,4 +265,4 @@ class Tile(pygame.Rect):
             #         pygame.image.load('img/wall.png'), (tile.x, tile.y))
             # else:
             #     screen.blit(
-            #         pygame.image.load('img/light_gray_tile.png'), (tile.x, tile.y))
+            # pygame.image.load('img/light_gray_tile.png'), (tile.x, tile.y))

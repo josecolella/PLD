@@ -35,14 +35,15 @@ FPS = 20
 total_frames = 0
 
 level1 = pygame.image.load('img/level1.png')
-
+mainCharacter = MainCharacter(16 * 2, 16 * 4)
 # Game Loop
 while True:
 
     screen.blit(level1, (0, 0))
 
-    interaction(screen)
+    interaction(screen, mainCharacter)
     Tile.draw_tiles(screen)
+    mainCharacter.draw(screen)
     pygame.display.flip()
     clock.tick(FPS)
     total_frames += 1
