@@ -7,6 +7,7 @@ import pygame
 from models import *
 from interaction import *
 from A_Star import A_Star
+from menu import show_menu
 
 pygame.init()  # Initialize Pygame
 pygame.font.init()  # Font initializer
@@ -18,9 +19,20 @@ pygame.mixer.init()  # Music initializer
 
 screenwidth = 1024
 screenheight = 768
+FPS = 20
 
 # Set screen with width and height
 screen = pygame.display.set_mode((screenwidth, screenheight))
+
+# Start game menu and get user selections
+selections = show_menu(screen, FPS)
+''' This is a menu selections example:
+{'game_music': False, 'play_game': True, 'game_sounds': True, 'unknown': False, 'show_credits': False, 'exit_game': False}
+'''
+# Process user selections
+if selections['exit_game'] == True:
+   pygame.quit()
+   exit(0)
 
 
 for y in range(0, screen.get_height(), 16):
@@ -32,7 +44,6 @@ for y in range(0, screen.get_height(), 16):
 
 
 clock = pygame.time.Clock()  # Initialize Game Clock
-FPS = 20
 total_frames = 0
 
 level1 = pygame.image.load('img/level1.png')
@@ -58,3 +69,5 @@ while True:
     pygame.display.flip()
     clock.tick(FPS)
     total_frames += 1
+    
+pygame.quit()
