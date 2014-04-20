@@ -1,0 +1,41 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{gensymb}
+
+\title{Programación Lúdica\\4\degree Grado de Informática}
+\author{José Miguel Colella y José Manuel Gómez Hernandez}
+
+
+\begin{document}
+
+\maketitle
+
+\section{Treasure Hunters}
+\label{sec:title}
+
+Esta documentación detalla el juego creado con \href{pygame.org}{pygame} donde
+destacamos el objetivo del juego y la interacción con el usuario. El juego se trata de un ``tile-based game'' en el cual el usuario esta encerrado dentro de un mundo. El juego contiene un menu en el cual el usuario tiene la opción de comenzar un juego, ver los creditos, gestionar la música, y cerrar el juego.
+Cuando el usuario pulsa sobre la opción de comenzar el juego, se le redirige al primer nível del juego. Tenemos previsto agregar la opción de cargar una session de juego antigua, usando almacenamiento ``pickle'' ó ``json''.
+
+\subsection{Objetivo del juego}
+
+El objetivo del juego es robar un objeto indicado. Este objeto estará defendido por unos robots, y además habrá otra entidad que también va a robar el objeto. El usuario tiene que robar dicho objeto antes de que la otra entidad robe el objeto y que sobreviva el ataque de los robots que defienden el objeto.
+
+
+\subsection{Interacción}
+
+La interacción del usuario con el juego consiste en las siguientes teclas:
+\begin{description}
+    \item[w]: Para que el usuario se mueva para la arriba
+    \item[s]: Para que el usuario se mueva para abajo
+    \item[d]: Para que el usuario se mueva para la derecha
+    \item[a]: Para que el usuario se mueva para la izquierda
+    \item[$\leftarrow$]: Para que el usuario haga una rotación para la izquierda en el mismo espacio
+    \item[$\rightarrow$]: Para que el usuario haga una rotación para la derecha en el mismo espacio
+    \item[$\uparrow$]: Para que el usuario haga una rotación para la arriba en el mismo espacio
+    \item[$\downarrow$]: Para que el usuario haga una rotación para la abajo en el mismo espacio
+\end{description}
+
+
+\end{document}

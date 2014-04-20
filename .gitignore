@@ -14,3 +14,8 @@ src/altgraph-0.11-py3.4.egg/*
 src/build/
 src/dist/
 src/altgraph-0.11-py3.4.egg
+
+# Latex Generation documents
+src/doc/*.fls
+src/doc/*.toc
+
