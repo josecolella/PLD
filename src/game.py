@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Main Module
+Game Module
 """
 
 import pygame
