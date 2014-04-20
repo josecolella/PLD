@@ -16,7 +16,7 @@ def write(msg="pygame is cool", size=15, color=(255, 255, 255), bold = False, fo
 class Button:
    initialized = False
 
-   
+
    def __init__(self, text, min_width = 200, selected = False):
       if not Button.initialized:
          # Load button shape from file (requires pygame.display initialized)
@@ -25,16 +25,16 @@ class Button:
          Button.unselected_tail = button_sheet.subsurface((483,34,17,34))
          Button.selected_head = button_sheet.subsurface((0,68,481,34))
          Button.selected_tail = button_sheet.subsurface((483,102,17,34))
-         Button.initialized = True  
+         Button.initialized = True
 
-      self.min_width = min_width                
+      self.min_width = min_width
       self.set_label(text)
       self.is_selected = selected
 
 
    def draw_centered(self, screen, y_pos):
       self.pos = ((screen.get_rect().width-self.width)/2, y_pos)
-      
+
       if self.is_selected:
          screen.blit(self.selected, self.pos)
       else:
@@ -44,16 +44,16 @@ class Button:
    def toggle(self):
       self.is_selected = not self.is_selected
 
-   
+
    def set_label(self, text):
       self.text_surface = write(text, 20, (0,0,0), True, "couriernew")
       self.selected = Button.make_button(self.text_surface, self.min_width, (Button.selected_head, Button.selected_tail))
-      self.unselected = Button.make_button(self.text_surface, self.min_width, (Button.unselected_head, Button.unselected_tail))   
+      self.unselected = Button.make_button(self.text_surface, self.min_width, (Button.unselected_head, Button.unselected_tail))
       rect = self.selected.get_rect()
       self.width = rect.width
       self.height = rect.height
-      
-      
+
+
    @staticmethod
    def make_button(text_surface, min_width, button_shape):
       trect = text_surface.get_rect()
@@ -69,9 +69,9 @@ class Button:
       button.blit(button_shape[1], (btrect.width+width,0))
       button.blit(text_surface, (btrect.width+(width-trect.width)/2, 5))
       return button
-      
 
-   
+
+
 def show_menu(screen, FPS):
    ''' This function shows a menu and returns the user selections '''
    menu = True
@@ -107,9 +107,9 @@ def show_menu(screen, FPS):
    # Draw buttons on screen (will set position for each one)
    for i, b in enumerate(button_list):
       b.draw_centered(screen, 200+i*50)
-      
+
    clock = pygame.time.Clock()
-   
+
    while menu:
       clock.tick(FPS)
 
@@ -137,7 +137,7 @@ def show_menu(screen, FPS):
             elif event.key == pygame.K_RETURN:
                if selected > 2:
                   selections[button_keys[selected]] = not selections[button_keys[selected]]
-                  
+
                   # Change button label (on/off buttons)
                   if button_keys[selected] == 'game_sounds':
                      if selections[button_keys[selected]]:
@@ -148,7 +148,7 @@ def show_menu(screen, FPS):
                      if selections[button_keys[selected]]:
                         button_list[selected].set_label("Game Music: On")
                      else:
-                        button_list[selected].set_label("Game Music: Off")                
+                        button_list[selected].set_label("Game Music: Off")
                else:
                   selections[button_keys[selected]] = True
                   menu = False
@@ -166,5 +166,5 @@ def show_menu(screen, FPS):
          b.draw_centered(screen, 200+i*50)
 
       pygame.display.flip()
-      
+
    return selections
