@@ -71,11 +71,10 @@ class Button:
         return button
 
 
-def show_menu(screen2, FPS):
+def show_menu(screen, FPS):
     ''' This function shows a menu and returns the user selections '''
     menu = True
     selections = {}
-    screen = pygame.Surface((1024, 768))
     # Clear screen and create menu title text surface
     screen.fill((42, 54, 64))
     menu_title = write(
@@ -171,7 +170,6 @@ def show_menu(screen2, FPS):
         for i, b in enumerate(button_list):
             b.draw_centered(screen, 200 + i * 50)
 
-        screen2.blit(pygame.transform.scale(screen, screen2.get_rect().size), (0,0))
         pygame.display.flip()
 
     return selections
