@@ -12,7 +12,8 @@ from A_Star import A_Star
 class Game:
 
     @staticmethod
-    def start(screen, screenheight, screenwidth, FPS):
+    def start(screen2, FPS):
+        screen = pygame.Surface((1024,768))
         # Main theme music
         pygame.mixer.music.load("audio/laberynth.ogg")
         pygame.mixer.music.set_volume(0.5)
@@ -53,6 +54,7 @@ class Game:
             enemy.draw(screen)
             Robot.draw_robots(screen)
 
+            screen2.blit(pygame.transform.scale(screen, screen2.get_rect().size), (0,0))
             pygame.display.flip()
             clock.tick(FPS)
             total_frames += 1

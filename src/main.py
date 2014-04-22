@@ -16,8 +16,8 @@ if __name__ == '__main__':
     menu_sound = pygame.mixer.Sound("audio/menu.ogg")  # Menu music
     menu_sound.play(-1)
 
-    screenwidth = 1024
-    screenheight = 768
+    screenwidth = 800
+    screenheight = 600
     FPS = 20
 
     # Set screen with width and height
@@ -37,4 +37,4 @@ if __name__ == '__main__':
         exit(0)
     elif selections['play_game'] == True:
         menu_sound.fadeout(1000)
-        Game.start(screen, screenheight, screenwidth, FPS)
+        Game.start(screen, FPS)
