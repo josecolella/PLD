@@ -5,15 +5,26 @@ import pygame
 from random import randint
 from levels import Level
 import itertools
+import re
+
+
+class Dimensions:
+
+    """
+    Class that defines the dimensions (height, and width) for the
+    objects that are to be created in the game
+    """
+    width = 16
+    height = 16
 
 
 class Character(pygame.Rect):
 
     """
     This class is an abstract concept of what all
-    classes should contain
+    classes should contain.
     """
-    width, height = 16, 16
+    width, height = Dimensions.width, Dimensions.height
 
     def __init__(self, x, y):
 
@@ -67,25 +78,57 @@ class MainCharacter(Character):
     game
     """
 
+    guns_img = (
+        pygame.image.load("img/shotgun.png"),
+        pygame.image.load("img/automatic.png")
+    )
+
     def __init__(self, x, y):
         """
         Initializes the main character in the specified
         x and y coordinates of the map
         """
+        self.description = "maincharacter"
         self.current = 0  # 0 -> pistol, 1 -> shotgun, 2 -> automatic
         self.direction = 'w'
         self.img = pygame.image.load('img/player_w.png')
         # Use cycle so that it iterates forever
         self.walking_west_images = itertools.cycle(
-            ('img/player_w_walk_l.png', 'img/player_w_walk_r.png'))
+            ('img/player_w_walk_l.png',
+             'img/player_w.png',
+             'img/player_w_walk_r.png'
+             )
+        )
         self.walking_east_images = itertools.cycle(
-            ('img/player_e_walk_l.png', 'img/player_e_walk_r.png'))
+            ('img/player_e_walk_l.png',
+             'img/player_e.png',
+             'img/player_e_walk_r.png'
+             )
+        )
         self.walking_north_images = itertools.cycle(
-            ('img/player_n_walk_l.png', 'img/player_n_walk_r.png'))
+            ('img/player_n_walk_l.png',
+             'img/player_n.png',
+             'img/player_n_walk_r.png'
+             )
+        )
         self.walking_south_images = itertools.cycle(
-            ('img/player_s_walk_l.png', 'img/player_s_walk_r.png'))
+            ('img/player_s_walk_l.png',
+             'img/player_s.png',
+             'img/player_s_walk_r.png'
+             )
+        )
 
         Character.__init__(self, x, y)
+
+    def get_bullet_type(self):
+        """
+        get_bullet_type() -> str the current bullet
+        """
+
+        if self.current == 0:
+            return 'automatic'
+        elif self.current == 1:
+            return 'shotgun'
 
     def movement(self, screen):
         """
@@ -129,27 +172,23 @@ class MainCharacter(Character):
         screen.blit(self.img, (self.x, self.y))
 
         h = self.width / 2
-        # img = MainCharacter.guns_img[self.current]
+        img = MainCharacter.guns_img[self.current]
 
         if self.direction == 'w':
-            pass
-            # screen.blit(img, (self.x, self.y + h))
+            screen.blit(img, (self.x, self.y + h))
 
         elif self.direction == 'e':
-            pass
-            # img = pygame.transform.flip(img, True, False)
-            # screen.blit(img, (self.x + h, self.y + h))
+            img = pygame.transform.flip(img, True, False)
+            screen.blit(img, (self.x + h, self.y + h))
 
         elif self.direction == 's':
-            pass
-            # img = pygame.transform.rotate(img, 90)  # CCW
-            # screen.blit(img, (self.x + h, self.y + h))
+            img = pygame.transform.rotate(img, 90)  # CCW
+            screen.blit(img, (self.x + h, self.y + h))
 
         elif self.direction == 'n':
-            pass
-            # south = pygame.transform.rotate(img, 90)
-            # img = pygame.transform.flip(south, False, True)
-            # screen.blit(img, (self.x + h, self.y - h))
+            south = pygame.transform.rotate(img, 90)
+            img = pygame.transform.flip(south, False, True)
+            screen.blit(img, (self.x + h, self.y - h))
 
     def rotate(self, direction):
         """
@@ -191,7 +230,8 @@ class Robot(Character):
     spawn_tiles = (9, 42, 91, 134, 193, 219, 274)
     original_img = pygame.image.load('img/guardian_s.png')
     robot_sound = itertools.cycle(
-        ('audio/findseekanddestroy.ogg', 'audio/cmu_us_rms_arctic_clunits.ogg'))
+        ('audio/findseekanddestroy.ogg', 'audio/cmu_us_rms_arctic_clunits.ogg')
+    )
     health = 100
 
     def __init__(self, x, y):
@@ -200,13 +240,29 @@ class Robot(Character):
         self.health = Robot.health
         self.img = Robot.original_img
         self.walking_west_images = itertools.cycle(
-            ('img/guardian_w_walk_l.png', 'img/guardian_w_walk_r.png'))
+            ('img/guardian_w_walk_l.png',
+             'img/guardian_w_walk_c.png',
+             'img/guardian_w_walk_r.png'
+             )
+        )
         self.walking_east_images = itertools.cycle(
-            ('img/guardian_e_walk_l.png', 'img/guardian_e_walk_r.png'))
+            ('img/guardian_e_walk_l.png',
+             'img/guardian_e_walk_c.png',
+             'img/guardian_e_walk_r.png'
+             )
+        )
         self.walking_north_images = itertools.cycle(
-            ('img/guardian_n_walk_l.png', 'img/guardian_n_walk_r.png'))
+            ('img/guardian_n_walk_l.png',
+             'img/guardian_n_walk_c.png',
+             'img/guardian_n_walk_r.png'
+             )
+        )
         self.walking_south_images = itertools.cycle(
-            ('img/guardian_s_walk_l.png', 'img/guardian_s_walk_r.png'))
+            ('img/guardian_s_walk_l.png',
+             'img/guardian_s_walk_c.png',
+             'img/guardian_s_walk_r.png'
+             )
+        )
 
         Character.__init__(self, x, y)
 
@@ -278,24 +334,45 @@ class Enemy(pygame.Rect):
     This class represents the enemy that the MainCharacter will
     compete against to steal the Treasure
     """
+    guns_img = (
+        pygame.image.load("img/shotgun.png"),
+        pygame.image.load("img/automatic.png")
+    )
 
     def __init__(self, x, y):
         """
         Initializes the main character in the specified
         x and y coordinates of the map
         """
+        self.description = "enemy"
         self.current = 0  # 0 -> pistol, 1 -> shotgun, 2 -> automatic
         self.direction = 'w'
         self.img = pygame.image.load('img/thief_w.png')
         # Use cycle so that it iterates forever
         self.walking_west_images = itertools.cycle(
-            ('img/thief_w_walk_l.png', 'img/thief_w_walk_r.png'))
+            ('img/thief_w_walk_l.png',
+             'img/thief_w.png',
+             'img/thief_w_walk_r.png'
+             )
+        )
         self.walking_east_images = itertools.cycle(
-            ('img/thief_e_walk_l.png', 'img/thief_e_walk_r.png'))
+            ('img/thief_e_walk_l.png',
+             'img/thief_e.png',
+             'img/thief_e_walk_r.png'
+             )
+        )
         self.walking_north_images = itertools.cycle(
-            ('img/thief_n_walk_l.png', 'img/thief_n_walk_r.png'))
+            ('img/thief_n_walk_l.png',
+             'img/thief_n.png',
+             'img/thief_n_walk_r.png'
+             )
+        )
         self.walking_south_images = itertools.cycle(
-            ('img/thief_s_walk_l.png', 'img/thief_s_walk_r.png'))
+            ('img/thief_s_walk_l.png',
+             'img/thief_s.png',
+             'img/thief_s_walk_r.png'
+             )
+        )
 
         Character.__init__(self, x, y)
 
@@ -310,7 +387,7 @@ class Enemy(pygame.Rect):
             X = self.x - self.tx
             Y = self.y - self.ty
 
-            vel = 8
+            vel = 4
 
             if X < 0:  # --->
 
@@ -341,26 +418,23 @@ class Enemy(pygame.Rect):
         screen.blit(self.img, (self.x, self.y))
 
         h = self.width / 2
+        img = Enemy.guns_img[self.current]
 
         if self.direction == 'w':
-            pass
-            # screen.blit(img, (self.x, self.y + h))
+            screen.blit(img, (self.x, self.y + h))
 
         elif self.direction == 'e':
-            pass
-            # img = pygame.transform.flip(img, True, False)
-            # screen.blit(img, (self.x + h, self.y + h))
+            img = pygame.transform.flip(img, True, False)
+            screen.blit(img, (self.x + h, self.y + h))
 
         elif self.direction == 's':
-            pass
-            # img = pygame.transform.rotate(img, 90)  # CCW
-            # screen.blit(img, (self.x + h, self.y + h))
+            img = pygame.transform.rotate(img, 90)  # CCW
+            screen.blit(img, (self.x + h, self.y + h))
 
         elif self.direction == 'n':
-            pass
-            # south = pygame.transform.rotate(img, 90)
-            # img = pygame.transform.flip(south, False, True)
-            # screen.blit(img, (self.x + h, self.y - h))
+            south = pygame.transform.rotate(img, 90)
+            img = pygame.transform.flip(south, False, True)
+            screen.blit(img, (self.x + h, self.y - h))
 
     def rotate(self, direction):
         """
@@ -391,15 +465,110 @@ class Enemy(pygame.Rect):
                 self.img = pygame.image.load(path + self.direction + png)
 
 
-class Laser(object):
+class Laser(pygame.Rect):
 
     """
     The class that represents the laser that the MainCharacter
     can shoot to open portals
     """
 
-    def __init__(self, arg):
-        pass
+    width, height = 3.5, 5
+    List = []
+
+    imgs = {
+        'shotgun': pygame.image.load('img/shotgun_b.png'),
+        'automatic': pygame.image.load('img/automatic_b.png')
+    }
+
+    gun_dmg = {
+        'shotgun': Robot.health / 2,
+        'automatic': (Robot.health / 6) + 1
+    }
+
+    def __init__(self, x, y, velx, vely, direction, type_):
+
+        if type_ == 'shotgun':
+            try:
+
+                dx = abs(Laser.List[-1].x - x)
+                dy = abs(Laser.List[-1].y - y)
+
+                if dx < 50 and dy < 50 and type_ == 'shotgun':
+                    return
+
+            except:
+                pass
+
+        self.type = type_
+        self.direction = direction
+        self.velx, self.vely = velx, vely
+
+        if direction == 'n':
+            south = pygame.transform.rotate(Laser.imgs[type_], 90)  # CCW
+            self.img = pygame.transform.flip(south, False, True)
+
+        if direction == 's':
+            self.img = pygame.transform.rotate(Laser.imgs[type_], 90)  # CCW
+
+        if direction == 'e':
+            self.img = pygame.transform.flip(Laser.imgs[type_], True, False)
+
+        if direction == 'w':
+            self.img = Laser.imgs[type_]
+
+        pygame.Rect.__init__(self, x, y, Laser.width, Laser.height)
+
+        Laser.List.append(self)
+
+    def offscreen(self, screen):
+
+        if self.x < 0:
+            return True
+        elif self.y < 0:
+            return True
+        elif self.x + self.width > screen.get_width():
+            return True
+        elif self.y + self.height > screen.get_height():
+            return True
+        return False
+
+    @staticmethod
+    def super_massive_jumbo_loop(screen):
+        """
+        super_massive_jumbo_loop(screen) -> Loop that deals with the removing
+        of enemies, and bullets that are shot offscreen
+        """
+        for bullet in Laser.List:
+
+            bullet.x += bullet.velx
+            bullet.y += bullet.vely
+
+            screen.blit(bullet.img, (bullet.x, bullet.y))
+
+            if bullet.offscreen(screen):
+                Laser.List.remove(bullet)
+                continue
+
+            for robot in Robot.List:
+                if bullet.colliderect(robot):
+
+                    """
+                    The same bullet cannot be used to kill
+                    multiple zombies and as the bullet was
+                    no longer in Laser.List error was raised
+                    """
+
+                    robot.health -= Laser.gun_dmg[bullet.type]
+                    Laser.List.remove(bullet)
+                    break
+
+            for tile in Tile.List:
+
+                if bullet.colliderect(tile) and not(tile.walkable):
+                    try:
+                        Laser.List.remove(bullet)
+                    except:
+                        break  # if bullet cannot be removed, then GTFO
 
 
 class Treasure(object):
@@ -416,12 +585,13 @@ class Tile(pygame.Rect):
     TileImageTuple = (
         'img/wall.png',
         'img/light_gray_tile.png',
-        'img/sewer_tile.png'
+        'img/sewer_tile.png',
+        'img/radioactive_tile.png'
     )
 
     List = []
     # Determines the height and width of the labyrith tiles
-    width, height = 16, 16
+    width, height = Dimensions.width, Dimensions.height
     # The total tiles of the labyrinth
     total_tiles = 1
     # The horizontal and vertical difference between one tile
@@ -429,8 +599,6 @@ class Tile(pygame.Rect):
     HorizontalDifference, VerticalDifference = 1, 64
     level = Level()
     invalids = level.leve1()
-    # level = Level()
-    # invalids.extend(level.leve1())
 
     def __init__(self, x, y, Type):
 
@@ -439,9 +607,6 @@ class Tile(pygame.Rect):
 
         self.type = Type
         self.number = Tile.total_tiles
-        self.randomImage = Tile.TileImageTuple[
-            randint(0, len(Tile.TileImageTuple) - 1)]
-        self.image = self.randomImage
         Tile.total_tiles += 1
 
         if Type == 'empty':
@@ -462,7 +627,76 @@ class Tile(pygame.Rect):
 
     @staticmethod
     def draw_tiles(screen):
-        pass
-        # for tile in Tile.List:
-            # if tile.type != 'empty':
-                # pygame.draw.rect(screen, [16, 16, 16], tile)
+        # pass
+        for i in Tile.level.leve1_door_coordinates():
+            tmpTile = Tile.get_tile(i)
+            if tmpTile != "empty":
+                screen.blit(pygame.image.load('img/radioactive_tile.png'), (tmpTile.x, tmpTile.y))
+            else:
+                screen.blit(pygame.image.load('img/light_gray_tile.png'), (tmpTile.x, tmpTile.y))
+
+    @staticmethod
+    def set_door_open(character):
+        if character.description == "maincharacter":  
+            for i in Tile.level.level1_player1_coordinates():
+                tile = Tile.get_tile(i)
+                Tile.List.remove(tile)
+
+                tile.walkable = True
+                tile.type = "empty"
+                Tile.List.append(tile)
+
+        elif character.description == "enemy":
+            for i in Tile.level.level1_player2_coordinates():
+                tile = Tile.get_tile(i)
+                Tile.List.remove(tile)
+
+                tile.walkable = True
+                tile.type = "empty"
+                Tile.List.append(tile)
+
+
+class Lever(pygame.sprite.Sprite):
+
+    """The class for the lever object"""
+    width = Dimensions.width
+    height = Dimensions.height
+
+    allLevers = pygame.sprite.Group()  # The group of levers
+
+    def __init__(self, x, y, image):
+        pygame.sprite.Sprite.__init__(self)
+
+        Lever.allLevers.add(self)
+        self.image = pygame.image.load(image)
+        self.animatedImages = itertools.cycle(
+            (pygame.image.load(re.sub(r'\d', '1', image)),
+             pygame.image.load(re.sub(r'\d', '2', image)),
+             pygame.image.load(image)
+
+             )
+        )
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+
+        self.off = True
+
+    def destroy(self):
+        Lever.allLevers.remove(self)
+        del self
+
+    def turnOn(self, screen):
+        """
+        turnOn() -> Method that is triggered when the MainCharacter or Enemy
+        touch a Lever and this causes the lever to open the doors
+        """
+        self.off = False
+        self.image = next(self.animatedImages)
+        screen.blit(self.image, (self.rect.x, self.rect.y))
+        pygame.time.delay(1000)
+        self.image = next(self.animatedImages)
+        screen.blit(self.image, (self.rect.x, self.rect.y))
+
+    def isNotActivated(self):
+        return self.off

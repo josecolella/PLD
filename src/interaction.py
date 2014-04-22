@@ -5,12 +5,13 @@ Interactions encompass how the characters will respond to key strokes
 
 
 import pygame
-from models import Tile
+from models import Tile, Laser
 import sys
 
 
-def interaction(screen, survivor):
+def interaction(screen, survivor, lever1, lever2):
     # Get mouse position
+    isLevelPulled = False
     Mpos = pygame.mouse.get_pos()  # [x, y]
     Mx = Mpos[0] / Tile.width
     My = Mpos[1] / Tile.height
@@ -23,6 +24,13 @@ def interaction(screen, survivor):
 
         if event.type == pygame.MOUSEBUTTONDOWN:
             print("x: {} y: {}".format(Mx, My))
+
+        if event.type == pygame.KEYDOWN:
+
+            if event.key == pygame.K_f:
+
+                survivor.current += 1
+                survivor.current %= len(Laser.imgs)
 
     # Key events
     keys = pygame.key.get_pressed()
@@ -62,15 +70,30 @@ def interaction(screen, survivor):
             if future_tile.walkable:
                 survivor.set_target(future_tile)
                 survivor.rotate('e')
+    elif keys[pygame.K_e]:  # Turn on lever
+        if lever1.isNotActivated():
+            lever1.turnOn(screen)
+            Tile.set_door_open(survivor)
+            isLevelPulled = True
                 # survivor.x += survivor.width
     if keys[pygame.K_LEFT]:
         survivor.rotate('w')
+        Laser(survivor.centerx, survivor.centery,
+              -10, 0, 'w', survivor.get_bullet_type())
 
     elif keys[pygame.K_RIGHT]:
         survivor.rotate('e')
+        Laser(survivor.centerx, survivor.centery,
+              10, 0, 'e', survivor.get_bullet_type())
 
     elif keys[pygame.K_UP]:
         survivor.rotate('n')
+        Laser(survivor.centerx, survivor.centery,
+              0, -10, 'n', survivor.get_bullet_type())
 
     elif keys[pygame.K_DOWN]:
         survivor.rotate('s')
+        Laser(survivor.centerx, survivor.centery,
+              0, 10, 's', survivor.get_bullet_type())
+
+    return isLevelPulled
