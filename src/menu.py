@@ -96,8 +96,6 @@ def show_menu(screen, FPS):
     button_keys.append('game_sounds')
     button_list.append(Button("Game Music: Off"))
     button_keys.append('game_music')
-    button_list.append(Button("Label expands button and whole area"))
-    button_keys.append('unknown')
     # Create selections dictionary
     selections = dict([(key, False) for key in button_keys])
     # First button will be selected at beginning (unselected by default)
