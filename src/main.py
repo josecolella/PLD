@@ -16,11 +16,11 @@ if __name__ == '__main__':
     menu_sound = pygame.mixer.Sound("audio/menu.ogg")  # Menu music
     menu_sound.play(-1)
 
-    # screenwidth = 800
-    # screenheight = 600
+    screenwidth = 800
+    screenheight = 600
     # Testing purpose
-    screenwidth = 1024
-    screenheight = 768
+    # screenwidth = 1024
+    # screenheight = 768
 
     FPS = 20
 
