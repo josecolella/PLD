@@ -626,18 +626,33 @@ class Tile(pygame.Rect):
                 return tile
 
     @staticmethod
-    def draw_tiles(screen):
+    def draw_tiles(screen, lever1, lever2):
         # pass
-        for i in Tile.level.leve1_door_coordinates():
-            tmpTile = Tile.get_tile(i)
-            if tmpTile != "empty":
-                screen.blit(pygame.image.load('img/radioactive_tile.png'), (tmpTile.x, tmpTile.y))
-            else:
-                screen.blit(pygame.image.load('img/light_gray_tile.png'), (tmpTile.x, tmpTile.y))
+        if lever1.off:
+            for i in Tile.level.level1_player1_coordinates():
+                tmpTile = Tile.get_tile(i)
+                screen.blit(
+                    pygame.image.load('img/radioactive_tile.png'), (tmpTile.x, tmpTile.y))
+        else:
+            for i in Tile.level.level1_player1_coordinates():
+                tmpTile = Tile.get_tile(i)
+                screen.blit(
+                    pygame.image.load('img/light_gray_tile.png'), (tmpTile.x, tmpTile.y))
+
+        if lever2.off:
+            for i in Tile.level.level1_player2_coordinates():
+                tmpTile = Tile.get_tile(i)
+                screen.blit(
+                    pygame.image.load('img/radioactive_tile.png'), (tmpTile.x, tmpTile.y))
+        else:
+            for i in Tile.level.level1_player2_coordinates():
+                tmpTile = Tile.get_tile(i)
+                screen.blit(
+                    pygame.image.load('img/light_gray_tile.png'), (tmpTile.x, tmpTile.y))
 
     @staticmethod
     def set_door_open(character):
-        if character.description == "maincharacter":  
+        if character.description == "maincharacter":
             for i in Tile.level.level1_player1_coordinates():
                 tile = Tile.get_tile(i)
                 Tile.List.remove(tile)

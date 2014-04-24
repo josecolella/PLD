@@ -13,7 +13,7 @@ class Game:
 
     @staticmethod
     def start(screen2, screenheight, screenwidth, FPS):
-        screen = pygame.Surface((1024,768))
+        screen = pygame.Surface((1024, 768))
         # Main theme music
         pygame.mixer.music.load("audio/laberynth.ogg")
         pygame.mixer.music.set_volume(0.5)
@@ -39,11 +39,10 @@ class Game:
         # background.fill((255, 255, 255))
         # screen.blit(background, (0, 0))
 
-        
         # Game Loop
         while True:
             screen.blit(level1, (0, 0))  # blit the background
-            Tile.draw_tiles(screen)
+            Tile.draw_tiles(screen, lever1, lever2)
             Robot.spawn(total_frames, FPS)
             Robot.movement(screen)
             Laser.super_massive_jumbo_loop(screen)
@@ -53,7 +52,7 @@ class Game:
             # A_Star(screen, mainCharacter, total_frames, FPS)
             leverPulled = interaction(screen, mainCharacter, lever1, lever2)
             if leverPulled:
-                Tile.draw_tiles(screen)
+                Tile.draw_tiles(screen, lever1, lever2)
 
             enemy.movement(screen)
 
@@ -61,7 +60,8 @@ class Game:
             enemy.draw(screen)
             Robot.draw_robots(screen)
             Lever.allLevers.draw(screen)
-            screen2.blit(pygame.transform.scale(screen, screen2.get_rect().size), (0,0))
+            screen2.blit(pygame.transform.scale(
+                screen, screen2.get_rect().size), (0, 0))
             pygame.display.flip()
             clock.tick(FPS)
             total_frames += 1
