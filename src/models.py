@@ -227,7 +227,8 @@ class Robot(Character):
     """
 
     List = []
-    spawn_tiles = (9, 42, 91, 134, 193, 219, 274)
+    spawn_tiles = (33 + 64 * 15, 34 + 64 * 15, 35 + 64 * 15)
+    spawn_tiles_iter = itertools.cycle(spawn_tiles)
     original_img = pygame.image.load('img/guardian_s.png')
     robot_sound = itertools.cycle(
         ('audio/findseekanddestroy.ogg', 'audio/cmu_us_rms_arctic_clunits.ogg')
@@ -317,13 +318,12 @@ class Robot(Character):
 
     @staticmethod
     def spawn(total_frames, FPS):
-        if total_frames % (FPS * 10) == 0:
+        if total_frames % (FPS * 3) == 0:
 
             sound = pygame.mixer.Sound(next(Robot.robot_sound))
             sound.play()
-
-            r = randint(0, len(Robot.spawn_tiles) - 1)
-            tile_num = Robot.spawn_tiles[r]
+ 
+            tile_num = next(Robot.spawn_tiles_iter)
             spawn_node = Tile.get_tile(tile_num)
             Robot(spawn_node.x, spawn_node.y)
 
@@ -475,6 +475,11 @@ class Laser(pygame.Rect):
     width, height = 3.5, 5
     List = []
 
+    sounds = (
+          'audio/fire.ogg',
+          'audio/bullet.ogg'
+    )
+
     imgs = {
         'shotgun': pygame.image.load('img/shotgun_b.png'),
         'automatic': pygame.image.load('img/automatic_b.png')
@@ -488,6 +493,7 @@ class Laser(pygame.Rect):
     def __init__(self, x, y, velx, vely, direction, type_):
 
         if type_ == 'shotgun':
+            
             try:
 
                 dx = abs(Laser.List[-1].x - x)
@@ -499,7 +505,13 @@ class Laser(pygame.Rect):
             except:
                 pass
 
+
         self.type = type_
+        if(self.type == 'shotgun'):
+            sound = pygame.mixer.Sound(Laser.sounds[1])
+        else:  
+            sound = pygame.mixer.Sound(Laser.sounds[0])
+        sound.play()
         self.direction = direction
         self.velx, self.vely = velx, vely
 
@@ -715,3 +727,10 @@ class Lever(pygame.sprite.Sprite):
 
     def isNotActivated(self):
         return self.off
+
+class LiveBar(pygame.sprite.Sprite):
+    """
+    The health bar that displays a Characters health
+    """
+    def __init__(self, boss):
+        self.boss = boss # The boss is the bird sprite

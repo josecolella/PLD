@@ -7,12 +7,16 @@ import pygame
 from models import *
 from interaction import *
 from A_Star import A_Star
+import json
 
 
 class Game:
 
     @staticmethod
     def start(screen2, screenheight, screenwidth, FPS):
+        """
+        Method that initializes the game and the corresponding pieces of the game
+        """
         screen = pygame.Surface((1024, 768))
         # Main theme music
         pygame.mixer.music.load("audio/laberynth.ogg")
@@ -42,15 +46,18 @@ class Game:
         # Game Loop
         while True:
             screen.blit(level1, (0, 0))  # blit the background
+
             Tile.draw_tiles(screen, lever1, lever2)
-            Robot.spawn(total_frames, FPS)
+            if(len(Robot.List) < 5):
+                Robot.spawn(total_frames, FPS)
             Robot.movement(screen)
             Laser.super_massive_jumbo_loop(screen)
 
             mainCharacter.movement(screen)
 
-            # A_Star(screen, mainCharacter, total_frames, FPS)
-            leverPulled = interaction(screen, mainCharacter, lever1, lever2)
+            #A_Star(screen, mainCharacter, total_frames, FPS)
+            leverPulled = interaction(
+                screen, mainCharacter, lever1, lever2, FPS)
             if leverPulled:
                 Tile.draw_tiles(screen, lever1, lever2)
 
@@ -67,3 +74,9 @@ class Game:
             total_frames += 1
 
         pygame.quit()
+
+    #def saveGame(mainCharacter, enemy, robots, treasure):
+
+    #    mainCharacterPositions = {"x":mainCharacter.get_tile(), "y": mainCharacter}
+    #    with open('game.json') as f:
+

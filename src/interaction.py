@@ -7,9 +7,14 @@ Interactions encompass how the characters will respond to key strokes
 import pygame
 from models import Tile, Laser
 import sys
+from menu import show_menu
 
 
-def interaction(screen, survivor, lever1, lever2):
+def interaction(screen, survivor, lever1, lever2, FPS):
+    """
+    Menu that defines the key interactions in the game and how the
+    screen will respond to the events
+    """
     # Get mouse position
     isLevelPulled = False
     Mpos = pygame.mouse.get_pos()  # [x, y]

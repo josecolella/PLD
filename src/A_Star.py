@@ -6,15 +6,15 @@ def A_Star(screen, survivor, total_frames, FPS):
     The A* algorithm used to give intelligence to the enemy.
     This algorithm should not be used yet
     """
-    N = -22
-    S = 22
+    N = -64
+    S = 64
     E = 1
     W = -1
 
-    NW = -23
-    NE = -21
-    SE = 23
-    SW = 21
+    NW = -65
+    NE = -63
+    SE = 65
+    SW = 63
 
     for tile in Tile.List:
         tile.parent = None
