@@ -61,3 +61,45 @@ class Level:
 
     def level1_player2_coordinates(self):
         return [1960, 1961, 1962]
+
+
+class Level2:
+    """
+    This class represents the different levels of the game and
+    allows for scalability of the game
+    """
+
+    def __init__(self, rep, effects, toggle):
+        """
+        Creates a Level instance from ascii text representation.
+        Requires:
+            rep : list of ascii string (one for each row) representing the whole map.
+            effects : a dictionary with object name keys that associates them to chars and handles their toggle relations. Example: {'lever':{'l':{'p'}, 'm':{'q','r'}}, 'door':{'p','q','r'}}. The lever whose char is 'l' in the representation toggles door 'p'. The lever whose char is 'm' toggles door 'q' and 'r'.
+            toggle : a dictionary from char to True/False toggle state
+        """
+        pass
+
+    def build_static_background(self, bg_tile_map):
+        """
+        Creates the static background that remains unchanged while playing this level and returns it.
+        Requires:
+            bg_tile_map: a dictionary from char to tile images needed to build background.
+        """
+        pass
+
+    def build_objects(self, class_map):
+        """
+        Creates the objects involved in this level and returns then in a dictionary form.
+        It creates a static "List" attribute for each class that groups all its instances. It builds each object and then appends it to its class "List". It also adds an attribute that relates toggle causing class to toggle affected class.
+        Requires:
+            class_map: a dictionary from char to class needed to build the objects.
+        """
+        pass
+        
+    def unwalkable_coordinates(self, ignore):
+        """
+        Returns the unwalkable coordinates not contained in ignore list
+        """
+        pass
+
+
