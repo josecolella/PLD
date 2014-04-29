@@ -38,7 +38,7 @@ class Game:
         enemy = Enemy(20 * 48, 10 * 64)
         lever1 = Lever(5 * 48, 1 * 64, 'img/lever_a_0.png')
         lever2 = Lever(15 * 48, 1 * 64, 'img/lever_b_0.png')
-        treasure = Treasure(22 + 64, 22+48)
+        treasure = Treasure(64 * 6, 22 + 48)
         # For testing purposes
         # background = pygame.Surface((screen.get_size()))
         # background.fill((255, 255, 255))
@@ -77,8 +77,7 @@ class Game:
 
         pygame.quit()
 
-    #def saveGame(mainCharacter, enemy, robots, treasure):
+    # def saveGame(mainCharacter, enemy, robots, treasure):
 
     #    mainCharacterPositions = {"x":mainCharacter.get_tile(), "y": mainCharacter}
     #    with open('game.json') as f:
-
