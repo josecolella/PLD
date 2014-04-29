@@ -38,6 +38,7 @@ class Game:
         enemy = Enemy(20 * 48, 10 * 64)
         lever1 = Lever(5 * 48, 1 * 64, 'img/lever_a_0.png')
         lever2 = Lever(15 * 48, 1 * 64, 'img/lever_b_0.png')
+        treasure = Treasure(22 + 64, 22+48)
         # For testing purposes
         # background = pygame.Surface((screen.get_size()))
         # background.fill((255, 255, 255))
@@ -46,7 +47,7 @@ class Game:
         # Game Loop
         while True:
             screen.blit(level1, (0, 0))  # blit the background
-
+            Treasure.draw(screen)
             Tile.draw_tiles(screen, lever1, lever2)
             if(len(Robot.List) < 2):
                 Robot.spawn(total_frames, FPS)

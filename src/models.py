@@ -660,12 +660,30 @@ class Laser(pygame.Rect):
                         break  # if bullet cannot be removed, then GTFO
 
 
-class Treasure(object):
+class Treasure(pygame.Rect):
 
     """
     Class that represents the object that the MainCharacter has to
     steal
     """
+
+    List = []
+    treasure_img = (
+        "img/object_1.png",
+        "img/object_2.png",
+        "img/object_3.png",
+        "img/object_4.png",
+    )
+
+    def __init__(self, x, y):
+        pygame.Rect.__init__(self, x, y, Dimensions.width, Dimensions.height)
+        self.img = pygame.image.load(Treasure.treasure_img[0])
+        Treasure.List.append(self)
+
+    @staticmethod
+    def draw(screen):
+        for treasure in Treasure.List:
+            screen.blit(treasure.img, (treasure.x, treasure.y))
 
 
 class Tile(pygame.Rect):
@@ -804,4 +822,3 @@ class Lever(pygame.sprite.Sprite):
 
     def isNotActivated(self):
         return self.off
-
