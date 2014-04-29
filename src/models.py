@@ -18,6 +18,45 @@ class Dimensions:
     height = 16
 
 
+class Livebar(pygame.Rect):
+
+    """
+    This class represent the Character's healthbar
+    """
+
+    def __init__(self, boss):
+
+        self.boss = boss
+        self.image = pygame.Surface((self.boss.width * 2, 7))
+        self.image.set_colorkey((0, 0, 0))  # black transparent
+        pygame.draw.rect(
+            self.image, (0, 255, 0), (0, 0, self.boss.width * 2, 7
+                                      ), 1)
+        self.rect = self.image.get_rect()
+        self.rect.x = self.boss.x
+        self.rect.y = self.boss.y
+        self.oldpercent = 0
+
+        pygame.Rect.__init__(
+            self, self.rect.x, self.rect.y, self.rect.width, self.rect.height)
+
+    def update(self):
+        self.percent = self.boss.health / self.boss.__class__.health
+        if self.percent != self.oldpercent:
+            # fill black
+            pygame.draw.rect(
+                self.image, (0, 0, 0), (1, 1, self.boss.width * 2 - 2, 5))
+            pygame.draw.rect(self.image, (0, 255, 0), (1, 1,
+                                                       int(self.boss.width * 2 * self.percent), 5), 0)  # fill green
+        self.oldpercent = self.percent
+        self.rect.centerx = self.boss.centerx + 7
+        self.rect.centery = self.boss.centery - \
+            self.boss.height / 2 - 15
+
+    def draw(self, screen):
+        screen.blit(self.image, (self.rect.x, self.rect.y))
+
+
 class Character(pygame.Rect):
 
     """
@@ -70,6 +109,26 @@ class Character(pygame.Rect):
                 self.direction = 'w'
                 self.img = original_img
 
+    def _move(self, direction, difference):
+        future_tile_number = self.get_number() + difference
+        if future_tile_number in range(1, Tile.total_tiles + 1):
+            future_tile = Tile.get_tile(future_tile_number)
+            if future_tile.walkable:
+                self.set_target(future_tile)
+                self.rotate(direction)
+
+    def moveEast(self):
+        self._move('e', Tile.HorizontalDifference)
+
+    def moveWest(self):
+        self._move('w', - Tile.HorizontalDifference)
+
+    def moveNorth(self):
+        self._move('n', - Tile.VerticalDifference)
+
+    def moveSouth(self):
+        self._move('s', Tile.VerticalDifference)
+
 
 class MainCharacter(Character):
 
@@ -83,11 +142,15 @@ class MainCharacter(Character):
         pygame.image.load("img/automatic.png")
     )
 
+    health = 100
+
     def __init__(self, x, y):
         """
         Initializes the main character in the specified
         x and y coordinates of the map
         """
+        self.health = MainCharacter.health
+        self.healthbar = Livebar(self)
         self.description = "maincharacter"
         self.current = 0  # 0 -> pistol, 1 -> shotgun, 2 -> automatic
         self.direction = 'w'
@@ -170,6 +233,8 @@ class MainCharacter(Character):
     def draw(self, screen):
 
         screen.blit(self.img, (self.x, self.y))
+        self.healthbar.update()
+        self.healthbar.draw(screen)
 
         h = self.width / 2
         img = MainCharacter.guns_img[self.current]
@@ -225,9 +290,10 @@ class Robot(Character):
     The class that represents the robots that
     defend the Treasure
     """
+    health = 100
 
     List = []
-    spawn_tiles = (33 + 64 * 15, 34 + 64 * 15, 35 + 64 * 15)
+    spawn_tiles = (33 + 64 * 15, 36 + 64 * 15)
     spawn_tiles_iter = itertools.cycle(spawn_tiles)
     original_img = pygame.image.load('img/guardian_s.png')
     robot_sound = itertools.cycle(
@@ -236,7 +302,8 @@ class Robot(Character):
     health = 100
 
     def __init__(self, x, y):
-
+        self.health = Robot.health
+        self.healthbar = Livebar(self)
         self.direction = 's'
         self.health = Robot.health
         self.img = Robot.original_img
@@ -273,6 +340,8 @@ class Robot(Character):
     def draw_robots(screen):
         for robot in Robot.List:
             screen.blit(robot.img, (robot.x, robot.y))
+            robot.healthbar.update()
+            robot.healthbar.draw(screen)
 
             if robot.health <= 0:
                 Robot.List.remove(robot)
@@ -322,13 +391,13 @@ class Robot(Character):
 
             sound = pygame.mixer.Sound(next(Robot.robot_sound))
             sound.play()
- 
+
             tile_num = next(Robot.spawn_tiles_iter)
             spawn_node = Tile.get_tile(tile_num)
             Robot(spawn_node.x, spawn_node.y)
 
 
-class Enemy(pygame.Rect):
+class Enemy(Character):
 
     """
     This class represents the enemy that the MainCharacter will
@@ -339,11 +408,15 @@ class Enemy(pygame.Rect):
         pygame.image.load("img/automatic.png")
     )
 
+    health = 100
+
     def __init__(self, x, y):
         """
         Initializes the main character in the specified
         x and y coordinates of the map
         """
+        self.health = Enemy.health
+        self.healthbar = Livebar(self)
         self.description = "enemy"
         self.current = 0  # 0 -> pistol, 1 -> shotgun, 2 -> automatic
         self.direction = 'w'
@@ -416,6 +489,8 @@ class Enemy(pygame.Rect):
     def draw(self, screen):
 
         screen.blit(self.img, (self.x, self.y))
+        self.healthbar.update()
+        self.healthbar.draw(screen)
 
         h = self.width / 2
         img = Enemy.guns_img[self.current]
@@ -476,8 +551,8 @@ class Laser(pygame.Rect):
     List = []
 
     sounds = (
-          'audio/fire.ogg',
-          'audio/bullet.ogg'
+        'audio/fire.ogg',
+        'audio/bullet.ogg'
     )
 
     imgs = {
@@ -493,7 +568,7 @@ class Laser(pygame.Rect):
     def __init__(self, x, y, velx, vely, direction, type_):
 
         if type_ == 'shotgun':
-            
+
             try:
 
                 dx = abs(Laser.List[-1].x - x)
@@ -505,11 +580,10 @@ class Laser(pygame.Rect):
             except:
                 pass
 
-
         self.type = type_
         if(self.type == 'shotgun'):
             sound = pygame.mixer.Sound(Laser.sounds[1])
-        else:  
+        else:
             sound = pygame.mixer.Sound(Laser.sounds[0])
         sound.play()
         self.direction = direction
@@ -566,11 +640,14 @@ class Laser(pygame.Rect):
 
                     """
                     The same bullet cannot be used to kill
-                    multiple zombies and as the bullet was
+                    multiple robot and as the bullet was
                     no longer in Laser.List error was raised
                     """
 
                     robot.health -= Laser.gun_dmg[bullet.type]
+                    robot.healthbar.update()
+                    robot.healthbar.draw(screen)
+
                     Laser.List.remove(bullet)
                     break
 
@@ -728,9 +805,3 @@ class Lever(pygame.sprite.Sprite):
     def isNotActivated(self):
         return self.off
 
-class LiveBar(pygame.sprite.Sprite):
-    """
-    The health bar that displays a Characters health
-    """
-    def __init__(self, boss):
-        self.boss = boss # The boss is the bird sprite

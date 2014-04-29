@@ -48,7 +48,7 @@ class Game:
             screen.blit(level1, (0, 0))  # blit the background
 
             Tile.draw_tiles(screen, lever1, lever2)
-            if(len(Robot.List) < 5):
+            if(len(Robot.List) < 2):
                 Robot.spawn(total_frames, FPS)
             Robot.movement(screen)
             Laser.super_massive_jumbo_loop(screen)
@@ -64,6 +64,7 @@ class Game:
             enemy.movement(screen)
 
             mainCharacter.draw(screen)
+
             enemy.draw(screen)
             Robot.draw_robots(screen)
             Lever.allLevers.draw(screen)

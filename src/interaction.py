@@ -26,10 +26,7 @@ def interaction(screen, survivor, lever1, lever2, FPS):
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
-
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            print("x: {} y: {}".format(Mx, My))
-
+        # To change weapons
         if event.type == pygame.KEYDOWN:
 
             if event.key == pygame.K_f:
@@ -42,39 +39,43 @@ def interaction(screen, survivor, lever1, lever2, FPS):
 
     # The event when the user presses w
     if keys[pygame.K_w]:  # North
-        future_tile_number = survivor.get_number() - Tile.VerticalDifference
-        if future_tile_number in range(1, Tile.total_tiles + 1):
-            future_tile = Tile.get_tile(future_tile_number)
-            if future_tile.walkable:
-                survivor.set_target(future_tile)
-                survivor.rotate('n')
-                # survivor.y -= survivor.height
+        survivor.moveNorth()
+        # future_tile_number = survivor.get_number() - Tile.VerticalDifference
+        # if future_tile_number in range(1, Tile.total_tiles + 1):
+        #     future_tile = Tile.get_tile(future_tile_number)
+        #     if future_tile.walkable:
+        #         survivor.set_target(future_tile)
+        #         survivor.rotate('n')
+
     elif keys[pygame.K_s]:  # South
-        future_tile_number = survivor.get_number() + Tile.VerticalDifference
-        if future_tile_number in range(1, Tile.total_tiles + 1):
-            future_tile = Tile.get_tile(future_tile_number)
-            if future_tile.walkable:
-                survivor.set_target(future_tile)
-                survivor.rotate('s')
-                # survivor.y += survivor.height
+        survivor.moveSouth()
+        # future_tile_number = survivor.get_number() + Tile.VerticalDifference
+        # if future_tile_number in range(1, Tile.total_tiles + 1):
+        #     future_tile = Tile.get_tile(future_tile_number)
+        #     if future_tile.walkable:
+        #         survivor.set_target(future_tile)
+        #         survivor.rotate('s')
 
     elif keys[pygame.K_a]:  # West
-        future_tile_number = survivor.get_number() - Tile.HorizontalDifference
+        survivor.moveWest()
+        # future_tile_number = survivor.get_number() - Tile.HorizontalDifference
 
-        if future_tile_number in range(1, Tile.total_tiles + 1):
-            future_tile = Tile.get_tile(future_tile_number)
-            if future_tile.walkable:
-                survivor.set_target(future_tile)
-                survivor.rotate('w')
-                # survivor.x -= survivor.width
+        # if future_tile_number in range(1, Tile.total_tiles + 1):
+        #     future_tile = Tile.get_tile(future_tile_number)
+        #     if future_tile.walkable:
+        #         survivor.set_target(future_tile)
+        #         survivor.rotate('w')
 
     elif keys[pygame.K_d]:  # East
-        future_tile_number = survivor.get_number() + Tile.HorizontalDifference
-        if future_tile_number in range(1, Tile.total_tiles + 1):
-            future_tile = Tile.get_tile(future_tile_number)
-            if future_tile.walkable:
-                survivor.set_target(future_tile)
-                survivor.rotate('e')
+        survivor.moveEast()
+        # future_tile_number = survivor.get_number() + Tile.HorizontalDifference
+
+        # if future_tile_number in range(1, Tile.total_tiles + 1):
+        #     future_tile = Tile.get_tile(future_tile_number)
+        #     if future_tile.walkable:
+        #         survivor.set_target(future_tile)
+        #         survivor.rotate('w')
+
     elif keys[pygame.K_e]:  # Turn on lever
         if lever1.isNotActivated():
             lever1.turnOn(screen)
