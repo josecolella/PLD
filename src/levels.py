@@ -10,19 +10,17 @@ class Level:
     """
 
     @staticmethod
-    def cycle_check(objects):
+    def cycle_check(toggle_objects):
         """
-        Check if toggle chains in objects do not contain cycles
+        Check if toggle chains in toggle_objects do not contain cycles
         A cycle would cause problems in non-reentrant functions and
         would exceed the maximum call depth when an object in that
         cycle calls its toggle method
         """
         h = []
-        for k in objects: 
-            if isinstance(objects[k], dict):
-                for x in objects[k]: 
-                    for y in objects[k][x]:
-                        h.append((x, y))
+        for x in toggle_objects: 
+            for y in toggle_objects[x]:
+                h.append((x, y))
 
         nh = [('a','a')]
         while len(nh)>0:
@@ -47,6 +45,7 @@ class Level:
         Check if names in objects have one unique type
         """
         names_with_type = set()
+        r_objects = {}
         for k in self.objects:
             for l in self.objects[k]:
                 names_with_type.add(l)
@@ -58,23 +57,13 @@ class Level:
                     if class_identifier != k:
                         return False
 
-        names_to_toggle = set()
-        for k in objects: 
-            if isinstance(objects[k], dict):
-                for x in objects[k]: 
-                    for y in objects[k][x]:
-                        names_to_toggle.add(y)
-
-        if len(names_to_toggle.difference_update(names_with_type))>0:        
-            return False
-        else:
-            return True
+        return True
 
 
     @staticmethod
-    def unrecognized_symbol_check(objects, rep):
+    def unrecognized_symbol_check(objects, rep, toggle_objects):
         """
-        Check if names in rep are declared in objects
+        Check if names in rep and toggle_objects are declared in objects
         """
         names_with_type = set()
         for k in self.objects:
@@ -89,18 +78,25 @@ class Level:
                 if self.rep[y][x] not in names_with_type:
                     return False
 
-        return True
+        if len(set(toggle_objects.keys()).difference_update(names_with_type))>0:        
+            return False
+        else:
+            return True
 
 
-    def __init__(self, rep, objects, width, height, min_tile_w, min_tile_h):
+    def __init__(self, rep, objects, toggle_objects, width, height, min_tile_w, min_tile_h):
         """
         Creates a Level instance from ascii text representation
         Requires:
             rep : list of ascii string (one for each row) representing
-            the whole map.
-            objects : a dictionary with object name keys that associates
-            them to chars and handles their toggle relations.
-                Example: {'lever':{'l':{'p'}, 'm':{'q','r'}}, 'door':{'p','q','r'}}.
+            the whole initial map.
+            objects : a dictionary from class identifiers to object symbols used to recognize the ascii representation.
+                Example: {'lever':{'l', 'm'}, 'door':{'p','q','r'}}.
+                Meaning: 'l' and 'm' are 'lever' objects
+                         'p', 'q', and 'r' are 'door' objects
+                         The class associated to 'door' is not known yet.
+            toggle_objects : a dictionary from chars to toggle affected chars
+                Example: {'l':{'p'}, 'm':{'q', 'r'}}
                 The lever whose char is 'l' in the representation toggles door 'p'.
                 The lever whose char is 'm' toggles door 'q' and 'r'.
             min_tile_w : width of the smallest tile (cell width)
@@ -111,15 +107,16 @@ class Level:
 
         if min_tile_w * columns != width or min_tile_h * lines != height:
             raise RuntimeWarning("Tile-based surface dimensions do not match background dimensions")
-        elif not unrecognized_symbol_check(objects, rep):
-            raise RuntimeWarning("Object representation symbol not recognized")
+        elif not unrecognized_symbol_check(objects, rep, toggle_objects):
+            raise RuntimeWarning("Object symbol class identifier not declared")
         elif not unique_type_check(objects):
             raise RuntimeWarning("Object name does not have an unique class identifier")
-        elif not cycle_check(objets):
+        elif not cycle_check(toggle_objets):
             raise RuntimeWarning("Cycle in toggle chain")
 
         self.rep = rep
         self.objects = objects
+        self.toggle_objects = toggle_objects
         self.width = width
         self.height = height
         self.min_tile_w = min_tile_w
