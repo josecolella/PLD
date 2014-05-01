@@ -176,7 +176,7 @@ class Level:
                     try:
                         model_class = class_map[class_identifier]
                     except KeyError:
-                        raise RuntimeWarning("Missing class for '"+ class_identifier+"'")
+                        raise RuntimeWarning("Missing class for '"+ class_identifier+"' identifier")
                     else:
                         model_instance = model_class(self.values[self.rep[y][x]])  # **kwargs for instance creation
                         try:
@@ -184,18 +184,16 @@ class Level:
                         except AttributeError:
                             class_map[class_identifier].List = [ model_instance ]
 
-                        for obj in self.objects[class_identifier]:
-                            if self.objects[class_identifier][obj] isinstance(set):   
-                                # obj toggle propagates to these (maybe not constructed yet) objects
-                                try:
-                                    dependencies[self.rep[y][x]].update(self.objects[class_identifier][obj])
-                                except KeyError:
-                                    dependencies[obj] = set(self.objects[class_identifier][obj])
-
                         try:
-                            built_models[class_identifier].append(model_instance)
+                            built_models[self.rep[y][x]].append(model_instance)
                         except KeyError:
-                            built_models[class_identifier] = [ model_instance ]
+                            built_models[self.rep[y][x]] = [ model_instance ]
+
+        for s in built_models:
+            for obj in built_models[s]:
+                obj.toggle_objects = self.toggle_objects[s]
+
+        return built_models
 
 
     def unwalkable_coordinates(self, ignore):
