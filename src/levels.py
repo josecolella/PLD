@@ -9,9 +9,92 @@ class Level:
     allows for scalability of the game
     """
 
-    def __init__(self, rep, objects, values, min_tile_w, min_tile_h):
+    @staticmethod
+    def cycle_check(objects):
         """
-        Creates a Level instance from ascii text representation.
+        Check if toggle chains in objects do not contain cycles
+        A cycle would cause problems in non-reentrant functions and
+        would exceed the maximum call depth when an object in that
+        cycle calls its toggle method
+        """
+        h = []
+        for k in objects: 
+            if isinstance(objects[k], dict):
+                for x in objects[k]: 
+                    for y in objects[k][x]:
+                        h.append((x, y))
+
+        nh = [('a','a')]
+        while len(nh)>0:
+            nh = []
+            for p in h:
+                for q in h:
+                    np = (p[0], q[1])
+                    if p[1] == q[0] and np not in h and np not in nh:
+                        nh.append(np)
+            h.extend(nh)
+
+        for x, y in h:
+            if x == y:   # the toggle method of x would call itself after a while
+                return False
+
+        return True
+
+
+    @staticmethod
+    def unique_type_check(objects):
+        """
+        Check if names in objects have one unique type
+        """
+        names_with_type = set()
+        for k in self.objects:
+            for l in self.objects[k]:
+                names_with_type.add(l)
+                try:
+                    class_identifier = r_objects[l]
+                except KeyError:
+                    r_object[l] = k
+                else:
+                    if class_identifier != k:
+                        return False
+
+        names_to_toggle = set()
+        for k in objects: 
+            if isinstance(objects[k], dict):
+                for x in objects[k]: 
+                    for y in objects[k][x]:
+                        names_to_toggle.add(y)
+
+        if len(names_to_toggle.difference_update(names_with_type))>0:        
+            return False
+        else:
+            return True
+
+
+    @staticmethod
+    def unrecognized_symbol_check(objects, rep):
+        """
+        Check if names in rep are declared in objects
+        """
+        names_with_type = set()
+        for k in self.objects:
+            for l in self.objects[k]:
+                names_with_type.add(l)
+
+        lines = len(rep)
+        columns = len(rep[0])
+
+        for y in range(lines):
+            for x in range(columns):
+                if self.rep[y][x] not in names_with_type:
+                    return False
+
+        return True
+
+
+    def __init__(self, rep, objects, width, height, min_tile_w, min_tile_h):
+        """
+        Creates a Level instance from ascii text representation
         Requires:
             rep : list of ascii string (one for each row) representing
             the whole map.
@@ -20,18 +103,30 @@ class Level:
                 Example: {'lever':{'l':{'p'}, 'm':{'q','r'}}, 'door':{'p','q','r'}}.
                 The lever whose char is 'l' in the representation toggles door 'p'.
                 The lever whose char is 'm' toggles door 'q' and 'r'.
-            values : a dictionary from char to dictionary for instance creation
-            min_tile_w : width of the smallest tile
-            min_tile_h : height of the smallest tile
+            min_tile_w : width of the smallest tile (cell width)
+            min_tile_h : height of the smallest tile (cell height)
         """
+        lines = len(rep)
+        columns = len(rep[0])
+
+        if min_tile_w * columns != width or min_tile_h * lines != height:
+            raise RuntimeWarning("Tile-based surface dimensions do not match background dimensions")
+        elif not unrecognized_symbol_check(objects, rep):
+            raise RuntimeWarning("Object representation symbol not recognized")
+        elif not unique_type_check(objects):
+            raise RuntimeWarning("Object name does not have an unique class identifier")
+        elif not cycle_check(objets):
+            raise RuntimeWarning("Cycle in toggle chain")
+
         self.rep = rep
         self.objects = objects
-        self.values = values
+        self.width = width
+        self.height = height
         self.min_tile_w = min_tile_w
         self.min_tile_h = min_tile_h
 
 
-    def build_static_background(self, bg_tile_map, width, height, default='default'):
+    def build_static_background(self, bg_tile_map, default='default'):
         """
         Creates the static background that remains unchanged while playing this level and returns it.
         Requires:
@@ -39,35 +134,32 @@ class Level:
         """
         lines = len(self.rep)
         columns = len(self.rep[0])
-        background = pygame.Surface((width, height))
+        background = pygame.Surface((self.width, self.height))
         #tile_rect = bg_tile_map['default'].get_rect()
 
-        if self.min_tile_w*columns > width or self.min_tile_h*lines > height:
-            print(" ** The text representation using current\n    tiles does not fit screen dimensions!")
-            print(" ** WARNING: Using black background instead")
-        else:
-            for y in range(lines):
-                for x in range(columns):
-                    if self.rep[y][x] != ' ':   # used for tiles whose size is a multiple of the smallest tile dimensions
-                        if self.rep[y][x] in bg_tile_map:
-                            background.blit(
-                                bg_tile_map[self.rep[y][x]], (self.min_tile_w * x, self.min_tile_h * y))
-                        else:
-                            background.blit(
-                                bg_tile_map[default], (self.min_tile_w * x, self.min_tile_h * y))
+        for y in range(lines):
+            for x in range(columns):
+                if self.rep[y][x] != ' ':   # used for tiles whose size is a multiple of the smallest tile dimensions
+                    if self.rep[y][x] in bg_tile_map:
+                        background.blit(
+                            bg_tile_map[self.rep[y][x]], (self.min_tile_w * x, self.min_tile_h * y))
+                    else:
+                        background.blit(
+                            bg_tile_map[default], (self.min_tile_w * x, self.min_tile_h * y))
 
         background = background.convert()
         return background
 
 
-    def build_objects(self, class_map):
+    def build_objects(self, class_map, values):
         """
         Creates the objects involved in this level and returns then in a dictionary form.
         It creates a static "List" attribute for each class that groups all its instances.
         It builds each object and then appends it to its class "List".
-        It also adds an attribute that relates toggle causing class to toggle affected class.
+        It also adds a toggle_affected attribute that relates toggle causing object to toggle affected object.
         Requires:
-            class_map: a dictionary from object names to class needed to build the objects.
+            class_map: a dictionary from class identifiers to class needed to build the objects.
+            values : a dictionary from object symbol to **kwargs for instance creation
         """
         lines = len(self.rep)
         columns = len(self.rep[0])
@@ -84,19 +176,29 @@ class Level:
                     class_identifier = r_objects[self.rep[y][x]]
                     self.values['x'] = self.min_tile_w * columns  # will override object position if given
                     self.values['y'] = self.min_tile_h * height
-                    model_instance = class_map[class_identifier](self.values)  # **kwargs for constructor
                     try:
-                        class_map[class_identifier].List.append(model_instance)
-                    except AttributeError:
-                        class_map[class_identifier].List = [ model_instance ]
-
-                    try:
-                        built_models[class_identifier].append(model_instance)
+                        model_class = class_map[class_identifier]
                     except KeyError:
-                        built_models[class_identifier] = [ model_instance ]
+                        raise RuntimeWarning("Missing class for '"+ class_identifier+"'")
+                    else:
+                        model_instance = model_class(self.values[self.rep[y][x]])  # **kwargs for instance creation
+                        try:
+                            class_map[class_identifier].List.append(model_instance)
+                        except AttributeError:
+                            class_map[class_identifier].List = [ model_instance ]
 
-        # TODO: propagation of toggle effects through toggle_ao attribute (idea: call x.toggle() for x in toggle_ao)
-        # TODO: width and height size check
+                        for obj in self.objects[class_identifier]:
+                            if self.objects[class_identifier][obj] isinstance(set):   
+                                # obj toggle propagates to these (maybe not constructed yet) objects
+                                try:
+                                    dependencies[self.rep[y][x]].update(self.objects[class_identifier][obj])
+                                except KeyError:
+                                    dependencies[obj] = set(self.objects[class_identifier][obj])
+
+                        try:
+                            built_models[class_identifier].append(model_instance)
+                        except KeyError:
+                            built_models[class_identifier] = [ model_instance ]
 
 
     def unwalkable_coordinates(self, ignore):
