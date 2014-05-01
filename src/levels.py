@@ -171,27 +171,34 @@ class Level:
             for x in range(columns):
                 if self.rep[y][x] in r_objects:  # tile symbol represents a model instance
                     class_identifier = r_objects[self.rep[y][x]]
-                    self.values['x'] = self.min_tile_w * x  # will override object position if given
-                    self.values['y'] = self.min_tile_h * y
+
                     try:
                         model_class = class_map[class_identifier]
                     except KeyError:
                         raise RuntimeWarning("Missing class for '"+ class_identifier+"' identifier")
                     else:
-                        model_instance = model_class(self.values[self.rep[y][x]])  # **kwargs for instance creation
                         try:
-                            class_map[class_identifier].List.append(model_instance)
-                        except AttributeError:
-                            class_map[class_identifier].List = [ model_instance ]
-
-                        try:
-                            built_models[self.rep[y][x]].append(model_instance)
+                            initialization = values[self.rep[y][x]]
                         except KeyError:
-                            built_models[self.rep[y][x]] = [ model_instance ]
+                            raise RuntimeWarning("Missing initialization values for '"+self.rep[y][x]+"' symbol of class '"+class_identifier+"'")
+                        else:
+                            initialization['x'] = self.min_tile_w * x  # will override object position if given
+                            initialization['y'] = self.min_tile_h * y
+                            model_instance = model_class(initialization)  # **kwargs for instance creation
+                            try:
+                                class_map[class_identifier].List.append(model_instance)
+                            except AttributeError:
+                                class_map[class_identifier].List = [ model_instance ]
+
+                            try:
+                                built_models[self.rep[y][x]].append(model_instance)
+                            except KeyError:
+                                built_models[self.rep[y][x]] = [ model_instance ]
 
         for s in built_models:
-            for obj in built_models[s]:
-                obj.toggle_objects = self.toggle_objects[s]
+            if s in self.toggle_objects:
+                for obj in built_models[s]:
+                    obj.toggle_objects = self.toggle_objects[s]
 
         return built_models
 
