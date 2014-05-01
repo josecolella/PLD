@@ -171,8 +171,8 @@ class Level:
             for x in range(columns):
                 if self.rep[y][x] in r_objects:  # tile symbol represents a model instance
                     class_identifier = r_objects[self.rep[y][x]]
-                    self.values['x'] = self.min_tile_w * columns  # will override object position if given
-                    self.values['y'] = self.min_tile_h * height
+                    self.values['x'] = self.min_tile_w * x  # will override object position if given
+                    self.values['y'] = self.min_tile_h * y
                     try:
                         model_class = class_map[class_identifier]
                     except KeyError:
@@ -196,8 +196,26 @@ class Level:
         return built_models
 
 
-    def unwalkable_coordinates(self, ignore):
+    def coordinates(self, symbols):
         """
-        Returns the unwalkable coordinates not contained in ignore list
+        Returns the coordinates that correspond to the 
+        specified symbols
         """
-        pass
+        lines = len(self.rep)
+        columns = len(self.rep[0])
+        coordinates = {}   
+
+        for y in range(lines):
+            for x in range(columns):
+                if self.rep[y][x] in symbols:
+                    try:
+                        coordinates[self.rep[y][x]].append(
+                            (self.min_tile_w * x, self.min_tile_h * y))
+                    except KeyError:
+                        coordinates[self.rep[y][x]] = [
+                            (self.min_tile_w * x, self.min_tile_h * y) ]
+
+        return coordinates
+
+
+                     
