@@ -84,6 +84,22 @@ class Level:
             return True
 
 
+    @staticmethod
+    def load_rep(filename):
+        """
+        Loads filename content and interprets it as list of ascii string (one for each row)
+        Returns the result
+        """
+        f = open(filename, 'r')
+        rep = []
+
+        for row in f:
+            rep.append(row.strip())
+
+        f.close()
+        return rep
+
+
     def __init__(self, rep, objects, toggle_objects, width, height, min_tile_w, min_tile_h):
         """
         Creates a Level instance from ascii text representation
