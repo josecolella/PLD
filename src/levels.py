@@ -185,10 +185,10 @@ class Level:
                             initialization['x'] = self.min_tile_w * x  # will override object position if given
                             initialization['y'] = self.min_tile_h * y
                             model_instance = model_class(initialization)  # **kwargs for instance creation
-                            try:
-                                class_map[class_identifier].List.append(model_instance)
-                            except AttributeError:
-                                class_map[class_identifier].List = [ model_instance ]
+                            #try:
+                            #    class_map[class_identifier].List.append(model_instance)
+                            #except AttributeError:
+                            #    class_map[class_identifier].List = [ model_instance ]
 
                             try:
                                 built_models[self.rep[y][x]].append(model_instance)
