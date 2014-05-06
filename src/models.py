@@ -807,8 +807,8 @@ class Door(pygame.sprite.Sprite):
     """
     Represents the door object
     """
-    open_door_image = "img/brown_tile.png"
-    closed_door_image = "img/radioactive_tile.png"
+    open_door_image = pygame.image.load("img/brown_tile.png")
+    closed_door_image = pygame.image.load("img/radioactive_tile.png")
     List = []
 
     def __init__(self, x, y, toggled, numberTiles):

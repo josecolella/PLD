@@ -42,14 +42,14 @@ class Game:
 
         objects = {'lever': {'l', 'm'},'door': {'p', 'q'},'player': {'j'},'enemy': {'e'},'object': {'a'},'robot': {'r'}}
 
-        toggle_objects = {'l': set('p'), 'm': set('q')}
-        tile_map = {'x': pygame.image.load('img/wall.png'),',': pygame.image.load('img/light_gray_tile.png'), '.': pygame.image.load('img/brown_tile.png'), '-': pygame.image.load('img/dark_red_tile.png')}
+        toggle_objects = {'l': {'p'}, 'm': {'q'}}
+        tile_map = {'x': pygame.image.load('img/wall.png'),',': pygame.image.load('img/dark_gray_tile.png'), '.': pygame.image.load('img/light_gray_tile.png'), '-': pygame.image.load('img/dark_red_tile.png')}
         level = Level(rep, objects, toggle_objects, width, height,16,16)
         class_map = {'lever': Lever, 'robot': Robot, 'enemy': Enemy, 'player': MainCharacter, 'door': Door, 'object': Treasure}
         values = {'l':{'image':'img/lever_a_0.png'}, 'm': {'image': 'img/lever_b_0.png'}, 'p':{'toggled':False, 'numberTiles': 3}, 'q': {'toggled': False,'numberTiles':3}, 'j': {}, 'e': {}, 'a': {}, 'r': {}}
         level.build_objects(class_map, values)
 
-        coords = level.coordiantes(['x', 'p', 'q'])
+        coords = level.coordinates(['x', 'p', 'q'])
         print(coords)
         # unwalkable = {x for k in coords for x in coords[k]}
 

@@ -44,11 +44,9 @@ class Level:
         """
         Check if names in objects have one unique type
         """
-        names_with_type = set()
         r_objects = {}
         for k in objects:
             for l in objects[k]:
-                names_with_type.add(l)
                 try:
                     class_identifier = r_objects[l]
                 except KeyError:
@@ -60,24 +58,16 @@ class Level:
         return True
 
     @staticmethod
-    def unrecognized_symbol_check(objects, rep, toggle_objects):
+    def unrecognized_symbol_check(objects, toggle_objects):
         """
-        Check if names in rep and toggle_objects are declared in objects
+        Check if names in toggle_objects are declared in objects
         """
         names_with_type = set()
         for k in objects:
             for l in objects[k]:
                 names_with_type.add(l)
 
-        lines = len(rep)
-        columns = len(rep[0])
-
-        for y in range(lines):
-            for x in range(columns):
-                if rep[y][x] not in names_with_type:
-                    return False
-
-        if len(set(toggle_objects.keys()).difference_update(names_with_type)) > 0:
+        if len(set(toggle_objects.keys()).difference(names_with_type)) > 0:
             return False
         else:
             return True
@@ -121,8 +111,8 @@ class Level:
         if min_tile_w * columns != width or min_tile_h * lines != height:
             raise RuntimeWarning(
                 "Tile-based surface dimensions do not match background dimensions")
-        # elif not Level.unrecognized_symbol_check(objects, rep, toggle_objects):
-        #     raise RuntimeWarning("Object symbol class identifier not declared")
+        elif not Level.unrecognized_symbol_check(objects, toggle_objects):
+             raise RuntimeWarning("Object symbol class identifier not declared")
         elif not Level.unique_type_check(objects):
             raise RuntimeWarning(
                 "Object name does not have an unique class identifier")
@@ -204,7 +194,12 @@ class Level:
                             initialization['x'] = self.min_tile_w * x
                             initialization['y'] = self.min_tile_h * y
                             # **kwargs for instance creation
-                            model_instance = model_class(initialization)
+                            try:
+                                model_instance = model_class(**initialization)
+                            except Exception:
+                                print(" ** An error occurred when building object '"+self.rep[y][x]+
+                                      "' of class '"+class_identifier+"'")
+                                raise
                             # try:
                             #    class_map[class_identifier].List.append(model_instance)
                             # except AttributeError:
