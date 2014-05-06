@@ -704,10 +704,10 @@ class Tile(pygame.Rect):
     # The horizontal and vertical difference between one tile
     # and another
     HorizontalDifference, VerticalDifference = 1, 64
-    level = Level()
-    invalids = level.leve1()
+    # level = Level()
+    # invalids = level.leve1()
 
-    def __init__(self, x, y, Type):
+    def __init__(self, x, y, Type, level):
 
         self.parent = None
         self.HorizontalDifference, self.G, self.F = 0, 0, 0
@@ -733,29 +733,8 @@ class Tile(pygame.Rect):
                 return tile
 
     @staticmethod
-    def draw_tiles(screen, lever1, lever2):
-        # pass
-        if lever1.off:
-            for i in Tile.level.level1_player1_coordinates():
-                tmpTile = Tile.get_tile(i)
-                screen.blit(
-                    pygame.image.load('img/radioactive_tile.png'), (tmpTile.x, tmpTile.y))
-        else:
-            for i in Tile.level.level1_player1_coordinates():
-                tmpTile = Tile.get_tile(i)
-                screen.blit(
-                    pygame.image.load('img/light_gray_tile.png'), (tmpTile.x, tmpTile.y))
-
-        if lever2.off:
-            for i in Tile.level.level1_player2_coordinates():
-                tmpTile = Tile.get_tile(i)
-                screen.blit(
-                    pygame.image.load('img/radioactive_tile.png'), (tmpTile.x, tmpTile.y))
-        else:
-            for i in Tile.level.level1_player2_coordinates():
-                tmpTile = Tile.get_tile(i)
-                screen.blit(
-                    pygame.image.load('img/light_gray_tile.png'), (tmpTile.x, tmpTile.y))
+    def draw_tiles(screen):
+        pass
 
     @staticmethod
     def set_door_open(character):
@@ -822,3 +801,44 @@ class Lever(pygame.sprite.Sprite):
 
     def isNotActivated(self):
         return self.off
+
+
+class Door(pygame.sprite.Sprite):
+    """
+    Represents the door object
+    """
+    open_door_image = "img/brown_tile.png"
+    closed_door_image = "img/radioactive_tile.png"
+    List = []
+
+    def __init__(self, x, y, toggled, numberTiles):
+        pygame.sprite.Sprite.__init__(self)
+
+        self.image = Door.closed_door_image
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+
+        self.toggled = toggled
+        self.numTiles = numberTiles
+        Door.List.append(self)
+
+    def toggle(self):
+        self.toggled = not self.toggled
+        if self.toggled:
+            self.image = Door.open_door_image
+        else:
+            self.image = Door.closed_door_image
+
+    def draw_door(self, screen):
+        """
+        This method draws the door with the corresponding number of tiles
+        """
+        for tile in range(self.numTiles):
+            screen.blit(self.image, (self.rect.x + self.rect.width * tile, self.rect.y))
+
+    @staticmethod
+    def draw(screen):
+        for door in Door.List:
+            door.draw_door(screen)
+

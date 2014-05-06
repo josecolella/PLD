@@ -18,12 +18,12 @@ class Level:
         cycle calls its toggle method
         """
         h = []
-        for x in toggle_objects: 
+        for x in toggle_objects:
             for y in toggle_objects[x]:
                 h.append((x, y))
 
-        nh = [('a','a')]
-        while len(nh)>0:
+        nh = [('a', 'a')]
+        while len(nh) > 0:
             nh = []
             for p in h:
                 for q in h:
@@ -33,11 +33,11 @@ class Level:
             h.extend(nh)
 
         for x, y in h:
-            if x == y:   # the toggle method of x would call itself after a while
+            # the toggle method of x would call itself after a while
+            if x == y:
                 return False
 
         return True
-
 
     @staticmethod
     def unique_type_check(objects):
@@ -46,19 +46,18 @@ class Level:
         """
         names_with_type = set()
         r_objects = {}
-        for k in self.objects:
-            for l in self.objects[k]:
+        for k in objects:
+            for l in objects[k]:
                 names_with_type.add(l)
                 try:
                     class_identifier = r_objects[l]
                 except KeyError:
-                    r_object[l] = k
+                    r_objects[l] = k
                 else:
                     if class_identifier != k:
                         return False
 
         return True
-
 
     @staticmethod
     def unrecognized_symbol_check(objects, rep, toggle_objects):
@@ -66,8 +65,8 @@ class Level:
         Check if names in rep and toggle_objects are declared in objects
         """
         names_with_type = set()
-        for k in self.objects:
-            for l in self.objects[k]:
+        for k in objects:
+            for l in objects[k]:
                 names_with_type.add(l)
 
         lines = len(rep)
@@ -75,14 +74,13 @@ class Level:
 
         for y in range(lines):
             for x in range(columns):
-                if self.rep[y][x] not in names_with_type:
+                if rep[y][x] not in names_with_type:
                     return False
 
-        if len(set(toggle_objects.keys()).difference_update(names_with_type))>0:        
+        if len(set(toggle_objects.keys()).difference_update(names_with_type)) > 0:
             return False
         else:
             return True
-
 
     @staticmethod
     def load_rep(filename):
@@ -98,7 +96,6 @@ class Level:
 
         f.close()
         return rep
-
 
     def __init__(self, rep, objects, toggle_objects, width, height, min_tile_w, min_tile_h):
         """
@@ -122,12 +119,14 @@ class Level:
         columns = len(rep[0])
 
         if min_tile_w * columns != width or min_tile_h * lines != height:
-            raise RuntimeWarning("Tile-based surface dimensions do not match background dimensions")
-        elif not unrecognized_symbol_check(objects, rep, toggle_objects):
-            raise RuntimeWarning("Object symbol class identifier not declared")
-        elif not unique_type_check(objects):
-            raise RuntimeWarning("Object name does not have an unique class identifier")
-        elif not cycle_check(toggle_objets):
+            raise RuntimeWarning(
+                "Tile-based surface dimensions do not match background dimensions")
+        # elif not Level.unrecognized_symbol_check(objects, rep, toggle_objects):
+        #     raise RuntimeWarning("Object symbol class identifier not declared")
+        elif not Level.unique_type_check(objects):
+            raise RuntimeWarning(
+                "Object name does not have an unique class identifier")
+        elif not Level.cycle_check(toggle_objects):
             raise RuntimeWarning("Cycle in toggle chain")
 
         self.rep = rep
@@ -137,7 +136,6 @@ class Level:
         self.height = height
         self.min_tile_w = min_tile_w
         self.min_tile_h = min_tile_h
-
 
     def build_static_background(self, bg_tile_map, default='default'):
         """
@@ -152,7 +150,9 @@ class Level:
 
         for y in range(lines):
             for x in range(columns):
-                if self.rep[y][x] != ' ':   # used for tiles whose size is a multiple of the smallest tile dimensions
+                # used for tiles whose size is a multiple of the smallest tile
+                # dimensions
+                if self.rep[y][x] != ' ':
                     if self.rep[y][x] in bg_tile_map:
                         background.blit(
                             bg_tile_map[self.rep[y][x]], (self.min_tile_w * x, self.min_tile_h * y))
@@ -162,7 +162,6 @@ class Level:
 
         background = background.convert()
         return background
-
 
     def build_objects(self, class_map, values):
         """
@@ -185,31 +184,38 @@ class Level:
 
         for y in range(lines):
             for x in range(columns):
-                if self.rep[y][x] in r_objects:  # tile symbol represents a model instance
+                # tile symbol represents a model instance
+                if self.rep[y][x] in r_objects:
                     class_identifier = r_objects[self.rep[y][x]]
 
                     try:
                         model_class = class_map[class_identifier]
                     except KeyError:
-                        raise RuntimeWarning("Missing class for '"+ class_identifier+"' identifier")
+                        raise RuntimeWarning(
+                            "Missing class for '" + class_identifier + "' identifier")
                     else:
                         try:
                             initialization = values[self.rep[y][x]]
                         except KeyError:
-                            raise RuntimeWarning("Missing initialization values for '"+self.rep[y][x]+"' symbol of class '"+class_identifier+"'")
+                            raise RuntimeWarning("Missing initialization values for '" + self.rep[
+                                                 y][x] + "' symbol of class '" + class_identifier + "'")
                         else:
-                            initialization['x'] = self.min_tile_w * x  # will override object position if given
+                            # will override object position if given
+                            initialization['x'] = self.min_tile_w * x
                             initialization['y'] = self.min_tile_h * y
-                            model_instance = model_class(initialization)  # **kwargs for instance creation
-                            #try:
+                            # **kwargs for instance creation
+                            model_instance = model_class(initialization)
+                            # try:
                             #    class_map[class_identifier].List.append(model_instance)
-                            #except AttributeError:
+                            # except AttributeError:
                             #    class_map[class_identifier].List = [ model_instance ]
 
                             try:
-                                built_models[self.rep[y][x]].append(model_instance)
+                                built_models[self.rep[y][x]].append(
+                                    model_instance)
                             except KeyError:
-                                built_models[self.rep[y][x]] = [ model_instance ]
+                                built_models[self.rep[y][x]] = [
+                                    model_instance]
 
         for s in built_models:
             if s in self.toggle_objects:
@@ -218,15 +224,14 @@ class Level:
 
         return built_models
 
-
     def coordinates(self, symbols):
         """
-        Returns the coordinates that correspond to the 
+        Returns the coordinates that correspond to the
         specified symbols
         """
         lines = len(self.rep)
         columns = len(self.rep[0])
-        coordinates = {}   
+        coordinates = {}
 
         for y in range(lines):
             for x in range(columns):
@@ -236,9 +241,6 @@ class Level:
                             (self.min_tile_w * x, self.min_tile_h * y))
                     except KeyError:
                         coordinates[self.rep[y][x]] = [
-                            (self.min_tile_w * x, self.min_tile_h * y) ]
+                            (self.min_tile_w * x, self.min_tile_h * y)]
 
         return coordinates
-
-
-                     
