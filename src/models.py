@@ -143,6 +143,7 @@ class MainCharacter(Character):
     )
 
     health = 100
+    List = []
 
     def __init__(self, x, y):
         """
@@ -182,6 +183,7 @@ class MainCharacter(Character):
         )
 
         Character.__init__(self, x, y)
+        MainCharacter.List.append(self)
 
     def get_bullet_type(self):
         """
@@ -192,6 +194,8 @@ class MainCharacter(Character):
             return 'automatic'
         elif self.current == 1:
             return 'shotgun'
+
+
 
     def movement(self, screen):
         """
@@ -255,6 +259,7 @@ class MainCharacter(Character):
             img = pygame.transform.flip(south, False, True)
             screen.blit(img, (self.x + h, self.y - h))
 
+  
     def rotate(self, direction):
         """
         Method created to manage the rotation of the Character
@@ -293,8 +298,8 @@ class Robot(Character):
     health = 100
 
     List = []
-    spawn_tiles = (33 + 64 * 15, 36 + 64 * 15)
-    spawn_tiles_iter = itertools.cycle(spawn_tiles)
+    #spawn_tiles = (33 + 64 * 15, 36 + 64 * 15)
+    #spawn_tiles_iter = itertools.cycle(spawn_tiles)
     original_img = pygame.image.load('img/guardian_s.png')
     robot_sound = itertools.cycle(
         ('audio/findseekanddestroy.ogg', 'audio/cmu_us_rms_arctic_clunits.ogg')
@@ -385,7 +390,7 @@ class Robot(Character):
                 if X == 0 and Y == 0:
                     robot.tx, robot.ty = None, None
 
-    @staticmethod
+    '''
     def spawn(total_frames, FPS):
         if total_frames % (FPS * 3) == 0:
 
@@ -395,7 +400,7 @@ class Robot(Character):
             tile_num = next(Robot.spawn_tiles_iter)
             spawn_node = Tile.get_tile(tile_num)
             Robot(spawn_node.x, spawn_node.y)
-
+    '''
 
 class Enemy(Character):
 
@@ -407,7 +412,7 @@ class Enemy(Character):
         pygame.image.load("img/shotgun.png"),
         pygame.image.load("img/automatic.png")
     )
-
+    List = [] # A List of enemies
     health = 100
 
     def __init__(self, x, y):
@@ -446,7 +451,7 @@ class Enemy(Character):
              'img/thief_s_walk_r.png'
              )
         )
-
+        Enemy.List.append(self)
         Character.__init__(self, x, y)
 
     def movement(self, screen):
@@ -486,6 +491,7 @@ class Enemy(Character):
             if X == 0 and Y == 0:
                 self.tx, self.ty = None, None
 
+   
     def draw(self, screen):
 
         screen.blit(self.img, (self.x, self.y))
@@ -707,7 +713,7 @@ class Tile(pygame.Rect):
     # level = Level()
     # invalids = level.leve1()
 
-    def __init__(self, x, y, Type, level):
+    def __init__(self, x, y, Type):
 
         self.parent = None
         self.HorizontalDifference, self.G, self.F = 0, 0, 0
@@ -802,6 +808,11 @@ class Lever(pygame.sprite.Sprite):
     def isNotActivated(self):
         return self.off
 
+    def toggle(self):
+        self.turnOn(screen)
+        for obj in self.toggle_objects:
+            obj.toggle()
+
 
 class Door(pygame.sprite.Sprite):
     """
@@ -811,7 +822,7 @@ class Door(pygame.sprite.Sprite):
     closed_door_image = pygame.image.load("img/radioactive_tile.png")
     List = []
 
-    def __init__(self, x, y, toggled, numberTiles):
+    def __init__(self, x, y, toggled):
         pygame.sprite.Sprite.__init__(self)
 
         self.image = Door.closed_door_image
@@ -820,7 +831,6 @@ class Door(pygame.sprite.Sprite):
         self.rect.y = y
 
         self.toggled = toggled
-        self.numTiles = numberTiles
         Door.List.append(self)
 
     def toggle(self):
@@ -830,15 +840,8 @@ class Door(pygame.sprite.Sprite):
         else:
             self.image = Door.closed_door_image
 
-    def draw_door(self, screen):
-        """
-        This method draws the door with the corresponding number of tiles
-        """
-        for tile in range(self.numTiles):
-            screen.blit(self.image, (self.rect.x + self.rect.width * tile, self.rect.y))
-
     @staticmethod
     def draw(screen):
         for door in Door.List:
-            door.draw_door(screen)
+            screen.blit(door.image, (door.rect.x, door.rect.y))
 

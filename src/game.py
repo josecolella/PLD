@@ -25,14 +25,6 @@ class Game:
         pygame.mixer.music.set_volume(0.5)
         pygame.mixer.music.play(-1)  # Continuous Loop
 
-
-        # for y in range(0, screen.get_height(), 16):
-        #     for x in range(0, screen.get_width(), 16):
-        #         if Tile.total_tiles in Tile.invalids:
-        #             Tile(x, y, 'solid')
-        #         else:
-        #             Tile(x, y, 'empty')
-
         clock = pygame.time.Clock()  # Initialize Game Clock
         total_frames = 0
 
@@ -46,16 +38,22 @@ class Game:
         tile_map = {'x': pygame.image.load('img/wall.png'),',': pygame.image.load('img/dark_gray_tile.png'), '.': pygame.image.load('img/light_gray_tile.png'), '-': pygame.image.load('img/dark_red_tile.png')}
         level = Level(rep, objects, toggle_objects, width, height,16,16)
         class_map = {'lever': Lever, 'robot': Robot, 'enemy': Enemy, 'player': MainCharacter, 'door': Door, 'object': Treasure}
-        values = {'l':{'image':'img/lever_a_0.png'}, 'm': {'image': 'img/lever_b_0.png'}, 'p':{'toggled':False, 'numberTiles': 3}, 'q': {'toggled': False,'numberTiles':3}, 'j': {}, 'e': {}, 'a': {}, 'r': {}}
-        level.build_objects(class_map, values)
+        values = {'l':{'image':'img/lever_a_0.png'}, 'm': {'image': 'img/lever_b_0.png'}, 'p':{'toggled':False}, 'q': {'toggled': False}, 'j': {}, 'e': {}, 'a': {}, 'r': {}}
+        built_objects = level.build_objects(class_map, values)
 
-        coords = level.coordinates(['x', 'p', 'q'])
-        print(coords)
-        # unwalkable = {x for k in coords for x in coords[k]}
-
+        coords = level.coordinates(['x', 'p', 'q', 'l', 'm'])
+        unwalkable = {x for k in coords for x in coords[k]}
+        for y in range(0, screen.get_height(), 16):
+            for x in range(0, screen.get_width(), 16):
+                if (x,y) in unwalkable:
+                    Tile(x, y, 'solid')
+                else:
+                    Tile(x, y, 'empty')
 
         # mainCharacter = MainCharacter(1 * 48, 10 * 64)
+        mainCharacter = built_objects['j'][0]
         # enemy = Enemy(20 * 48, 10 * 64)
+        enemy = built_objects['e'][0]
         # lever1 = Lever(5 * 48, 1 * 64, 'img/lever_a_0.png')
         # lever2 = Lever(15 * 48, 1 * 64, 'img/lever_b_0.png')
         # treasure = Treasure(64 * 6, 22 + 48)
@@ -70,29 +68,29 @@ class Game:
         # Game Loop
         while True:
             screen.blit(background, (0, 0))  # blit the background
-            # Treasure.draw(screen)
+            Treasure.draw(screen)
             # Tile.draw_tiles(screen, lever1, lever2)
             # if(len(Robot.List) < 2):
                 # Robot.spawn(total_frames, FPS)
-            # Robot.movement(screen)
+            #Robot.movement(screen)
             # Laser.super_massive_jumbo_loop(screen)
 
-            # mainCharacter.movement(screen)
+            mainCharacter.movement(screen)
 
             #A_Star(screen, mainCharacter, total_frames, FPS)
-            # leverPulled = interaction(
-                # screen, mainCharacter, lever1, lever2, FPS)
+            interaction(
+                    screen, mainCharacter, FPS)
             # if leverPulled:
                 # Tile.draw_tiles(screen, lever1, lever2)
 
             # enemy.movement(screen)
 
-            # mainCharacter.draw(screen)
+            mainCharacter.draw(screen)
 
-            # enemy.draw(screen)
-            # Robot.draw_robots(screen)
-            # Lever.allLevers.draw(screen)
-            #
+            enemy.draw(screen)
+            Robot.draw_robots(screen)
+            Lever.allLevers.draw(screen)
+            Door.draw(screen)
             screen2.blit(pygame.transform.scale(
                 screen, screen2.get_rect().size), (0, 0))
             pygame.display.flip()
