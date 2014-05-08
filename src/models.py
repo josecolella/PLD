@@ -779,7 +779,12 @@ class Lever(pygame.sprite.Sprite):
         self.animatedImages = itertools.cycle(
             (pygame.image.load(re.sub(r'\d', '1', image)),
              pygame.image.load(re.sub(r'\d', '2', image)),
-             pygame.image.load(image)
+
+             )
+        )
+        self.reverseAnimatedImages = itertools.cycle(
+            (pygame.image.load(re.sub(r'\d', '1', image)),
+             pygame.image.load(image),
 
              )
         )
@@ -796,7 +801,7 @@ class Lever(pygame.sprite.Sprite):
     def turnOn(self, screen):
         """
         turnOn() -> Method that is triggered when the MainCharacter or Enemy
-        touch a Lever and this causes the lever to open the doors
+        touch a deactivated Lever
         """
         self.off = False
         self.image = next(self.animatedImages)
@@ -805,13 +810,30 @@ class Lever(pygame.sprite.Sprite):
         self.image = next(self.animatedImages)
         screen.blit(self.image, (self.rect.x, self.rect.y))
 
+    def turnOff(self, screen):
+        """
+        turnOff() -> Method that is triggered when the MainCharacter or Enemy
+        touch an activated Lever
+        """
+        self.off = True
+        self.image = next(self.reverseAnimatedImages)
+        screen.blit(self.image, (self.rect.x, self.rect.y))
+        pygame.time.delay(1000)
+        self.image = next(self.reverseAnimatedImages)
+        screen.blit(self.image, (self.rect.x, self.rect.y))
+
     def isNotActivated(self):
         return self.off
 
     def toggle(self):
-        self.turnOn(screen)
-        for obj in self.toggle_objects:
-            obj.toggle()
+        if self.isNotActivated():
+            self.turnOn(screen)
+        else:
+            self.turnOff(screen)
+
+        if hasattr(self, 'toggle_objects'):
+            for obj in self.toggle_objects:
+                obj.toggle()
 
 
 class Door(pygame.sprite.Sprite):
@@ -839,6 +861,10 @@ class Door(pygame.sprite.Sprite):
             self.image = Door.open_door_image
         else:
             self.image = Door.closed_door_image
+
+        if hasattr(self, 'toggle_objects'):
+            for obj in self.toggle_objects:
+                obj.toggle()
 
     @staticmethod
     def draw(screen):
