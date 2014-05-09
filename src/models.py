@@ -872,14 +872,13 @@ class Door(pygame.sprite.Sprite):
         self.rect.y = y
 
         self.toggled = toggled
+        self.tile = self.get_tile()
         if self.toggled:
-            tile = self.get_tile()
-            tile.walkable = True
-            tile.type = 'empty'
+            self.tile.walkable = True
+            self.tile.type = 'empty'
         else:
-            tile = self.get_tile()
-            tile.walkable = False
-            tile.type = 'solid'
+            self.tile.walkable = False
+            self.tile.type = 'solid'
 
         Door.List.append(self)
 
@@ -891,13 +890,11 @@ class Door(pygame.sprite.Sprite):
             self.image = Door.closed_door_image
 
         if self.toggled:
-            tile = self.get_tile()
-            tile.walkable = True
-            tile.type = 'empty'
+            self.tile.walkable = True
+            self.tile.type = 'empty'
         else:
-            tile = self.get_tile()
-            tile.walkable = False
-            tile.type = 'solid'
+            self.tile.walkable = False
+            self.tile.type = 'solid'
 
         if hasattr(self, 'toggle_objects'):
             for obj in self.toggle_objects:
