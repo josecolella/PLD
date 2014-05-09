@@ -215,7 +215,11 @@ class Level:
         for s in built_models:
             if s in self.toggle_objects:
                 for obj in built_models[s]:
-                    obj.toggle_objects = self.toggle_objects[s]
+                    for tog in self.toggle_objects[s]:
+                        try:
+                            obj.toggle_objects.extend(built_models[tog])
+                        except AttributeError:
+                            obj.toggle_objects = list(built_models[tog])
 
         return built_models
 
