@@ -80,7 +80,7 @@ class Game:
             # if(len(Robot.List) < 2):
                 # Robot.spawn(total_frames, FPS)
             #Robot.movement(screen)
-            # Laser.super_massive_jumbo_loop(screen)
+            Laser.super_massive_jumbo_loop(screen)
 
             mainCharacter.movement(screen)
 
