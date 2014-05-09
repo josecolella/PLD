@@ -28,27 +28,34 @@ class Game:
         clock = pygame.time.Clock()  # Initialize Game Clock
         total_frames = 0
 
+        # premature tile creation to preserve tile invariant
+        # invariant: relation between tile number and tile position
+        for y in range(0, screen.get_height(), 16):
+            for x in range(0, screen.get_width(), 16):
+                Tile(x, y, 'empty')
+
         # level1 = pygame.image.load('img/level1.png')
         # Loads the initial level representation
         rep = Level.load_rep('level/level1.txt')
-
         objects = {'lever': {'l', 'm'},'door': {'p', 'q'},'player': {'j'},'enemy': {'e'},'object': {'a'},'robot': {'r'}}
-
         toggle_objects = {'l': {'p'}, 'm': {'q'}}
         tile_map = {'x': pygame.image.load('img/wall.png'),',': pygame.image.load('img/dark_gray_tile.png'), '.': pygame.image.load('img/light_gray_tile.png'), '-': pygame.image.load('img/dark_red_tile.png')}
         level = Level(rep, objects, toggle_objects, width, height,16,16)
         class_map = {'lever': Lever, 'robot': Robot, 'enemy': Enemy, 'player': MainCharacter, 'door': Door, 'object': Treasure}
-        values = {'l':{'image':'img/lever_a_0.png'}, 'm': {'image': 'img/lever_b_0.png'}, 'p':{'toggled':False}, 'q': {'toggled': False}, 'j': {}, 'e': {}, 'a': {}, 'r': {}}
+        values = {'l':{'image':'img/lever_a_0.png', 'screen': screen}, 'm': {'image': 'img/lever_b_0.png', 'screen': screen}, 'p':{'toggled':False}, 'q': {'toggled': False}, 'j': {}, 'e': {}, 'a': {}, 'r': {}}
         built_objects = level.build_objects(class_map, values)
 
-        coords = level.coordinates(['x', 'p', 'q', 'l', 'm'])
+        # make unbuildable and unwalkable objects unwalkable (walls)
+        coords = level.coordinates(['x'])
         unwalkable = {x for k in coords for x in coords[k]}
         for y in range(0, screen.get_height(), 16):
             for x in range(0, screen.get_width(), 16):
                 if (x,y) in unwalkable:
-                    Tile(x, y, 'solid')
-                else:
-                    Tile(x, y, 'empty')
+                    tile_number = ((x / 16) + Tile.HorizontalDifference) + (
+                        (y / 16) * Tile.VerticalDifference)
+                    tile = Tile.get_tile(tile_number)
+                    tile.walkable = False
+                    tile.type = 'solid'
 
         # mainCharacter = MainCharacter(1 * 48, 10 * 64)
         mainCharacter = built_objects['j'][0]
@@ -84,13 +91,12 @@ class Game:
                 # Tile.draw_tiles(screen, lever1, lever2)
 
             # enemy.movement(screen)
-
+            Door.draw(screen)
             mainCharacter.draw(screen)
 
             enemy.draw(screen)
             Robot.draw_robots(screen)
             Lever.allLevers.draw(screen)
-            Door.draw(screen)
             screen2.blit(pygame.transform.scale(
                 screen, screen2.get_rect().size), (0, 0))
             pygame.display.flip()

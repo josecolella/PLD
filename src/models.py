@@ -708,7 +708,7 @@ class Tile(pygame.Rect):
     # The total tiles of the labyrinth
     total_tiles = 1
     # The horizontal and vertical difference between one tile
-    # and another
+    # and another (64x16 = 1024 = screen.width)
     HorizontalDifference, VerticalDifference = 1, 64
     # level = Level()
     # invalids = level.leve1()
@@ -771,7 +771,15 @@ class Lever(pygame.sprite.Sprite):
 
     allLevers = pygame.sprite.Group()  # The group of levers
 
-    def __init__(self, x, y, image):
+    def get_number(self):
+
+        return ((self.rect.x / Lever.width) + Tile.HorizontalDifference) + ((self.rect.y / Lever.height) * Tile.VerticalDifference)
+
+    def get_tile(self):
+
+        return Tile.get_tile(self.get_number())
+
+    def __init__(self, x, y, image, screen):
         pygame.sprite.Sprite.__init__(self)
 
         Lever.allLevers.add(self)
@@ -791,45 +799,48 @@ class Lever(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
-
+        self.screen = screen
+        tile = self.get_tile()
+        tile.walkable = False
+        tile.type = 'solid'
         self.off = True
 
     def destroy(self):
         Lever.allLevers.remove(self)
         del self
 
-    def turnOn(self, screen):
+    def turnOn(self):
         """
         turnOn() -> Method that is triggered when the MainCharacter or Enemy
         touch a deactivated Lever
         """
         self.off = False
         self.image = next(self.animatedImages)
-        screen.blit(self.image, (self.rect.x, self.rect.y))
+        self.screen.blit(self.image, (self.rect.x, self.rect.y))
         pygame.time.delay(1000)
         self.image = next(self.animatedImages)
-        screen.blit(self.image, (self.rect.x, self.rect.y))
+        self.screen.blit(self.image, (self.rect.x, self.rect.y))
 
-    def turnOff(self, screen):
+    def turnOff(self):
         """
         turnOff() -> Method that is triggered when the MainCharacter or Enemy
         touch an activated Lever
         """
         self.off = True
         self.image = next(self.reverseAnimatedImages)
-        screen.blit(self.image, (self.rect.x, self.rect.y))
+        self.screen.blit(self.image, (self.rect.x, self.rect.y))
         pygame.time.delay(1000)
         self.image = next(self.reverseAnimatedImages)
-        screen.blit(self.image, (self.rect.x, self.rect.y))
+        self.screen.blit(self.image, (self.rect.x, self.rect.y))
 
     def isNotActivated(self):
         return self.off
 
     def toggle(self):
         if self.isNotActivated():
-            self.turnOn(screen)
+            self.turnOn()
         else:
-            self.turnOff(screen)
+            self.turnOff()
 
         if hasattr(self, 'toggle_objects'):
             for obj in self.toggle_objects:
@@ -844,6 +855,14 @@ class Door(pygame.sprite.Sprite):
     closed_door_image = pygame.image.load("img/radioactive_tile.png")
     List = []
 
+    def get_number(self):
+
+        return ((self.rect.x / self.rect.width) + Tile.HorizontalDifference) + ((self.rect.y / self.rect.height) * Tile.VerticalDifference)
+
+    def get_tile(self):
+
+        return Tile.get_tile(self.get_number())
+
     def __init__(self, x, y, toggled):
         pygame.sprite.Sprite.__init__(self)
 
@@ -853,6 +872,15 @@ class Door(pygame.sprite.Sprite):
         self.rect.y = y
 
         self.toggled = toggled
+        if self.toggled:
+            tile = self.get_tile()
+            tile.walkable = True
+            tile.type = 'empty'
+        else:
+            tile = self.get_tile()
+            tile.walkable = False
+            tile.type = 'solid'
+
         Door.List.append(self)
 
     def toggle(self):
@@ -861,6 +889,15 @@ class Door(pygame.sprite.Sprite):
             self.image = Door.open_door_image
         else:
             self.image = Door.closed_door_image
+
+        if self.toggled:
+            tile = self.get_tile()
+            tile.walkable = True
+            tile.type = 'empty'
+        else:
+            tile = self.get_tile()
+            tile.walkable = False
+            tile.type = 'solid'
 
         if hasattr(self, 'toggle_objects'):
             for obj in self.toggle_objects:

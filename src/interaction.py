@@ -5,7 +5,7 @@ Interactions encompass how the characters will respond to key strokes
 
 
 import pygame
-from models import Tile, Laser
+from models import Tile, Laser, Lever
 import sys
 from menu import show_menu
 
@@ -52,8 +52,14 @@ def interaction(screen, survivor, FPS):
     elif keys[pygame.K_d]:  # East
         survivor.moveEast()
         
-    elif keys[pygame.K_e]:  # Toggle on lever
-        pass
+    elif keys[pygame.K_e]:  # Toggle lever
+        for lever in Lever.allLevers:
+            distance2 = (lever.rect.x-survivor.x)*(lever.rect.x-survivor.x)+(
+                lever.rect.y-survivor.y)*(lever.rect.y-survivor.y)
+
+            if distance2 < 4*(lever.width*lever.width+
+                                lever.height*lever.height):
+                lever.toggle()
         #if lever1.isNotActivated():
         #   lever1.turnOn(screen)
         #   Tile.set_door_open(survivor)
