@@ -7,40 +7,130 @@ class Level:
     This class represents the different levels of the game and
     allows for scalability of the game
     """
-
-    def __init__(self):
+    @staticmethod
+    def cycle_check(toggle_objects):
         """
-        Creates a Level instance that has a list that determines
-        the walls for the user. The initial wall are the outer boundaries
-        for the game
+        Check if toggle chains in toggle_objects do not contain cycles
+        A cycle would cause problems in non-reentrant functions and
+        would exceed the maximum call depth when an object in that
+        cycle calls its toggle method
         """
-        # the initial points cover the top boundary, left boundary, right, and
-        # bottom
-        self.labyrinthList = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
-                              14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25,
-                              26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37,
-                              38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49,
-                              50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61,
-                              62, 63, 64, 1, 65, 129, 193, 257, 321, 385, 449,
-                              513, 577, 641, 705, 769, 833, 897, 961, 1025, 1089,
-                              1153, 1217, 1281, 1345, 1409, 1473, 1537, 1601, 1665,
-                              1729, 1793, 1857, 1921, 1985, 2049, 2113, 2177, 2241,
-                              2305, 2369, 2433, 2497, 2561, 2625, 2689, 2753, 2817,
-                              2881, 2945, 3009, 64, 128, 192, 256, 320, 384, 448, 512,
-                              576, 640, 704, 768, 832, 896, 960, 1024, 1088, 1152, 1216,
-                              1280, 1344, 1408, 1472, 1536, 1600, 1664, 1728, 1792, 1856,
-                              1920, 1984, 2048, 2112, 2176, 2240, 2304, 2368, 2432, 2496, 2560,
-                              2624, 2688, 2752, 2816, 2880, 2944, 3008, 3072, 3009, 3010, 3011, 3012,
-                              3013, 3014, 3015, 3016, 3017, 3018, 3019, 3020, 3021, 3022, 3023, 3024,
-                              3025, 3026, 3027, 3028, 3029, 3030, 3031, 3032, 3033, 3034, 3035, 3036,
-                              3037, 3038, 3039, 3040, 3041, 3042, 3043, 3044, 3045, 3046, 3047, 3048,
-                              3049, 3050, 3051, 3052, 3053, 3054, 3055, 3056, 3057, 3058, 3059, 3060,
-                              3061, 3062, 3063, 3064, 3065, 3066, 3067, 3068, 3069, 3070, 3071, 3072]
+        h = []
+        for x in toggle_objects:
+            for y in toggle_objects[x]:
+                h.append((x, y))
 
-    def leve1(self):
+        nh = [('a', 'a')]
+        while len(nh) > 0:
+            nh = []
+            for p in h:
+                for q in h:
+                    np = (p[0], q[1])
+                    if p[1] == q[0] and np not in h and np not in nh:
+                        nh.append(np)
+            h.extend(nh)
+
+        for x, y in h:
+            # the toggle method of x would call itself after a while
+            if x == y:
+                return False
+
+        return True
+
+    @staticmethod
+    def unique_type_check(objects):
+        """
+        Check if names in objects have one unique type
+        """
+        r_objects = {}
+        for k in objects:
+            for l in objects[k]:
+                try:
+                    class_identifier = r_objects[l]
+                except KeyError:
+                    r_objects[l] = k
+                else:
+                    if class_identifier != k:
+                        return False
+
+        return True
+
+    @staticmethod
+    def unrecognized_symbol_check(objects, toggle_objects):
+        """
+        Check if names in toggle_objects are declared in objects
+        """
+        names_with_type = set()
+        for k in objects:
+            for l in objects[k]:
+                names_with_type.add(l)
+
+        if len(set(toggle_objects.keys()).difference(names_with_type)) > 0:
+            return False
+        else:
+            return True
+
+    @staticmethod
+    def load_rep(filename):
+        """
+        Loads filename content and interprets it as list of ascii string (one for each row)
+        Returns the result
+        """
+        f = open(filename, 'r')
+        rep = []
+
+        for row in f:
+            rep.append(row.strip())
+
+        f.close()
+        return rep
+
+    def __init__(self, rep, objects, toggle_objects, width, height, min_tile_w, min_tile_h):
+        """
+        Creates a Level instance from ascii text representation
+        Requires:
+            rep : list of ascii string (one for each row) representing
+            the whole initial map.
+            objects : a dictionary from class identifiers to object symbols used to recognize the ascii representation.
+                Example: {'lever':{'l', 'm'}, 'door':{'p','q','r'}}.
+                Meaning: 'l' and 'm' are 'lever' objects
+                         'p', 'q', and 'r' are 'door' objects
+                         The class associated to 'door' is not known yet.
+            toggle_objects : a dictionary from chars to toggle affected chars
+                Example: {'l':{'p'}, 'm':{'q', 'r'}}
+                The lever whose char is 'l' in the representation toggles door 'p'.
+                The lever whose char is 'm' toggles door 'q' and 'r'.
+            min_tile_w : width of the smallest tile (cell width)
+            min_tile_h : height of the smallest tile (cell height)
+        """
+        lines = len(rep)
+        columns = len(rep[0])
+
+        if min_tile_w * columns != width or min_tile_h * lines != height:
+            raise RuntimeWarning(
+                "Tile-based surface dimensions do not match background dimensions")
+        elif not Level.unrecognized_symbol_check(objects, toggle_objects):
+             raise RuntimeWarning("Object symbol class identifier not declared")
+        elif not Level.unique_type_check(objects):
+            raise RuntimeWarning(
+                "Object name does not have an unique class identifier")
+        elif not Level.cycle_check(toggle_objects):
+            raise RuntimeWarning("Cycle in toggle chain")
+
+        self.rep = rep
+        self.objects = objects
+        self.toggle_objects = toggle_objects
+        self.width = width
+        self.height = height
+        self.min_tile_w = min_tile_w
+        self.min_tile_h = min_tile_h
+
+    def build_static_background(self, bg_tile_map, default='default'):
+>>>>>>> dev
         """
         This method returns the labyrith for level1
         """
+<<<<<<< HEAD
         # The labyrith
         self.labyrinthList.extend(
             [7, 22, 42, 57, 71, 86, 106, 121, 128, 129, 130, 131, 132, 133, 134, 135, 135, 150, 170, 185, 214, 234, 249, 250, 251, 252, 253, 254, 255, 256, 278, 298, 342, 362, 406, 426, 453, 453, 454, 455, 455, 455, 470, 490, 505, 505, 506, 507, 508, 509, 509, 517, 519, 519, 534, 554, 569, 573, 581, 583, 583, 598, 618, 633, 637, 645, 647, 648, 649, 650, 651, 652, 653, 654, 655, 656, 657, 658, 659, 660, 661, 662, 662, 682, 682, 683, 684, 685, 686, 687, 688, 689, 690, 691, 692, 693, 694, 695, 696, 697, 701, 709, 726, 746, 765, 773, 790, 810, 829, 837, 854, 874, 893, 901, 918, 938, 957, 965, 982, 982, 983, 984, 985, 986, 987, 988, 989, 990, 991, 992, 992, 998, 998, 999, 1000, 1001, 1002, 1021, 1029, 1056, 1062, 1085, 1093, 1120, 1126, 1149, 1157, 1184, 1190, 1213, 1221, 1248, 1254, 1277, 1285, 1312, 1318, 1341, 1349, 1376, 1382, 1405, 1413, 1435, 1435, 1436, 1437, 1438, 1439, 1440, 1440, 1446, 1446, 1447, 1448, 1449, 1450, 1451, 1451, 1469, 1477, 1499, 1507, 1507, 1515, 1533, 1541, 1563, 1571, 1571, 1579, 1597, 1605, 1627, 1630, 1630, 1631, 1632, 1633, 1634, 1635, 1635, 1636, 1637, 1638, 1639, 1639, 1643, 1661, 1669, 1691, 1694, 1703, 1707, 1725, 1733, 1755, 1758, 1767, 1771, 1789, 1797, 1819, 1822, 1831, 1835, 1853, 1861, 1883, 1886, 1895, 1899, 1917, 1925, 1926, 1927, 1928, 1929, 1930,
@@ -62,3 +152,115 @@ class Level:
     def level1_player2_coordinates(self):
         return [1960, 1961, 1962]
 
+=======
+        lines = len(self.rep)
+        columns = len(self.rep[0])
+        background = pygame.Surface((self.width, self.height))
+        #tile_rect = bg_tile_map['default'].get_rect()
+
+        for y in range(lines):
+            for x in range(columns):
+                # used for tiles whose size is a multiple of the smallest tile
+                # dimensions
+                if self.rep[y][x] != ' ':
+                    if self.rep[y][x] in bg_tile_map:
+                        background.blit(
+                            bg_tile_map[self.rep[y][x]], (self.min_tile_w * x, self.min_tile_h * y))
+                    else:
+                        background.blit(
+                            bg_tile_map[default], (self.min_tile_w * x, self.min_tile_h * y))
+
+        background = background.convert()
+        return background
+
+    def build_objects(self, class_map, values):
+        """
+        Creates the objects involved in this level and returns then in a dictionary form.
+        It creates a static "List" attribute for each class that groups all its instances.
+        It builds each object and then appends it to its class "List".
+        It also adds a toggle_affected attribute that relates toggle causing object to toggle affected object.
+        Requires:
+            class_map: a dictionary from class identifiers to class needed to build the objects.
+            values : a dictionary from object symbol to **kwargs for instance creation
+        """
+        lines = len(self.rep)
+        columns = len(self.rep[0])
+        r_objects = {}
+        built_models = {}
+
+        for k in self.objects:  # create a "reversed" version of self.objects
+            for l in self.objects[k]:
+                r_objects[l] = k
+
+        for y in range(lines):
+            for x in range(columns):
+                # tile symbol represents a model instance
+                if self.rep[y][x] in r_objects:
+                    class_identifier = r_objects[self.rep[y][x]]
+
+                    try:
+                        model_class = class_map[class_identifier]
+                    except KeyError:
+                        raise RuntimeWarning(
+                            "Missing class for '" + class_identifier + "' identifier")
+                    else:
+                        try:
+                            initialization = values[self.rep[y][x]]
+                        except KeyError:
+                            raise RuntimeWarning("Missing initialization values for '" + self.rep[
+                                                 y][x] + "' symbol of class '" + class_identifier + "'")
+                        else:
+                            # will override object position if given
+                            initialization['x'] = self.min_tile_w * x
+                            initialization['y'] = self.min_tile_h * y
+                            # **kwargs for instance creation
+                            try:
+                                model_instance = model_class(**initialization)
+                            except Exception:
+                                print(" ** An error occurred when building object '"+self.rep[y][x]+
+                                      "' of class '"+class_identifier+"'")
+                                raise
+                            # try:
+                            #    class_map[class_identifier].List.append(model_instance)
+                            # except AttributeError:
+                            #    class_map[class_identifier].List = [ model_instance ]
+
+                            try:
+                                built_models[self.rep[y][x]].append(
+                                    model_instance)
+                            except KeyError:
+                                built_models[self.rep[y][x]] = [
+                                    model_instance]
+
+        for s in built_models:
+            if s in self.toggle_objects:
+                for obj in built_models[s]:
+                    for tog in self.toggle_objects[s]:
+                        try:
+                            obj.toggle_objects.extend(built_models[tog])
+                        except AttributeError:
+                            obj.toggle_objects = list(built_models[tog])
+
+        return built_models
+
+    def coordinates(self, symbols):
+        """
+        Returns the coordinates that correspond to the
+        specified symbols
+        """
+        lines = len(self.rep)
+        columns = len(self.rep[0])
+        coordinates = {}
+
+        for y in range(lines):
+            for x in range(columns):
+                if self.rep[y][x] in symbols:
+                    try:
+                        coordinates[self.rep[y][x]].append(
+                            (self.min_tile_w * x, self.min_tile_h * y))
+                    except KeyError:
+                        coordinates[self.rep[y][x]] = [
+                            (self.min_tile_w * x, self.min_tile_h * y)]
+
+        return coordinates
+>>>>>>> dev

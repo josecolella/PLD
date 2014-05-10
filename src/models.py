@@ -143,6 +143,7 @@ class MainCharacter(Character):
     )
 
     health = 100
+    List = []
 
     def __init__(self, x, y):
         """
@@ -182,6 +183,7 @@ class MainCharacter(Character):
         )
 
         Character.__init__(self, x, y)
+        MainCharacter.List.append(self)
 
     def get_bullet_type(self):
         """
@@ -192,6 +194,8 @@ class MainCharacter(Character):
             return 'automatic'
         elif self.current == 1:
             return 'shotgun'
+
+
 
     def movement(self, screen):
         """
@@ -255,6 +259,7 @@ class MainCharacter(Character):
             img = pygame.transform.flip(south, False, True)
             screen.blit(img, (self.x + h, self.y - h))
 
+  
     def rotate(self, direction):
         """
         Method created to manage the rotation of the Character
@@ -293,8 +298,8 @@ class Robot(Character):
     health = 100
 
     List = []
-    spawn_tiles = (33 + 64 * 15, 36 + 64 * 15)
-    spawn_tiles_iter = itertools.cycle(spawn_tiles)
+    #spawn_tiles = (33 + 64 * 15, 36 + 64 * 15)
+    #spawn_tiles_iter = itertools.cycle(spawn_tiles)
     original_img = pygame.image.load('img/guardian_s.png')
     robot_sound = itertools.cycle(
         ('audio/findseekanddestroy.ogg', 'audio/cmu_us_rms_arctic_clunits.ogg')
@@ -385,7 +390,7 @@ class Robot(Character):
                 if X == 0 and Y == 0:
                     robot.tx, robot.ty = None, None
 
-    @staticmethod
+    '''
     def spawn(total_frames, FPS):
         if total_frames % (FPS * 3) == 0:
 
@@ -395,7 +400,7 @@ class Robot(Character):
             tile_num = next(Robot.spawn_tiles_iter)
             spawn_node = Tile.get_tile(tile_num)
             Robot(spawn_node.x, spawn_node.y)
-
+    '''
 
 class Enemy(Character):
 
@@ -407,7 +412,7 @@ class Enemy(Character):
         pygame.image.load("img/shotgun.png"),
         pygame.image.load("img/automatic.png")
     )
-
+    List = [] # A List of enemies
     health = 100
 
     def __init__(self, x, y):
@@ -446,7 +451,7 @@ class Enemy(Character):
              'img/thief_s_walk_r.png'
              )
         )
-
+        Enemy.List.append(self)
         Character.__init__(self, x, y)
 
     def movement(self, screen):
@@ -486,6 +491,7 @@ class Enemy(Character):
             if X == 0 and Y == 0:
                 self.tx, self.ty = None, None
 
+   
     def draw(self, screen):
 
         screen.blit(self.img, (self.x, self.y))
@@ -702,10 +708,10 @@ class Tile(pygame.Rect):
     # The total tiles of the labyrinth
     total_tiles = 1
     # The horizontal and vertical difference between one tile
-    # and another
+    # and another (64x16 = 1024 = screen.width)
     HorizontalDifference, VerticalDifference = 1, 64
-    level = Level()
-    invalids = level.leve1()
+    # level = Level()
+    # invalids = level.leve1()
 
     def __init__(self, x, y, Type):
 
@@ -733,29 +739,8 @@ class Tile(pygame.Rect):
                 return tile
 
     @staticmethod
-    def draw_tiles(screen, lever1, lever2):
-        # pass
-        if lever1.off:
-            for i in Tile.level.level1_player1_coordinates():
-                tmpTile = Tile.get_tile(i)
-                screen.blit(
-                    pygame.image.load('img/radioactive_tile.png'), (tmpTile.x, tmpTile.y))
-        else:
-            for i in Tile.level.level1_player1_coordinates():
-                tmpTile = Tile.get_tile(i)
-                screen.blit(
-                    pygame.image.load('img/light_gray_tile.png'), (tmpTile.x, tmpTile.y))
-
-        if lever2.off:
-            for i in Tile.level.level1_player2_coordinates():
-                tmpTile = Tile.get_tile(i)
-                screen.blit(
-                    pygame.image.load('img/radioactive_tile.png'), (tmpTile.x, tmpTile.y))
-        else:
-            for i in Tile.level.level1_player2_coordinates():
-                tmpTile = Tile.get_tile(i)
-                screen.blit(
-                    pygame.image.load('img/light_gray_tile.png'), (tmpTile.x, tmpTile.y))
+    def draw_tiles(screen):
+        pass
 
     @staticmethod
     def set_door_open(character):
@@ -786,7 +771,15 @@ class Lever(pygame.sprite.Sprite):
 
     allLevers = pygame.sprite.Group()  # The group of levers
 
-    def __init__(self, x, y, image):
+    def get_number(self):
+
+        return ((self.rect.x / Lever.width) + Tile.HorizontalDifference) + ((self.rect.y / Lever.height) * Tile.VerticalDifference)
+
+    def get_tile(self):
+
+        return Tile.get_tile(self.get_number())
+
+    def __init__(self, x, y, image, screen):
         pygame.sprite.Sprite.__init__(self)
 
         Lever.allLevers.add(self)
@@ -794,31 +787,121 @@ class Lever(pygame.sprite.Sprite):
         self.animatedImages = itertools.cycle(
             (pygame.image.load(re.sub(r'\d', '1', image)),
              pygame.image.load(re.sub(r'\d', '2', image)),
-             pygame.image.load(image)
+
+             )
+        )
+        self.reverseAnimatedImages = itertools.cycle(
+            (pygame.image.load(re.sub(r'\d', '1', image)),
+             pygame.image.load(image),
 
              )
         )
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
-
+        self.screen = screen
+        tile = self.get_tile()
+        tile.walkable = False
+        tile.type = 'solid'
         self.off = True
 
     def destroy(self):
         Lever.allLevers.remove(self)
         del self
 
-    def turnOn(self, screen):
+    def turnOn(self):
         """
         turnOn() -> Method that is triggered when the MainCharacter or Enemy
-        touch a Lever and this causes the lever to open the doors
+        touch a deactivated Lever
         """
         self.off = False
         self.image = next(self.animatedImages)
-        screen.blit(self.image, (self.rect.x, self.rect.y))
+        self.screen.blit(self.image, (self.rect.x, self.rect.y))
         pygame.time.delay(1000)
         self.image = next(self.animatedImages)
-        screen.blit(self.image, (self.rect.x, self.rect.y))
+        self.screen.blit(self.image, (self.rect.x, self.rect.y))
+
+    def turnOff(self):
+        """
+        turnOff() -> Method that is triggered when the MainCharacter or Enemy
+        touch an activated Lever
+        """
+        self.off = True
+        self.image = next(self.reverseAnimatedImages)
+        self.screen.blit(self.image, (self.rect.x, self.rect.y))
+        pygame.time.delay(1000)
+        self.image = next(self.reverseAnimatedImages)
+        self.screen.blit(self.image, (self.rect.x, self.rect.y))
 
     def isNotActivated(self):
         return self.off
+
+    def toggle(self):
+        if self.isNotActivated():
+            self.turnOn()
+        else:
+            self.turnOff()
+
+        if hasattr(self, 'toggle_objects'):
+            for obj in self.toggle_objects:
+                obj.toggle()
+
+
+class Door(pygame.sprite.Sprite):
+    """
+    Represents the door object
+    """
+    open_door_image = pygame.image.load("img/brown_tile.png")
+    closed_door_image = pygame.image.load("img/radioactive_tile.png")
+    List = []
+
+    def get_number(self):
+
+        return ((self.rect.x / self.rect.width) + Tile.HorizontalDifference) + ((self.rect.y / self.rect.height) * Tile.VerticalDifference)
+
+    def get_tile(self):
+
+        return Tile.get_tile(self.get_number())
+
+    def __init__(self, x, y, toggled):
+        pygame.sprite.Sprite.__init__(self)
+
+        self.image = Door.closed_door_image
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+
+        self.toggled = toggled
+        self.tile = self.get_tile()
+        if self.toggled:
+            self.tile.walkable = True
+            self.tile.type = 'empty'
+        else:
+            self.tile.walkable = False
+            self.tile.type = 'solid'
+
+        Door.List.append(self)
+
+    def toggle(self):
+        self.toggled = not self.toggled
+        if self.toggled:
+            self.image = Door.open_door_image
+        else:
+            self.image = Door.closed_door_image
+
+        if self.toggled:
+            self.tile.walkable = True
+            self.tile.type = 'empty'
+        else:
+            self.tile.walkable = False
+            self.tile.type = 'solid'
+
+        if hasattr(self, 'toggle_objects'):
+            for obj in self.toggle_objects:
+                obj.toggle()
+
+    @staticmethod
+    def draw(screen):
+        for door in Door.List:
+            screen.blit(door.image, (door.rect.x, door.rect.y))
+

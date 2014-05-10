@@ -5,18 +5,18 @@ Interactions encompass how the characters will respond to key strokes
 
 
 import pygame
-from models import Tile, Laser
+from models import Tile, Laser, Lever
 import sys
 from menu import show_menu
 
 
-def interaction(screen, survivor, lever1, lever2, FPS):
+def interaction(screen, survivor, FPS):
     """
     Menu that defines the key interactions in the game and how the
     screen will respond to the events
     """
     # Get mouse position
-    isLevelPulled = False
+    
     Mpos = pygame.mouse.get_pos()  # [x, y]
     Mx = Mpos[0] / Tile.width
     My = Mpos[1] / Tile.height
@@ -40,48 +40,31 @@ def interaction(screen, survivor, lever1, lever2, FPS):
     # The event when the user presses w
     if keys[pygame.K_w]:  # North
         survivor.moveNorth()
-        # future_tile_number = survivor.get_number() - Tile.VerticalDifference
-        # if future_tile_number in range(1, Tile.total_tiles + 1):
-        #     future_tile = Tile.get_tile(future_tile_number)
-        #     if future_tile.walkable:
-        #         survivor.set_target(future_tile)
-        #         survivor.rotate('n')
 
     elif keys[pygame.K_s]:  # South
         survivor.moveSouth()
-        # future_tile_number = survivor.get_number() + Tile.VerticalDifference
-        # if future_tile_number in range(1, Tile.total_tiles + 1):
-        #     future_tile = Tile.get_tile(future_tile_number)
-        #     if future_tile.walkable:
-        #         survivor.set_target(future_tile)
-        #         survivor.rotate('s')
+        
 
     elif keys[pygame.K_a]:  # West
         survivor.moveWest()
-        # future_tile_number = survivor.get_number() - Tile.HorizontalDifference
-
-        # if future_tile_number in range(1, Tile.total_tiles + 1):
-        #     future_tile = Tile.get_tile(future_tile_number)
-        #     if future_tile.walkable:
-        #         survivor.set_target(future_tile)
-        #         survivor.rotate('w')
+       
 
     elif keys[pygame.K_d]:  # East
         survivor.moveEast()
-        # future_tile_number = survivor.get_number() + Tile.HorizontalDifference
+        
+    elif keys[pygame.K_e]:  # Toggle lever
+        for lever in Lever.allLevers:
+            distance2 = (lever.rect.x-survivor.x)*(lever.rect.x-survivor.x)+(
+                lever.rect.y-survivor.y)*(lever.rect.y-survivor.y)
 
-        # if future_tile_number in range(1, Tile.total_tiles + 1):
-        #     future_tile = Tile.get_tile(future_tile_number)
-        #     if future_tile.walkable:
-        #         survivor.set_target(future_tile)
-        #         survivor.rotate('w')
-
-    elif keys[pygame.K_e]:  # Turn on lever
-        if lever1.isNotActivated():
-            lever1.turnOn(screen)
-            Tile.set_door_open(survivor)
-            isLevelPulled = True
-                # survivor.x += survivor.width
+            if distance2 < 4*(lever.width*lever.width+
+                                lever.height*lever.height):
+                lever.toggle()
+        #if lever1.isNotActivated():
+        #   lever1.turnOn(screen)
+        #   Tile.set_door_open(survivor)
+        #   isLevelPulled = True
+        # survivor.x += survivor.width
     if keys[pygame.K_LEFT]:
         survivor.rotate('w')
         Laser(survivor.centerx, survivor.centery,
@@ -102,4 +85,4 @@ def interaction(screen, survivor, lever1, lever2, FPS):
         Laser(survivor.centerx, survivor.centery,
               0, 10, 's', survivor.get_bullet_type())
 
-    return isLevelPulled
+
