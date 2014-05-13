@@ -259,7 +259,7 @@ class MainCharacter(Character):
             img = pygame.transform.flip(south, False, True)
             screen.blit(img, (self.x + h, self.y - h))
 
-  
+
     def rotate(self, direction):
         """
         Method created to manage the rotation of the Character
@@ -491,7 +491,7 @@ class Enemy(Character):
             if X == 0 and Y == 0:
                 self.tx, self.ty = None, None
 
-   
+
     def draw(self, screen):
 
         screen.blit(self.img, (self.x, self.y))
@@ -905,3 +905,108 @@ class Door(pygame.sprite.Sprite):
         for door in Door.List:
             screen.blit(door.image, (door.rect.x, door.rect.y))
 
+
+class LevelList:
+    """
+    The object that represents all the levels in the game
+    """
+
+    def __init__(self, width, height, screen):
+        """
+        Creates a LevelList object that works with a certain width, height, and screen
+        """
+        self.width = width
+        self.height = height
+        self.screen = screen
+
+    def allLevels(self):
+        """
+        Returns all the levels in the form of a tuple
+
+        allLevels() -> tuple(dict, dict, ...)
+        """
+        return (
+            self.level1Representation(),
+            self.level2Representation()
+        )
+
+    def level1Representation(self):
+        """
+        Returns the representation for the first level of the game
+
+        level1Representation() -> dict with keys
+            rep,
+            objects,
+            toggle_objects,
+            tile_map, level,
+            class_map, values,
+            built_objects,
+            coords,
+            unwalkable
+        """
+        rep = Level.load_rep('level/level1.txt')
+        objects = {
+            'lever': {'l', 'm'},
+            'door': {'p', 'q'},
+            'player': {'j'},
+            'enemy': {'e'},
+            'object': {'a'},
+            'robot': {'r'}
+        }
+        toggle_objects = {
+            'l': {'p'},
+            'm': {'q'}
+        }
+        tile_map = {
+            'x': pygame.image.load('img/wall.png'),
+            ',': pygame.image.load('img/dark_gray_tile.png'),
+            '.': pygame.image.load('img/light_gray_tile.png'),
+            '-': pygame.image.load('img/dark_red_tile.png')
+        }
+        level = Level(
+            rep,
+            objects,
+            toggle_objects,
+            self.width,
+            self.height,
+            Dimensions.width,
+            Dimensions.height
+        )
+        class_map = {
+            'lever': Lever,
+            'robot': Robot,
+            'enemy': Enemy,
+            'player': MainCharacter,
+            'door': Door,
+            'object': Treasure
+        }
+        values = {
+            'l':{'image':'img/lever_a_0.png', 'screen': self.screen},
+            'm': {'image': 'img/lever_b_0.png', 'screen': self.screen},
+            'p':{'toggled':False},
+            'q': {'toggled': False},
+            'j': {},
+            'e': {},
+            'a': {},
+            'r': {}
+        }
+        built_objects = level.build_objects(class_map, values)
+        coords = level.coordinates(['x'])
+        unwalkable = {x for k in coords for x in coords[k]}
+
+        level1Dict = {
+          'rep': rep,
+          'objects': objects,
+          'toggle_objects': toggle_objects,
+          'tile_map': tile_map,
+          'level': level,
+          'class_map': class_map,
+          'values': values,
+          'built_objects': built_objects,
+          'coords': coords,
+          'unwalkable': unwalkable
+        }
+        return level1Dict
+
+    def level2Representation(self):
+        return {}
