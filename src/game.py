@@ -21,7 +21,7 @@ class Game:
         height = 768
         screen = pygame.Surface((width, height))
         # Main theme music
-        pygame.mixer.music.load("audio/laberynth.ogg")
+        pygame.mixer.music.load("audio/laberynth2.ogg")
         pygame.mixer.music.set_volume(0.5)
         pygame.mixer.music.play(-1)  # Continuous Loop
 

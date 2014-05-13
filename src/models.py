@@ -2,7 +2,6 @@
 # Module where the models are built
 # This includes the characters, enemies, and objects of the game
 import pygame
-from random import randint
 from levels import Level
 import itertools
 import re
@@ -129,6 +128,10 @@ class Character(pygame.Rect):
     def moveSouth(self):
         self._move('s', Tile.VerticalDifference)
 
+    @staticmethod
+    def clear():
+        pass
+
 
 class MainCharacter(Character):
 
@@ -194,8 +197,6 @@ class MainCharacter(Character):
             return 'automatic'
         elif self.current == 1:
             return 'shotgun'
-
-
 
     def movement(self, screen):
         """
@@ -287,6 +288,14 @@ class MainCharacter(Character):
             if self.direction != 'w':
                 self.direction = 'w'
                 self.img = pygame.image.load(path + self.direction + png)
+
+    def clear(self):
+        """
+        Removes all MainCharacter objects from the game
+        """
+        MainCharacter.List.clear()
+
+
 
 
 class Robot(Character):
@@ -401,6 +410,10 @@ class Robot(Character):
             spawn_node = Tile.get_tile(tile_num)
             Robot(spawn_node.x, spawn_node.y)
     '''
+
+    def clear(self):
+        Robot.List.clear()
+
 
 class Enemy(Character):
 
