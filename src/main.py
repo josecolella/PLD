@@ -33,7 +33,7 @@ if __name__ == '__main__':
     # Start game menu and get user selections
     selections = show_menu(screen, FPS)
     ''' This is a menu selections example:
-    {'game_music': False, 'play_game': True, 'game_sounds': True, 'unknown': False, 'show_credits': False, 'exit_game': False}
+    {'game_music': False, 'play_game': True, 'load_game': False, 'game_sounds': True, 'unknown': False, 'show_credits': False, 'exit_game': False}
     '''
     # Process user selections
     if selections['exit_game'] == True:
