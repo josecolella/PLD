@@ -12,7 +12,7 @@ from gameoptions import *
 class Game:
 
     @staticmethod
-    def start(screen2, screenheight, screenwidth, FPS):
+    def start(screen2, screenheight, screenwidth, FPS, loadgame):
         """
         Method that initializes the game and the corresponding pieces of the game
         """
@@ -35,9 +35,15 @@ class Game:
 
 
         # Loads the initial level representation
-        currentLevelList = LevelList(width, height, screen)
+        currentLevelList= LevelList(width,height,screen)
+        allLevels = currentLevelList.allLevels()
+        #if game state must jump
+        if not loadgame:
+            currentLevel = currentLevelList.buildLevelObject(next(iter(allLevels)))
+        else:
+            print("Loading Game")
+            currentLevel = GameOption.loadGame(currentLevelList, allLevels)
 
-        currentLevel = next(iter(currentLevelList.allLevels()))
 
         # make unbuildable and unwalkable objects unwalkable (walls)
         for y in range(0, screen.get_height(), 16):

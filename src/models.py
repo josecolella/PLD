@@ -930,7 +930,6 @@ class LevelList:
         self.width = width
         self.height = height
         self.screen = screen
-        self.built_objects = None
 
     def allLevels(self):
         """
@@ -1003,11 +1002,12 @@ class LevelList:
             'a': {},
             'r': {}
         }
-        self.built_objects = level.build_objects(class_map, values)
+
         coords = level.coordinates(['x'])
         unwalkable = {x for k in coords for x in coords[k]}
 
         level1Dict = {
+          'levelIndex': 1,
           'rep': rep,
           'objects': objects,
           'toggle_objects': toggle_objects,
@@ -1015,7 +1015,6 @@ class LevelList:
           'level': level,
           'class_map': class_map,
           'values': values,
-          'built_objects': self.built_objects,
           'coords': coords,
           'unwalkable': unwalkable
         }
@@ -1023,3 +1022,10 @@ class LevelList:
 
     def level2Representation(self):
         return {}
+
+    def buildLevelObject(self, levelRepresentation):
+        level = levelRepresentation['level']
+        class_map = levelRepresentation['class_map']
+        values = levelRepresentation['values']
+        levelRepresentation['built_objects'] = level.build_objects(class_map, values)
+        return levelRepresentation

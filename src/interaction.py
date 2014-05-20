@@ -37,7 +37,11 @@ def interaction(screen, currentLevel, FPS):
 
             if event.key == pygame.K_x:
 
-                saveGame(currentLevel)
+                GameOption.saveGame(currentLevel)
+
+            if event.key == pygame.K_z:
+
+                GameOption.loadGame(currentLevel)
 
     # Key events
     keys = pygame.key.get_pressed()

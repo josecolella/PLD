@@ -6,7 +6,7 @@ import pygame
 from sys import exit
 from game import Game
 from menu import show_menu
-
+from gameoptions import *
 
 if __name__ == '__main__':
     pygame.init()  # Initialize Pygame
@@ -36,9 +36,12 @@ if __name__ == '__main__':
     {'game_music': False, 'play_game': True, 'load_game': False, 'game_sounds': True, 'unknown': False, 'show_credits': False, 'exit_game': False}
     '''
     # Process user selections
-    if selections['exit_game'] == True:
+    if selections['exit_game'] is True:
         pygame.quit()
         exit(0)
-    elif selections['play_game'] == True:
+    elif selections['play_game'] is True:
         menu_sound.fadeout(1000)
-        Game.start(screen, screenheight, screenwidth, FPS)
+        Game.start(screen, screenheight, screenwidth, FPS, loadgame=False)
+    elif selections['load_game'] is True:
+        menu_sound.fadeout(1000)
+        Game.start(screen, screenheight, screenwidth, FPS, loadgame=True)
