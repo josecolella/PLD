@@ -6,8 +6,7 @@ Game Module
 import pygame
 from models import *
 from interaction import *
-from A_Star import A_Star
-import json
+from gameoptions import *
 
 
 class Game:
@@ -38,9 +37,7 @@ class Game:
         # Loads the initial level representation
         currentLevelList = LevelList(width, height, screen)
 
-        # levelIterator = levelList.levelsList
         currentLevel = next(iter(currentLevelList.allLevels()))
-
 
         # make unbuildable and unwalkable objects unwalkable (walls)
         for y in range(0, screen.get_height(), 16):
@@ -57,7 +54,6 @@ class Game:
 
         background = currentLevel['level'].build_static_background(currentLevel['tile_map'], default='.')
 
-
         # Game Loop
         while True:
             screen.blit(background, (0, 0))  # blit the background
@@ -69,7 +65,7 @@ class Game:
 
             #A_Star(screen, mainCharacter, total_frames, FPS)
             interaction(
-                    screen, mainCharacter, FPS)
+                    screen, currentLevel, FPS)
 
 
 
@@ -87,7 +83,4 @@ class Game:
 
         pygame.quit()
 
-    # def saveGame(mainCharacter, enemy, robots, treasure):
 
-    #    mainCharacterPositions = {"x":mainCharacter.get_tile(), "y": mainCharacter}
-    #    with open('game.json') as f:

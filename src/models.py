@@ -67,6 +67,7 @@ class Character(pygame.Rect):
     def __init__(self, x, y):
 
         self.tx, self.ty = None, None
+        self.treasureCaptured = False
         pygame.Rect.__init__(self, x, y, Character.width, Character.height)
 
     def __str__(self):
@@ -156,7 +157,7 @@ class MainCharacter(Character):
         self.health = MainCharacter.health
         self.healthbar = Livebar(self)
         self.description = "maincharacter"
-        self.current = 0  # 0 -> pistol, 1 -> shotgun, 2 -> automatic
+        self.currentGun = 0  #0 -> shotgun, 1 -> automatic
         self.direction = 'w'
         self.img = pygame.image.load('img/player_w.png')
         # Use cycle so that it iterates forever
@@ -193,9 +194,9 @@ class MainCharacter(Character):
         get_bullet_type() -> str the current bullet
         """
 
-        if self.current == 0:
+        if self.currentGun == 0:
             return 'automatic'
-        elif self.current == 1:
+        elif self.currentGun == 1:
             return 'shotgun'
 
     def movement(self, screen):
@@ -242,7 +243,7 @@ class MainCharacter(Character):
         self.healthbar.draw(screen)
 
         h = self.width / 2
-        img = MainCharacter.guns_img[self.current]
+        img = MainCharacter.guns_img[self.currentGun]
 
         if self.direction == 'w':
             screen.blit(img, (self.x, self.y + h))
@@ -294,8 +295,6 @@ class MainCharacter(Character):
         Removes all MainCharacter objects from the game
         """
         MainCharacter.List.clear()
-
-
 
 
 class Robot(Character):
@@ -436,7 +435,7 @@ class Enemy(Character):
         self.health = Enemy.health
         self.healthbar = Livebar(self)
         self.description = "enemy"
-        self.current = 0  # 0 -> pistol, 1 -> shotgun, 2 -> automatic
+        self.currentGun = 0  # 0 -> pistol, 1 -> shotgun, 2 -> automatic
         self.direction = 'w'
         self.img = pygame.image.load('img/thief_w.png')
         # Use cycle so that it iterates forever
@@ -512,7 +511,7 @@ class Enemy(Character):
         self.healthbar.draw(screen)
 
         h = self.width / 2
-        img = Enemy.guns_img[self.current]
+        img = Enemy.guns_img[self.currentGun]
 
         if self.direction == 'w':
             screen.blit(img, (self.x, self.y + h))
@@ -931,6 +930,7 @@ class LevelList:
         self.width = width
         self.height = height
         self.screen = screen
+        self.built_objects = None
 
     def allLevels(self):
         """
@@ -1003,7 +1003,7 @@ class LevelList:
             'a': {},
             'r': {}
         }
-        built_objects = level.build_objects(class_map, values)
+        self.built_objects = level.build_objects(class_map, values)
         coords = level.coordinates(['x'])
         unwalkable = {x for k in coords for x in coords[k]}
 
@@ -1015,7 +1015,7 @@ class LevelList:
           'level': level,
           'class_map': class_map,
           'values': values,
-          'built_objects': built_objects,
+          'built_objects': self.built_objects,
           'coords': coords,
           'unwalkable': unwalkable
         }

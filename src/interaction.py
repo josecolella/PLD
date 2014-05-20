@@ -8,15 +8,16 @@ import pygame
 from models import Tile, Laser, Lever
 import sys
 from menu import show_menu
+from gameoptions import *
 
 
-def interaction(screen, survivor, FPS):
+def interaction(screen, currentLevel, FPS):
     """
     Menu that defines the key interactions in the game and how the
     screen will respond to the events
     """
     # Get mouse position
-    
+
     Mpos = pygame.mouse.get_pos()  # [x, y]
     Mx = Mpos[0] / Tile.width
     My = Mpos[1] / Tile.height
@@ -31,58 +32,53 @@ def interaction(screen, survivor, FPS):
 
             if event.key == pygame.K_f:
 
-                survivor.current += 1
-                survivor.current %= len(Laser.imgs)
+                currentLevel['built_objects']['j'][0].currentGun += 1
+                currentLevel['built_objects']['j'][0].currentGun %= len(Laser.imgs)
+
+            if event.key == pygame.K_x:
+
+                saveGame(currentLevel)
 
     # Key events
     keys = pygame.key.get_pressed()
 
     # The event when the user presses w
     if keys[pygame.K_w]:  # North
-        survivor.moveNorth()
+        currentLevel['built_objects']['j'][0].moveNorth()
 
     elif keys[pygame.K_s]:  # South
-        survivor.moveSouth()
-        
+        currentLevel['built_objects']['j'][0].moveSouth()
 
     elif keys[pygame.K_a]:  # West
-        survivor.moveWest()
-       
+        currentLevel['built_objects']['j'][0].moveWest()
 
     elif keys[pygame.K_d]:  # East
-        survivor.moveEast()
-        
+        currentLevel['built_objects']['j'][0].moveEast()
+
     elif keys[pygame.K_e]:  # Toggle lever
         for lever in Lever.allLevers:
-            distance2 = (lever.rect.x-survivor.x)*(lever.rect.x-survivor.x)+(
-                lever.rect.y-survivor.y)*(lever.rect.y-survivor.y)
-
+            distance2 = (lever.rect.x-currentLevel['built_objects']['j'][0].x)*(lever.rect.x-currentLevel['built_objects']['j'][0].x)+(
+                lever.rect.y-currentLevel['built_objects']['j'][0].y)*(lever.rect.y-currentLevel['built_objects']['j'][0].y)
             if distance2 < 4*(lever.width*lever.width+
                                 lever.height*lever.height):
                 lever.toggle()
-        #if lever1.isNotActivated():
-        #   lever1.turnOn(screen)
-        #   Tile.set_door_open(survivor)
-        #   isLevelPulled = True
-        # survivor.x += survivor.width
+
     if keys[pygame.K_LEFT]:
-        survivor.rotate('w')
-        Laser(survivor.centerx, survivor.centery,
-              -10, 0, 'w', survivor.get_bullet_type())
+        currentLevel['built_objects']['j'][0].rotate('w')
+        Laser(currentLevel['built_objects']['j'][0].centerx, currentLevel['built_objects']['j'][0].centery,
+              -10, 0, 'w', currentLevel['built_objects']['j'][0].get_bullet_type())
 
     elif keys[pygame.K_RIGHT]:
-        survivor.rotate('e')
-        Laser(survivor.centerx, survivor.centery,
-              10, 0, 'e', survivor.get_bullet_type())
+        currentLevel['built_objects']['j'][0].rotate('e')
+        Laser(currentLevel['built_objects']['j'][0].centerx, currentLevel['built_objects']['j'][0].centery,
+              10, 0, 'e', currentLevel['built_objects']['j'][0].get_bullet_type())
 
     elif keys[pygame.K_UP]:
-        survivor.rotate('n')
-        Laser(survivor.centerx, survivor.centery,
-              0, -10, 'n', survivor.get_bullet_type())
+        currentLevel['built_objects']['j'][0].rotate('n')
+        Laser(currentLevel['built_objects']['j'][0].centerx, currentLevel['built_objects']['j'][0].centery,
+              0, -10, 'n', currentLevel['built_objects']['j'][0].get_bullet_type())
 
     elif keys[pygame.K_DOWN]:
-        survivor.rotate('s')
-        Laser(survivor.centerx, survivor.centery,
-              0, 10, 's', survivor.get_bullet_type())
-
-
+        currentLevel['built_objects']['j'][0].rotate('s')
+        Laser(currentLevel['built_objects']['j'][0].centerx, currentLevel['built_objects']['j'][0].centery,
+              0, 10, 's', currentLevel['built_objects']['j'][0].get_bullet_type())
