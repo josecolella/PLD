@@ -157,7 +157,7 @@ class MainCharacter(Character):
         self.health = MainCharacter.health
         self.healthbar = Livebar(self)
         self.description = "maincharacter"
-        self.currentGun = 0  #0 -> shotgun, 1 -> automatic
+        self.currentGun = 0  # 0 -> shotgun, 1 -> automatic
         self.direction = 'w'
         self.img = pygame.image.load('img/player_w.png')
         # Use cycle so that it iterates forever

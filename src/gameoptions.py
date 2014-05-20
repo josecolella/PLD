@@ -5,15 +5,16 @@ import json
 
 
 def saveGame(currentLevel):
+    """
+    saveGame(currentLevel) -> saves the current game state to a json file named "game.json"
+    This means all the objects that are in the current level
+    """
     saveStructure = {}
 
     for className, classNameSet in currentLevel['objects'].items():
 
         if className == "enemy" or className == "player":
-            a = list(classNameSet)[0]
-
-            character = currentLevel['built_objects'][a]
-            print(character)
+            character = currentLevel['built_objects'][next(iter(classNameSet))][0]
             saveStructure[className] = {
                 'x': character.x,
                 'y': character.y,
@@ -23,44 +24,47 @@ def saveGame(currentLevel):
                 'isTreasureCaptured': character.treasureCaptured
             }
         elif className == "robot":
-            robots = currentLevel['built_objects'][list(classNameSet)]
+            robots = currentLevel['built_objects']
             robotsArray = []
-            for robot in robots:
+
+            for robot in robots[next(iter(classNameSet))]:
                 robotsArray.append({
                     'x': robot.x,
                     'y': robot.y,
                     'direction': robot.direction,
                     'health': robot.health,
-                    'gun': robot.currentGun
                 })
             saveStructure[className] = robotsArray
         elif className == "object":
-            a = list(classNameSet)[0]
-            treasure = currentLevel['built_objects'][a]
+            treasure = currentLevel['built_objects'][next(iter(classNameSet))][0]
             saveStructure[className] = {
                 'x': treasure.x,
                 'y': treasure.y
             }
         elif className == "door":
-            doors = currentLevel['built_objects'][list(classNameSet)]
             doorsArray = []
-            for door in doors:
+            doorIter = (i for i in iter(classNameSet))
+            for doorSymb in doorIter:
                 doorsArray.append({
-                    'id': classNameSet,
-                    'toggled': door.toogled
+                    'id': doorSymb,
+                    'toggled': currentLevel['built_objects'][doorSymb][0].toggled
                 })
+            saveStructure[className] = doorsArray
+
         elif className == "lever":
-            levers = currentLevel['built_objects'][list(classNameSet)]
             leversArray = []
-            for level in levers:
-                leversArray.append({
-                    'id': classNameSet,
-                    'off': level.off
-                })
+            leverIdIter = (i for i in iter(classNameSet))
+            for leverSymb in leverIdIter:
+                for lever in currentLevel['built_objects'][leverSymb]:
+                    leversArray.append({
+                        'id': leverSymb,
+                        'off': lever.off
+                    })
+
             saveStructure[className] = leversArray
 
-    with open("game.json") as f:
-        json.dump(saveStructure, f)
+    with open("game.json", "w") as f:
+        json.dump(saveStructure, f, indent=4)
 
 
 
