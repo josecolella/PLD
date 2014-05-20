@@ -88,6 +88,8 @@ def show_menu(screen, FPS):
     button_keys = []
     button_list.append(Button("Play Game Now!"))
     button_keys.append('play_game')
+    button_list.append(Button("Save Game"))
+    button_keys.append('save_game')
     button_list.append(Button("Load Saved Game"))
     button_keys.append('load_game')
     button_list.append(Button("Exit Game"))
@@ -134,7 +136,7 @@ def show_menu(screen, FPS):
                         selected += 1
                         time_passed = 0
                 elif event.key == pygame.K_RETURN:
-                    if selected > 3:
+                    if selected > 4:
                         selections[button_keys[selected]] = not selections[
                             button_keys[selected]]
 
