@@ -62,12 +62,19 @@ class Character(pygame.Rect):
     This class is an abstract concept of what all
     classes should contain.
     """
+
+    guns_img = (
+        pygame.image.load("img/shotgun.png"),
+        pygame.image.load("img/automatic.png")
+    )
+
     width, height = Dimensions.width, Dimensions.height
 
     def __init__(self, x, y):
 
         self.tx, self.ty = None, None
         self.treasureCaptured = False
+        self.currentGun = 0  # 0 -> shotgun, 1 -> automatic
         pygame.Rect.__init__(self, x, y, Character.width, Character.height)
 
     def __str__(self):
@@ -86,28 +93,129 @@ class Character(pygame.Rect):
 
         return Tile.get_tile(self.get_number())
 
-    def rotate(self, direction, original_img):
+    def rotate(self, direction):
+       """
+       Method created to manage the rotation of the Character
+       and to set the appropriate image
+       """
+       png = '.png'
 
-        if direction == 'n':
-            if self.direction != 'n':
-                self.direction = 'n'
-                south = pygame.transform.rotate(original_img, 90)  # CCW
-                self.img = pygame.transform.flip(south, False, True)
+       if direction == 'n':
+           if self.direction != 'n':
+               self.direction = 'n'
+               self.img = pygame.image.load(self.imgPath + self.direction + png)
 
-        if direction == 's':
-            if self.direction != 's':
-                self.direction = 's'
-                self.img = pygame.transform.rotate(original_img, 90)  # CCW
+       if direction == 's':
+           if self.direction != 's':
+               self.direction = 's'
+               self.img = pygame.image.load(self.imgPath + self.direction + png)
 
-        if direction == 'e':
-            if self.direction != 'e':
-                self.direction = 'e'
-                self.img = pygame.transform.flip(original_img, True, False)
+       if direction == 'e':
+           if self.direction != 'e':
+               self.direction = 'e'
+               self.img = pygame.image.load(self.imgPath + self.direction + png)
 
-        if direction == 'w':
-            if self.direction != 'w':
-                self.direction = 'w'
-                self.img = original_img
+       if direction == 'w':
+           if self.direction != 'w':
+               self.direction = 'w'
+               self.img = pygame.image.load(self.imgPath + self.direction + png)
+
+
+    # def rotate(self, direction, original_img):
+
+    #     if direction == 'n':
+    #         if self.direction != 'n':
+    #             self.direction = 'n'
+    #             south = pygame.transform.rotate(original_img, 90)  # CCW
+    #             self.img = pygame.transform.flip(south, False, True)
+
+    #     if direction == 's':
+    #         if self.direction != 's':
+    #             self.direction = 's'
+    #             self.img = pygame.transform.rotate(original_img, 90)  # CCW
+
+    #     if direction == 'e':
+    #         if self.direction != 'e':
+    #             self.direction = 'e'
+    #             self.img = pygame.transform.flip(original_img, True, False)
+
+    #     if direction == 'w':
+    #         if self.direction != 'w':
+    #             self.direction = 'w'
+    #             self.img = original_img
+
+    def movement(self, screen):
+        """
+        This method deals with everything related to the movement of the character.
+        This method also manages the switch between the character walking with the left foot
+        and then right foot to give the walk a realistic feel
+        """
+        if self.tx is not None and self.ty is not None:  # Target is set
+
+            X = self.x - self.tx
+            Y = self.y - self.ty
+
+            if X < 0:  # --->
+                self.img = pygame.image.load(next(self.walking_east_images))
+                self.x += self.velocity
+            elif X > 0:  # <----
+                self.img = pygame.image.load(next(self.walking_west_images))
+                self.x -= self.velocity
+            if Y > 0:  # up
+                self.img = pygame.image.load(next(self.walking_north_images))
+                self.y -= self.velocity
+            elif Y < 0:  # dopwn
+                self.img = pygame.image.load(next(self.walking_south_images))
+                self.y += self.velocity
+            screen.blit(self.img, (self.x, self.y))
+
+            if X == 0 and Y == 0:
+                self.tx, self.ty = None, None
+
+    def get_bullet_type(self):
+        """
+        get_bullet_type() -> str the current bullet
+        """
+        if self.currentGun == 0:
+            return 'automatic'
+        elif self.currentGun == 1:
+            return 'shotgun'
+
+    def fireWest(self):
+        """
+        Method that allows the Character to fire the current gun to the left
+        fireWest() -> Character will rotate west and fire
+        """
+        self.rotate('w')
+        Laser(self.centerx, self.centery,
+              -10, 0, 'w', self.get_bullet_type())
+
+    def fireNorth(self):
+        """
+        Method that allows the Character to fire the current gun up
+        fireWest() -> Character will rotate north and fire
+        """
+        self.rotate('n')
+        Laser(self.centerx, self.centery,
+              0, -10, 'n', self.get_bullet_type())
+
+    def fireEast(self):
+        """
+        Method that allows the Character to fire the current gun east
+        fireWest() -> Character will rotate east and fire
+        """
+        self.rotate('e')
+        Laser(self.centerx, self.centery,
+              10, 0, 'e', self.get_bullet_type())
+
+    def fireSouth(self):
+        """
+        Method that allows the Character to fire the current gun down
+        fireWest() -> Character will rotate down and fire
+        """
+        self.rotate('s')
+        Laser(self.centerx, self.centery,
+              0, 10, 's', self.get_bullet_type())
 
     def _move(self, direction, difference):
         future_tile_number = self.get_number() + difference
@@ -128,6 +236,31 @@ class Character(pygame.Rect):
 
     def moveSouth(self):
         self._move('s', Tile.VerticalDifference)
+
+    def draw(self, screen):
+
+        screen.blit(self.img, (self.x, self.y))
+        self.healthbar.update()
+        self.healthbar.draw(screen)
+
+        h = self.width / 2
+        img = Character.guns_img[self.currentGun]
+
+        if self.direction == 'w':
+            screen.blit(img, (self.x, self.y + h))
+
+        elif self.direction == 'e':
+            img = pygame.transform.flip(img, True, False)
+            screen.blit(img, (self.x + h, self.y + h))
+
+        elif self.direction == 's':
+            img = pygame.transform.rotate(img, 90)  # CCW
+            screen.blit(img, (self.x + h, self.y + h))
+
+        elif self.direction == 'n':
+            south = pygame.transform.rotate(img, 90)
+            img = pygame.transform.flip(south, False, True)
+            screen.blit(img, (self.x + h, self.y - h))
 
     @staticmethod
     def clear():
@@ -157,8 +290,9 @@ class MainCharacter(Character):
         self.health = MainCharacter.health
         self.healthbar = Livebar(self)
         self.description = "maincharacter"
-        self.currentGun = 0  # 0 -> shotgun, 1 -> automatic
         self.direction = 'w'
+        self.velocity = 8
+        self.imgPath = 'img/player_'
         self.img = pygame.image.load('img/player_w.png')
         # Use cycle so that it iterates forever
         self.walking_west_images = itertools.cycle(
@@ -188,107 +322,6 @@ class MainCharacter(Character):
 
         Character.__init__(self, x, y)
         MainCharacter.List.append(self)
-
-    def get_bullet_type(self):
-        """
-        get_bullet_type() -> str the current bullet
-        """
-
-        if self.currentGun == 0:
-            return 'automatic'
-        elif self.currentGun == 1:
-            return 'shotgun'
-
-    def movement(self, screen):
-        """
-        This method deals with everything related to the movement of the character.
-        This method also manages the switch between the character walking with the left foot
-        and then right foot to give the walk a realistic feel
-        """
-        if self.tx is not None and self.ty is not None:  # Target is set
-
-            X = self.x - self.tx
-            Y = self.y - self.ty
-
-            vel = 8
-
-            if X < 0:  # --->
-
-                self.img = pygame.image.load(next(self.walking_east_images))
-                self.x += vel
-            elif X > 0:  # <----
-
-                self.img = pygame.image.load(next(self.walking_west_images))
-                self.x -= vel
-
-            if Y > 0:  # up
-
-                self.img = pygame.image.load(next(self.walking_north_images))
-                self.y -= vel
-
-            elif Y < 0:  # dopwn
-
-                self.img = pygame.image.load(next(self.walking_south_images))
-                self.y += vel
-
-            screen.blit(self.img, (self.x, self.y))
-
-            if X == 0 and Y == 0:
-                self.tx, self.ty = None, None
-
-    def draw(self, screen):
-
-        screen.blit(self.img, (self.x, self.y))
-        self.healthbar.update()
-        self.healthbar.draw(screen)
-
-        h = self.width / 2
-        img = MainCharacter.guns_img[self.currentGun]
-
-        if self.direction == 'w':
-            screen.blit(img, (self.x, self.y + h))
-
-        elif self.direction == 'e':
-            img = pygame.transform.flip(img, True, False)
-            screen.blit(img, (self.x + h, self.y + h))
-
-        elif self.direction == 's':
-            img = pygame.transform.rotate(img, 90)  # CCW
-            screen.blit(img, (self.x + h, self.y + h))
-
-        elif self.direction == 'n':
-            south = pygame.transform.rotate(img, 90)
-            img = pygame.transform.flip(south, False, True)
-            screen.blit(img, (self.x + h, self.y - h))
-
-
-    def rotate(self, direction):
-        """
-        Method created to manage the rotation of the Character
-        and to set the appropriate image
-        """
-        path = 'img/player_'
-        png = '.png'
-
-        if direction == 'n':
-            if self.direction != 'n':
-                self.direction = 'n'
-                self.img = pygame.image.load(path + self.direction + png)
-
-        if direction == 's':
-            if self.direction != 's':
-                self.direction = 's'
-                self.img = pygame.image.load(path + self.direction + png)
-
-        if direction == 'e':
-            if self.direction != 'e':
-                self.direction = 'e'
-                self.img = pygame.image.load(path + self.direction + png)
-
-        if direction == 'w':
-            if self.direction != 'w':
-                self.direction = 'w'
-                self.img = pygame.image.load(path + self.direction + png)
 
     def clear(self):
         """
@@ -435,8 +468,9 @@ class Enemy(Character):
         self.health = Enemy.health
         self.healthbar = Livebar(self)
         self.description = "enemy"
-        self.currentGun = 0  # 0 -> pistol, 1 -> shotgun, 2 -> automatic
+        self.velocity = 4 # The enemy velocity
         self.direction = 'w'
+        self.imgPath = 'img/thief_'
         self.img = pygame.image.load('img/thief_w.png')
         # Use cycle so that it iterates forever
         self.walking_west_images = itertools.cycle(
@@ -466,96 +500,8 @@ class Enemy(Character):
         Enemy.List.append(self)
         Character.__init__(self, x, y)
 
-    def movement(self, screen):
-        """
-        This method deals with everything related to the movement of the character.
-        This method also manages the switch between the character walking with the left foot
-        and then right foot to give the walk a realistic feel
-        """
-        if self.tx is not None and self.ty is not None:  # Target is set
-
-            X = self.x - self.tx
-            Y = self.y - self.ty
-
-            vel = 4
-
-            if X < 0:  # --->
-
-                self.img = pygame.image.load(next(self.walking_east_images))
-                self.x += vel
-            elif X > 0:  # <----
-
-                self.img = pygame.image.load(next(self.walking_west_images))
-                self.x -= vel
-
-            if Y > 0:  # up
-
-                self.img = pygame.image.load(next(self.walking_north_images))
-                self.y -= vel
-
-            elif Y < 0:  # dopwn
-
-                self.img = pygame.image.load(next(self.walking_south_images))
-                self.y += vel
-
-            screen.blit(self.img, (self.x, self.y))
-
-            if X == 0 and Y == 0:
-                self.tx, self.ty = None, None
-
-
-    def draw(self, screen):
-
-        screen.blit(self.img, (self.x, self.y))
-        self.healthbar.update()
-        self.healthbar.draw(screen)
-
-        h = self.width / 2
-        img = Enemy.guns_img[self.currentGun]
-
-        if self.direction == 'w':
-            screen.blit(img, (self.x, self.y + h))
-
-        elif self.direction == 'e':
-            img = pygame.transform.flip(img, True, False)
-            screen.blit(img, (self.x + h, self.y + h))
-
-        elif self.direction == 's':
-            img = pygame.transform.rotate(img, 90)  # CCW
-            screen.blit(img, (self.x + h, self.y + h))
-
-        elif self.direction == 'n':
-            south = pygame.transform.rotate(img, 90)
-            img = pygame.transform.flip(south, False, True)
-            screen.blit(img, (self.x + h, self.y - h))
-
-    def rotate(self, direction):
-        """
-        Method created to manage the rotation of the Character
-        and to set the appropriate image
-        """
-        path = 'img/thief_'
-        png = '.png'
-
-        if direction == 'n':
-            if self.direction != 'n':
-                self.direction = 'n'
-                self.img = pygame.image.load(path + self.direction + png)
-
-        if direction == 's':
-            if self.direction != 's':
-                self.direction = 's'
-                self.img = pygame.image.load(path + self.direction + png)
-
-        if direction == 'e':
-            if self.direction != 'e':
-                self.direction = 'e'
-                self.img = pygame.image.load(path + self.direction + png)
-
-        if direction == 'w':
-            if self.direction != 'w':
-                self.direction = 'w'
-                self.img = pygame.image.load(path + self.direction + png)
+    def clear(self):
+        pass
 
 
 class Laser(pygame.Rect):

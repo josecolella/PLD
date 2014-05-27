@@ -37,6 +37,7 @@ if __name__ == '__main__':
     ''' This is a menu selections example:
     {'game_music': False, 'play_game': True, 'load_game': False, 'game_sounds': True, 'unknown': False, 'show_credits': False, 'exit_game': False}
     '''
+    print(selections)
     # Process user selections
     if selections['exit_game'] is True:
         pygame.quit()

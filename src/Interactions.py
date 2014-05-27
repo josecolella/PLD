@@ -44,17 +44,22 @@ class Interaction:
         # Key events
         keys = pygame.key.get_pressed()
 
-        # The event when the user presses w
-        if keys[pygame.K_w]:  # North
+        # Changing gun key
+        if keys[pygame.K_f]:
+            pass
+
+        # Movement and shooting keys
+        # West
+        if keys[pygame.K_w]:
             self.player.moveNorth()
-
-        elif keys[pygame.K_s]:  # South
+        # South
+        elif keys[pygame.K_s]:
             self.player.moveSouth()
-
-        elif keys[pygame.K_a]:  # West
+        #West
+        elif keys[pygame.K_a]:
             self.player.moveWest()
-
-        elif keys[pygame.K_d]:  # East
+        #East
+        elif keys[pygame.K_d]:
             self.player.moveEast()
 
         elif keys[pygame.K_e]:  # Toggle lever
@@ -64,25 +69,17 @@ class Interaction:
                 if distance2 < 4*(lever.width*lever.width+
                                     lever.height*lever.height):
                     lever.toggle()
-
+        # Fire Left
         if keys[pygame.K_LEFT]:
-            self.player.rotate('w')
-            Laser(self.player.centerx, self.player.centery,
-                  -10, 0, 'w', self.player.get_bullet_type())
-
+            self.player.fireWest()
+        # Fire Right
         elif keys[pygame.K_RIGHT]:
-            self.player.rotate('e')
-            Laser(self.player.centerx, self.player.centery,
-                  10, 0, 'e', self.player.get_bullet_type())
-
+            self.player.fireEast()
+        # Fire North
         elif keys[pygame.K_UP]:
-            self.player.rotate('n')
-            Laser(self.player.centerx, self.player.centery,
-                  0, -10, 'n', self.player.get_bullet_type())
-
+            self.player.fireNorth()
+        # Fire South
         elif keys[pygame.K_DOWN]:
-            self.player.rotate('s')
-            Laser(self.player.centerx, self.player.centery,
-                  0, 10, 's', self.player.get_bullet_type())
+            self.player.fireSouth()
 
         return self.showMenu
