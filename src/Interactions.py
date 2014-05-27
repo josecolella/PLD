@@ -17,7 +17,10 @@ class Interaction:
         self.player = currentLevel['built_objects']['j'][0]
 
     def interactionHandler(self):
-        # Get mouse position
+        """
+        The handler that manages the user interaction with the game.
+        All posible game keys are defined here and how they are managed
+        """
         for event in pygame.event.get():
 
             if event.type == pygame.QUIT:

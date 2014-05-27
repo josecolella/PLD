@@ -7,7 +7,7 @@ import pygame
 from models import *
 from gameoptions import *
 from Interactions import *
-from menu import show_menu
+from menu import *
 
 
 class Game:
@@ -75,7 +75,7 @@ class Game:
 
                 #A_Star(screen, mainCharacter, total_frames, FPS)
                 menuShow = interaction.interactionHandler()
-
+                text_to_screen(screen, 'Health: {0}'.format(mainCharacter.health),0, -1)
                 Door.draw(screen)
                 mainCharacter.draw(screen)
 
@@ -83,12 +83,12 @@ class Game:
                 Robot.draw_robots(screen)
                 Lever.allLevers.draw(screen)
             else:
-                show_menu(screen, FPS)
+                show_menu(screen2, FPS)
 
             screen2.blit(pygame.transform.scale(
                 screen, screen2.get_rect().size), (0, 0))
             pygame.display.flip()
             clock.tick(FPS)
             total_frames += 1
-
+            # print(pygame.font.get_fonts())
         pygame.quit()

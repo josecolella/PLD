@@ -5,7 +5,7 @@ Main Module
 import pygame
 from sys import exit
 from game import Game
-from menu import show_menu
+from menu import *
 from gameoptions import *
 
 if __name__ == '__main__':
@@ -31,7 +31,9 @@ if __name__ == '__main__':
     iconImg = pygame.image.load("img/icon.png")
     pygame.display.set_icon(iconImg)
     # Start game menu and get user selections
-    selections = show_menu(screen, FPS)
+    menu = Menu() # Initialize Game Menu
+    selections = menu.show_menu(screen, FPS) # Show InitialGameMenu
+    # selections = show_menu(screen, FPS)
     ''' This is a menu selections example:
     {'game_music': False, 'play_game': True, 'load_game': False, 'game_sounds': True, 'unknown': False, 'show_credits': False, 'exit_game': False}
     '''
