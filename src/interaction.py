@@ -1,88 +1,85 @@
-"""
-This module is where all the interactions will be implemented.
-Interactions encompass how the characters will respond to key strokes
-"""
-
-
 import pygame
-from models import Tile, Laser, Lever
 import sys
-from menu import show_menu
-from gameoptions import *
+from models import Laser
+from gameoptions import GameOption
 
 
-def interaction(screen, currentLevel, FPS):
+class Interaction:
     """
-    Menu that defines the key interactions in the game and how the
-    screen will respond to the events
+    Manages the key interaction with the player.
     """
-    # Get mouse position
+    def __init__(self, screen, FPS, currentLevel):
 
-    Mpos = pygame.mouse.get_pos()  # [x, y]
-    Mx = Mpos[0] / Tile.width
-    My = Mpos[1] / Tile.height
+        self.showMenu = False
+        self.screen = screen
+        self.fps = FPS
+        self.currentLevel = currentLevel
+        self.player = currentLevel['built_objects']['j'][0]
 
-    for event in pygame.event.get():
+    def interactionHandler(self):
+        # Get mouse position
+        for event in pygame.event.get():
 
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            sys.exit()
-        # To change weapons
-        if event.type == pygame.KEYDOWN:
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
 
-            if event.key == pygame.K_f:
+            if event.type == pygame.KEYDOWN:
+                # To change weapons
+                if event.key == pygame.K_f:
 
-                currentLevel['built_objects']['j'][0].currentGun += 1
-                currentLevel['built_objects']['j'][0].currentGun %= len(Laser.imgs)
+                    self.player.currentGun += 1
+                    self.player.currentGun %= len(Laser.imgs)
+                # To save game
+                if event.key == pygame.K_x:
 
-            if event.key == pygame.K_x:
+                    GameOption.saveGame(self.currentLevel)
 
-                GameOption.saveGame(currentLevel)
+                if event.key == pygame.K_z:
+                    self.showMenu = not self.showMenu
 
-            if event.key == pygame.K_z:
+        # Key events
+        keys = pygame.key.get_pressed()
 
-                GameOption.loadGame(currentLevel)
+        # The event when the user presses w
+        if keys[pygame.K_w]:  # North
+            self.player.moveNorth()
 
-    # Key events
-    keys = pygame.key.get_pressed()
+        elif keys[pygame.K_s]:  # South
+            self.player.moveSouth()
 
-    # The event when the user presses w
-    if keys[pygame.K_w]:  # North
-        currentLevel['built_objects']['j'][0].moveNorth()
+        elif keys[pygame.K_a]:  # West
+            self.player.moveWest()
 
-    elif keys[pygame.K_s]:  # South
-        currentLevel['built_objects']['j'][0].moveSouth()
+        elif keys[pygame.K_d]:  # East
+            self.player.moveEast()
 
-    elif keys[pygame.K_a]:  # West
-        currentLevel['built_objects']['j'][0].moveWest()
+        elif keys[pygame.K_e]:  # Toggle lever
+            for lever in Lever.allLevers:
+                distance2 = (lever.rect.x-self.player.x)*(lever.rect.x-self.player.x)+(
+                    lever.rect.y-self.player.y)*(lever.rect.y-self.player.y)
+                if distance2 < 4*(lever.width*lever.width+
+                                    lever.height*lever.height):
+                    lever.toggle()
 
-    elif keys[pygame.K_d]:  # East
-        currentLevel['built_objects']['j'][0].moveEast()
+        if keys[pygame.K_LEFT]:
+            self.player.rotate('w')
+            Laser(self.player.centerx, self.player.centery,
+                  -10, 0, 'w', self.player.get_bullet_type())
 
-    elif keys[pygame.K_e]:  # Toggle lever
-        for lever in Lever.allLevers:
-            distance2 = (lever.rect.x-currentLevel['built_objects']['j'][0].x)*(lever.rect.x-currentLevel['built_objects']['j'][0].x)+(
-                lever.rect.y-currentLevel['built_objects']['j'][0].y)*(lever.rect.y-currentLevel['built_objects']['j'][0].y)
-            if distance2 < 4*(lever.width*lever.width+
-                                lever.height*lever.height):
-                lever.toggle()
+        elif keys[pygame.K_RIGHT]:
+            self.player.rotate('e')
+            Laser(self.player.centerx, self.player.centery,
+                  10, 0, 'e', self.player.get_bullet_type())
 
-    if keys[pygame.K_LEFT]:
-        currentLevel['built_objects']['j'][0].rotate('w')
-        Laser(currentLevel['built_objects']['j'][0].centerx, currentLevel['built_objects']['j'][0].centery,
-              -10, 0, 'w', currentLevel['built_objects']['j'][0].get_bullet_type())
+        elif keys[pygame.K_UP]:
+            self.player.rotate('n')
+            Laser(self.player.centerx, self.player.centery,
+                  0, -10, 'n', self.player.get_bullet_type())
 
-    elif keys[pygame.K_RIGHT]:
-        currentLevel['built_objects']['j'][0].rotate('e')
-        Laser(currentLevel['built_objects']['j'][0].centerx, currentLevel['built_objects']['j'][0].centery,
-              10, 0, 'e', currentLevel['built_objects']['j'][0].get_bullet_type())
+        elif keys[pygame.K_DOWN]:
+            self.player.rotate('s')
+            Laser(self.player.centerx, self.player.centery,
+                  0, 10, 's', self.player.get_bullet_type())
 
-    elif keys[pygame.K_UP]:
-        currentLevel['built_objects']['j'][0].rotate('n')
-        Laser(currentLevel['built_objects']['j'][0].centerx, currentLevel['built_objects']['j'][0].centery,
-              0, -10, 'n', currentLevel['built_objects']['j'][0].get_bullet_type())
-
-    elif keys[pygame.K_DOWN]:
-        currentLevel['built_objects']['j'][0].rotate('s')
-        Laser(currentLevel['built_objects']['j'][0].centerx, currentLevel['built_objects']['j'][0].centery,
-              0, 10, 's', currentLevel['built_objects']['j'][0].get_bullet_type())
+        return self.showMenu

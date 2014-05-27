@@ -215,7 +215,7 @@ class Level:
                 for obj in built_models[s]:
                     for tog in self.toggle_objects[s]:
                         try:
-                            obj.toggle_objects.extend(built_models[tog])
+                            obj.toggle_aobjects.extend(built_models[tog])
                         except AttributeError:
                             obj.toggle_objects = list(built_models[tog])
 
@@ -244,7 +244,7 @@ class Level:
 
     def conn_map(self):
         """
-        Returns an abstract view of represented map. This includes a 
+        Returns an abstract view of represented map. This includes a
         connection graph whose nodes are zones and a door map.
         """
         pass
@@ -255,3 +255,5 @@ class Level:
         """
         pass
 
+    def generateMapMatrix(self):
+        pass

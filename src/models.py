@@ -848,13 +848,13 @@ class Lever(pygame.sprite.Sprite):
     def isNotActivated(self):
         return self.off
 
-    def toggle(self):
+    def toggle(self, doToggle=True):
         if self.isNotActivated():
             self.turnOn()
         else:
             self.turnOff()
 
-        if hasattr(self, 'toggle_objects'):
+        if hasattr(self, 'toggle_objects') and doToggle:
             for obj in self.toggle_objects:
                 obj.toggle()
 

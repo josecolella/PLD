@@ -79,7 +79,6 @@ class GameOption:
         """
 
         game_state = {}
-        logical_game_state = {}
         with open("game.json", "r") as f:
             game_state = json.load(f)
 
@@ -93,27 +92,19 @@ class GameOption:
                     pythonRobot.direction = jsonRobot['direction']
                     pythonRobot.health = jsonRobot['health']
             elif key == "player":
-
                 current['built_objects']['j'][0].x = game_state[key]['x']
                 current['built_objects']['j'][0].y = game_state[key]['y']
                 current['built_objects']['j'][0].direction = game_state[key]['direction']
                 current['built_objects']['j'][0].health = game_state[key]['health']
                 current['built_objects']['j'][0].gun = game_state[key]['gun']
-        #             pass
-        #             # current['built_objects']['r'][0].x = robot.x
-        #             # current['built_objects']['r'][0].y = robot.y
-        #             # current['built_objects']['r'][0]. = robot.x
-        #             # current['built_objects']['r'][0].x = robot.x
+            elif key == "lever":
+                current['built_objects']['l'][0].off = game_state[key]['off']
+                current['built_objects']['m'][0].off = game_state[key]['off']
+            elif key == "door":
+                current['built_objects']['p'][0].toggled = game_state[key]['toggled']
+                current['built_objects']['q'][0].toggled = game_state[key]['toggled']
+            elif key == "object":
+                current['built_objects']['a'][0].x = game_state[key]['x']
+                current['built_objects']['a'][0].y = game_state[key]['y']
 
-        #     elif key == "door":
-        #         pass
-        #     elif key == "lever":
-        #         pass
-        #     elif key == "player":
-        #         pass
-        #     elif key == "enemy":
-        #         pass
-        #     elif key == "object":
-        #         pass
-        print(current['built_objects']['j'])
         return current

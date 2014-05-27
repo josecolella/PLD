@@ -5,8 +5,9 @@ Game Module
 
 import pygame
 from models import *
-from interaction import *
 from gameoptions import *
+from Interaction import *
+from menu import show_menu
 
 
 class Game:
@@ -19,6 +20,7 @@ class Game:
         width = 1024
         height = 768
         screen = pygame.Surface((width, height))
+        menuShow = False
         # Main theme music
         pygame.mixer.music.load("audio/laberynth2.ogg")
         pygame.mixer.music.set_volume(0.5)
@@ -59,28 +61,30 @@ class Game:
         enemy = currentLevel['built_objects']['e'][0]
 
         background = currentLevel['level'].build_static_background(currentLevel['tile_map'], default='.')
+        interaction = Interaction(screen, FPS, currentLevel)
 
         # Game Loop
         while True:
-            screen.blit(background, (0, 0))  # blit the background
-            Treasure.draw(screen)
-            #Robot.movement(screen)
-            Laser.super_massive_jumbo_loop(screen)
+            if not menuShow:
+                screen.blit(background, (0, 0))  # blit the background
+                Treasure.draw(screen)
+                #Robot.movement(screen)
+                Laser.super_massive_jumbo_loop(screen)
 
-            mainCharacter.movement(screen)
+                mainCharacter.movement(screen)
 
-            #A_Star(screen, mainCharacter, total_frames, FPS)
-            interaction(
-                    screen, currentLevel, FPS)
+                #A_Star(screen, mainCharacter, total_frames, FPS)
+                menuShow = interaction.interactionHandler()
 
+                Door.draw(screen)
+                mainCharacter.draw(screen)
 
+                enemy.draw(screen)
+                Robot.draw_robots(screen)
+                Lever.allLevers.draw(screen)
+            else:
+                show_menu(screen, FPS)
 
-            Door.draw(screen)
-            mainCharacter.draw(screen)
-
-            enemy.draw(screen)
-            Robot.draw_robots(screen)
-            Lever.allLevers.draw(screen)
             screen2.blit(pygame.transform.scale(
                 screen, screen2.get_rect().size), (0, 0))
             pygame.display.flip()
@@ -88,5 +92,3 @@ class Game:
             total_frames += 1
 
         pygame.quit()
-
-
