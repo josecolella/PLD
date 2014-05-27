@@ -6,7 +6,7 @@ Game Module
 import pygame
 from models import *
 from gameoptions import *
-from Interaction import *
+from Interactions import *
 from menu import show_menu
 
 

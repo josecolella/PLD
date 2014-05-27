@@ -1,6 +1,6 @@
 import pygame
 import sys
-from models import Laser
+from models import Laser, Lever
 from gameoptions import GameOption
 
 
