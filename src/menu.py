@@ -1,16 +1,151 @@
 #!/usr/bin/env python3
 """
-Module that creates the game menu
+Module that manages the creating of GUI menus for the game
 """
 import pygame
 import os
-
 
 def write(msg="pygame is cool", size=15, color=(255, 255, 255), bold = False, font_type = "None"):
     myfont = pygame.font.SysFont(font_type, size, bold)
     mytext = myfont.render(msg, True, color)
     mytext = mytext.convert_alpha()
     return mytext
+
+
+def text_to_screen(screen, text, x, y, size = 16, color = (255, 255, 255), font_type = 'couriernew'):
+    try:
+        text = str(text)
+        font = pygame.font.SysFont(font_type, size)
+        text = font.render(text, True, color)
+        screen.blit(text, (x, y))
+
+    except Exception:
+        print('Font Error, saw it coming')
+
+
+class Menu:
+    """
+    Represents Game Menu that include the menu that is shown to the user
+    at the beginning of the game, and the menu that the user can access
+    while in the game in order to save the game state
+    """
+
+    def __init__(self):
+        """
+        Defines all the menu configurations possible for the game.
+        For example one menu configuration is the initial game menu.
+        """
+
+        # Configuration for the initial game menu associating a key to a button
+        self.initialMenuButtons = (
+            ('play_game', Button("Play Game Now!")),
+            ('load_game', Button("Load Saved Game")),
+            ('exit_game', Button("Exit Game")),
+            ('show_credits', Button("Show Credits")),
+            ('game_sounds', Button("Game Sounds: Off")),
+            ('game_music', Button("Game Music: Off"))
+        )
+        # Configuration for the pause menu
+        self.pauseMenuButtons = (
+            ('resume_game', Button("Resume Game")),
+            ('save_game', Button("Save Game")),
+            ('exit_game', Button("Exit Game"))
+        )
+        # Identifiers that associated to the tuple of menu configuration
+        self.identifiers = {
+            'initialMenu': self.initialMenuButtons,
+            'pauseMenu': self.pauseMenuButtons
+        }
+
+    def show_menu(self, screen, FPS, menuString="initialMenu"):
+        ''' This function shows a menu and returns the user selections '''
+        menu = True
+        selections = {}
+        # Clear screen and create menu title text surface
+        screen.fill((42, 54, 64))
+        menu_title = write(
+            "Treasure Hunters Menu", 40, (84, 183, 215), True, "couriernew")
+        # Put menu title centered
+        srect = screen.get_rect()
+        mtrect = menu_title.get_rect()
+        screen.blit(menu_title, ((srect.width - mtrect.width) / 2, 50))
+        # Create Button objects and assign its meaning
+        button_list = [i[1] for i in self.identifiers[menuString]]
+        button_keys = [i[0] for i in self.identifiers[menuString]]
+        # Create selections dictionary
+        selections = dict([(key, False) for key in button_keys])
+        # First button will be selected at beginning (unselected by default)
+        button_list[0].toggle()
+        # Control selected button
+        selected = 0
+        # Draw buttons on screen (will set position for each one)
+        for i, b in enumerate(button_list):
+            b.draw_centered(screen, 200 + i * 50)
+
+        clock = pygame.time.Clock()
+
+        while menu:
+            clock.tick(FPS)
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    menu = False
+                    selections['exit_game'] = True
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        menu = False
+                        selections['exit_game'] = True
+                    elif event.key == pygame.K_UP:
+                        if selected > 0:
+                            button_list[selected].toggle()
+                            button_list[selected - 1].toggle()
+                            selected -= 1
+                    elif event.key == pygame.K_DOWN:
+                        if selected < (len(button_list) - 1):
+                            button_list[selected].toggle()
+                            button_list[selected + 1].toggle()
+                            selected += 1
+                    elif event.key == pygame.K_RETURN:
+                        if selected > 2:
+                            selections[button_keys[selected]] = not selections[
+                                button_keys[selected]]
+
+                            # Change button label (on/off buttons)
+                            if button_keys[selected] == 'game_sounds':
+                                if selections[button_keys[selected]]:
+                                    button_list[selected].set_label(
+                                        "Game Sounds: On")
+                                else:
+                                    button_list[selected].set_label(
+                                        "Game Sounds: Off")
+                            elif button_keys[selected] == 'game_music':
+                                if selections[button_keys[selected]]:
+                                    button_list[selected].set_label(
+                                        "Game Music: On")
+                                else:
+                                    button_list[selected].set_label(
+                                        "Game Music: Off")
+                        else:
+                            selections[button_keys[selected]] = True
+                            menu = False
+
+            # Calculate buttons area on screen and clear it
+            width = max([button.width for button in button_list]) + 100
+            height = button_list[len(button_list) - 1].pos[1] - button_list[
+                0].pos[1] + button_list[len(button_list) - 1].height + 100
+            buttons_area = pygame.Surface((width, height))
+            buttons_area.fill((58, 78, 94))
+            buttons_area = buttons_area.convert()
+            screen.blit(
+                buttons_area, (min([button.pos[0] for button in button_list]) - 50, button_list[0].pos[1] - 50))
+            # Draw buttons on screen
+            for i, b in enumerate(button_list):
+                b.draw_centered(screen, 200 + i * 50)
+
+            pygame.display.flip()
+
+        return selections
+
 
 
 class Button:
@@ -69,105 +204,3 @@ class Button:
         button.blit(
             text_surface, (btrect.width + (width - trect.width) / 2, 5))
         return button
-
-
-def show_menu(screen, FPS):
-    ''' This function shows a menu and returns the user selections '''
-    menu = True
-    selections = {}
-    # Clear screen and create menu title text surface
-    screen.fill((42, 54, 64))
-    menu_title = write(
-        "Treasure Hunters Menu", 40, (84, 183, 215), True, "couriernew")
-    # Put menu title centered
-    srect = screen.get_rect()
-    mtrect = menu_title.get_rect()
-    screen.blit(menu_title, ((srect.width - mtrect.width) / 2, 50))
-    # Create Button objects and assign its meaning
-    button_list = []
-    button_keys = []
-    button_list.append(Button("Play Game Now!"))
-    button_keys.append('play_game')
-    button_list.append(Button("Exit Game"))
-    button_keys.append('exit_game')
-    button_list.append(Button("Show Credits"))
-    button_keys.append('show_credits')
-    button_list.append(Button("Game Sounds: Off"))
-    button_keys.append('game_sounds')
-    button_list.append(Button("Game Music: Off"))
-    button_keys.append('game_music')
-    # Create selections dictionary
-    selections = dict([(key, False) for key in button_keys])
-    # First button will be selected at beginning (unselected by default)
-    button_list[0].toggle()
-    # Control selected button
-    selected = 0
-    # Draw buttons on screen (will set position for each one)
-    for i, b in enumerate(button_list):
-        b.draw_centered(screen, 200 + i * 50)
-
-    clock = pygame.time.Clock()
-
-    while menu:
-        clock.tick(FPS)
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                menu = False
-                selections['exit_game'] = True
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    menu = False
-                    selections['exit_game'] = True
-                elif event.key == pygame.K_UP:
-                    if selected > 0:
-                        button_list[selected].toggle()
-                        button_list[selected - 1].toggle()
-                        selected -= 1
-                        time_passed = 0
-                elif event.key == pygame.K_DOWN:
-                    if selected < (len(button_list) - 1):
-                        button_list[selected].toggle()
-                        button_list[selected + 1].toggle()
-                        selected += 1
-                        time_passed = 0
-                elif event.key == pygame.K_RETURN:
-                    if selected > 2:
-                        selections[button_keys[selected]] = not selections[
-                            button_keys[selected]]
-
-                        # Change button label (on/off buttons)
-                        if button_keys[selected] == 'game_sounds':
-                            if selections[button_keys[selected]]:
-                                button_list[selected].set_label(
-                                    "Game Sounds: On")
-                            else:
-                                button_list[selected].set_label(
-                                    "Game Sounds: Off")
-                        elif button_keys[selected] == 'game_music':
-                            if selections[button_keys[selected]]:
-                                button_list[selected].set_label(
-                                    "Game Music: On")
-                            else:
-                                button_list[selected].set_label(
-                                    "Game Music: Off")
-                    else:
-                        selections[button_keys[selected]] = True
-                        menu = False
-
-        # Calculate buttons area on screen and clear it
-        width = max([button.width for button in button_list]) + 100
-        height = button_list[len(button_list) - 1].pos[1] - button_list[
-            0].pos[1] + button_list[len(button_list) - 1].height + 100
-        buttons_area = pygame.Surface((width, height))
-        buttons_area.fill((58, 78, 94))
-        buttons_area = buttons_area.convert()
-        screen.blit(
-            buttons_area, (min([button.pos[0] for button in button_list]) - 50, button_list[0].pos[1] - 50))
-        # Draw buttons on screen
-        for i, b in enumerate(button_list):
-            b.draw_centered(screen, 200 + i * 50)
-
-        pygame.display.flip()
-
-    return selections

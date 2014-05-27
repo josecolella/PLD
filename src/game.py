@@ -5,21 +5,22 @@ Game Module
 
 import pygame
 from models import *
-from interaction import *
-from A_Star import A_Star
-import json
+from gameoptions import *
+from Interactions import *
+from menu import *
 
 
 class Game:
 
     @staticmethod
-    def start(screen2, screenheight, screenwidth, FPS):
+    def start(screen2, screenheight, screenwidth, FPS, loadgame):
         """
         Method that initializes the game and the corresponding pieces of the game
         """
         width = 1024
         height = 768
         screen = pygame.Surface((width, height))
+        menuShow = False
         # Main theme music
         pygame.mixer.music.load("audio/laberynth2.ogg")
         pygame.mixer.music.set_volume(0.5)
@@ -36,10 +37,14 @@ class Game:
 
 
         # Loads the initial level representation
-        currentLevelList = LevelList(width, height, screen)
-
-        # levelIterator = levelList.levelsList
-        currentLevel = next(iter(currentLevelList.allLevels()))
+        currentLevelList= LevelList(width,height,screen)
+        allLevels = currentLevelList.allLevels()
+        #if game state must jump
+        if not loadgame:
+            currentLevel = currentLevelList.buildLevelObject(next(iter(allLevels)))
+        else:
+            print("Loading Game")
+            currentLevel = GameOption.loadGame(currentLevelList, allLevels)
 
 
         # make unbuildable and unwalkable objects unwalkable (walls)
@@ -56,38 +61,34 @@ class Game:
         enemy = currentLevel['built_objects']['e'][0]
 
         background = currentLevel['level'].build_static_background(currentLevel['tile_map'], default='.')
-
+        interaction = Interaction(screen, FPS, currentLevel)
 
         # Game Loop
         while True:
-            screen.blit(background, (0, 0))  # blit the background
-            Treasure.draw(screen)
-            #Robot.movement(screen)
-            Laser.super_massive_jumbo_loop(screen)
+            if not menuShow:
+                screen.blit(background, (0, 0))  # blit the background
+                Treasure.draw(screen)
+                #Robot.movement(screen)
+                Laser.super_massive_jumbo_loop(screen)
 
-            mainCharacter.movement(screen)
+                mainCharacter.movement(screen)
 
-            #A_Star(screen, mainCharacter, total_frames, FPS)
-            interaction(
-                    screen, mainCharacter, FPS)
+                #A_Star(screen, mainCharacter, total_frames, FPS)
+                menuShow = interaction.interactionHandler()
+                text_to_screen(screen, 'Health: {0}'.format(mainCharacter.health),0, -1)
+                Door.draw(screen)
+                mainCharacter.draw(screen)
 
+                enemy.draw(screen)
+                Robot.draw_robots(screen)
+                Lever.allLevers.draw(screen)
+            else:
+                show_menu(screen2, FPS)
 
-
-            Door.draw(screen)
-            mainCharacter.draw(screen)
-
-            enemy.draw(screen)
-            Robot.draw_robots(screen)
-            Lever.allLevers.draw(screen)
             screen2.blit(pygame.transform.scale(
                 screen, screen2.get_rect().size), (0, 0))
             pygame.display.flip()
             clock.tick(FPS)
             total_frames += 1
-
+            # print(pygame.font.get_fonts())
         pygame.quit()
-
-    # def saveGame(mainCharacter, enemy, robots, treasure):
-
-    #    mainCharacterPositions = {"x":mainCharacter.get_tile(), "y": mainCharacter}
-    #    with open('game.json') as f:

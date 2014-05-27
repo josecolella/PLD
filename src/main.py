@@ -5,8 +5,8 @@ Main Module
 import pygame
 from sys import exit
 from game import Game
-from menu import show_menu
-
+from menu import *
+from gameoptions import *
 
 if __name__ == '__main__':
     pygame.init()  # Initialize Pygame
@@ -31,14 +31,20 @@ if __name__ == '__main__':
     iconImg = pygame.image.load("img/icon.png")
     pygame.display.set_icon(iconImg)
     # Start game menu and get user selections
-    selections = show_menu(screen, FPS)
+    menu = Menu() # Initialize Game Menu
+    selections = menu.show_menu(screen, FPS) # Show InitialGameMenu
+    # selections = show_menu(screen, FPS)
     ''' This is a menu selections example:
-    {'game_music': False, 'play_game': True, 'game_sounds': True, 'unknown': False, 'show_credits': False, 'exit_game': False}
+    {'game_music': False, 'play_game': True, 'load_game': False, 'game_sounds': True, 'unknown': False, 'show_credits': False, 'exit_game': False}
     '''
+    print(selections)
     # Process user selections
-    if selections['exit_game'] == True:
+    if selections['exit_game'] is True:
         pygame.quit()
         exit(0)
-    elif selections['play_game'] == True:
+    elif selections['play_game'] is True:
         menu_sound.fadeout(1000)
-        Game.start(screen, screenheight, screenwidth, FPS)
+        Game.start(screen, screenheight, screenwidth, FPS, loadgame=False)
+    elif selections['load_game'] is True:
+        menu_sound.fadeout(1000)
+        Game.start(screen, screenheight, screenwidth, FPS, loadgame=True)
