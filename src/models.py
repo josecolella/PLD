@@ -218,6 +218,11 @@ class Character(pygame.Rect):
               0, 10, 's', self.get_bullet_type())
 
     def _move(self, direction, difference):
+        """
+        move(direction, difference) -> The Character moves to the direction
+        that is specified by the direction string, by the amount
+        that is specified by the difference if it is possible
+        """
         future_tile_number = self.get_number() + difference
         if future_tile_number in range(1, Tile.total_tiles + 1):
             future_tile = Tile.get_tile(future_tile_number)
@@ -226,19 +231,33 @@ class Character(pygame.Rect):
                 self.rotate(direction)
 
     def moveEast(self):
+        """
+        moveEast() -> The Character will move east one tile
+        """
         self._move('e', Tile.HorizontalDifference)
 
     def moveWest(self):
+        """
+        moveWest() -> The Character will move west one tile
+        """
         self._move('w', - Tile.HorizontalDifference)
 
     def moveNorth(self):
+        """
+        moveNorth() -> The Character will move north one tile
+        """
         self._move('n', - Tile.VerticalDifference)
 
     def moveSouth(self):
+        """
+        moveSouth() -> The Character will move south one tile
+        """
         self._move('s', Tile.VerticalDifference)
 
     def draw(self, screen):
-
+        """
+        draw(screen) -> Displays the Character in the screen with it's healthbar
+        """
         screen.blit(self.img, (self.x, self.y))
         self.healthbar.update()
         self.healthbar.draw(screen)
@@ -274,11 +293,6 @@ class MainCharacter(Character):
     game
     """
 
-    guns_img = (
-        pygame.image.load("img/shotgun.png"),
-        pygame.image.load("img/automatic.png")
-    )
-
     health = 100
     List = []
 
@@ -293,30 +307,30 @@ class MainCharacter(Character):
         self.direction = 'w'
         self.velocity = 8
         self.imgPath = 'img/player_'
-        self.img = pygame.image.load('img/player_w.png')
+        self.img = pygame.image.load(self.imgPath+'w.png')
         # Use cycle so that it iterates forever
         self.walking_west_images = itertools.cycle(
-            ('img/player_w_walk_l.png',
-             'img/player_w.png',
-             'img/player_w_walk_r.png'
+            (self.imgPath+'w_walk_l.png',
+             self.imgPath+'w.png',
+             self.imgPath+'w_walk_r.png'
              )
         )
         self.walking_east_images = itertools.cycle(
-            ('img/player_e_walk_l.png',
-             'img/player_e.png',
-             'img/player_e_walk_r.png'
+            (self.imgPath+'e_walk_l.png',
+             self.imgPath+'e.png',
+             self.imgPath+'e_walk_r.png'
              )
         )
         self.walking_north_images = itertools.cycle(
-            ('img/player_n_walk_l.png',
-             'img/player_n.png',
-             'img/player_n_walk_r.png'
+            (self.imgPath+'n_walk_l.png',
+             self.imgPath+'n.png',
+             self.imgPath+'n_walk_r.png'
              )
         )
         self.walking_south_images = itertools.cycle(
-            ('img/player_s_walk_l.png',
-             'img/player_s.png',
-             'img/player_s_walk_r.png'
+            (self.imgPath+'s_walk_l.png',
+             self.imgPath+'s.png',
+             self.imgPath+'s_walk_r.png'
              )
         )
 
@@ -336,16 +350,13 @@ class Robot(Character):
     The class that represents the robots that
     defend the Treasure
     """
-    health = 100
 
+    health = 100
     List = []
-    #spawn_tiles = (33 + 64 * 15, 36 + 64 * 15)
-    #spawn_tiles_iter = itertools.cycle(spawn_tiles)
     original_img = pygame.image.load('img/guardian_s.png')
     robot_sound = itertools.cycle(
         ('audio/findseekanddestroy.ogg', 'audio/cmu_us_rms_arctic_clunits.ogg')
     )
-    health = 100
 
     def __init__(self, x, y):
         self.health = Robot.health
@@ -353,28 +364,29 @@ class Robot(Character):
         self.direction = 's'
         self.health = Robot.health
         self.img = Robot.original_img
+        self.imgPath = 'img/guardian_'
         self.walking_west_images = itertools.cycle(
-            ('img/guardian_w_walk_l.png',
-             'img/guardian_w_walk_c.png',
-             'img/guardian_w_walk_r.png'
+            (self.imgPath+'w_walk_l.png',
+             self.imgPath+'w_walk_c.png',
+             self.imgPath+'w_walk_r.png'
              )
         )
         self.walking_east_images = itertools.cycle(
-            ('img/guardian_e_walk_l.png',
-             'img/guardian_e_walk_c.png',
-             'img/guardian_e_walk_r.png'
+            (self.imgPath+'e_walk_l.png',
+             self.imgPath+'e_walk_c.png',
+             self.imgPath+'e_walk_r.png'
              )
         )
         self.walking_north_images = itertools.cycle(
-            ('img/guardian_n_walk_l.png',
-             'img/guardian_n_walk_c.png',
-             'img/guardian_n_walk_r.png'
+            (self.imgPath+'n_walk_l.png',
+             self.imgPath+'n_walk_c.png',
+             self.imgPath+'n_walk_r.png'
              )
         )
         self.walking_south_images = itertools.cycle(
-            ('img/guardian_s_walk_l.png',
-             'img/guardian_s_walk_c.png',
-             'img/guardian_s_walk_r.png'
+            (self.imgPath+'s_walk_l.png',
+             self.imgPath+'s_walk_c.png',
+             self.imgPath+'s_walk_r.png'
              )
         )
 
@@ -453,10 +465,6 @@ class Enemy(Character):
     This class represents the enemy that the MainCharacter will
     compete against to steal the Treasure
     """
-    guns_img = (
-        pygame.image.load("img/shotgun.png"),
-        pygame.image.load("img/automatic.png")
-    )
     List = [] # A List of enemies
     health = 100
 
@@ -471,30 +479,30 @@ class Enemy(Character):
         self.velocity = 4 # The enemy velocity
         self.direction = 'w'
         self.imgPath = 'img/thief_'
-        self.img = pygame.image.load('img/thief_w.png')
+        self.img = pygame.image.load(self.imgPath+'w.png')
         # Use cycle so that it iterates forever
         self.walking_west_images = itertools.cycle(
-            ('img/thief_w_walk_l.png',
-             'img/thief_w.png',
-             'img/thief_w_walk_r.png'
+            (self.imgPath+'w_walk_l.png',
+             self.imgPath+'w.png',
+             self.imgPath+'w_walk_r.png'
              )
         )
         self.walking_east_images = itertools.cycle(
-            ('img/thief_e_walk_l.png',
-             'img/thief_e.png',
-             'img/thief_e_walk_r.png'
+            (self.imgPath+'e_walk_l.png',
+             self.imgPath+'e.png',
+             self.imgPath+'e_walk_r.png'
              )
         )
         self.walking_north_images = itertools.cycle(
-            ('img/thief_n_walk_l.png',
-             'img/thief_n.png',
-             'img/thief_n_walk_r.png'
+            (self.imgPath+'n_walk_l.png',
+             self.imgPath+'n.png',
+             self.imgPath+'n_walk_r.png'
              )
         )
         self.walking_south_images = itertools.cycle(
-            ('img/thief_s_walk_l.png',
-             'img/thief_s.png',
-             'img/thief_s_walk_r.png'
+            (self.imgPath+'s_walk_l.png',
+             self.imgPath+'s.png',
+             self.imgPath+'s_walk_r.png'
              )
         )
         Enemy.List.append(self)
