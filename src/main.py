@@ -18,9 +18,6 @@ if __name__ == '__main__':
 
     screenwidth = 800
     screenheight = 600
-    # Testing purpose
-    # screenwidth = 1024
-    # screenheight = 768
 
     FPS = 20
 

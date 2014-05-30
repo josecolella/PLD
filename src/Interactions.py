@@ -1,7 +1,6 @@
 import pygame
 import sys
-from models import Laser, Lever
-from gameoptions import GameOption
+from models import Lever
 
 
 class Interaction:
@@ -27,27 +26,15 @@ class Interaction:
                 pygame.quit()
                 sys.exit()
 
-            if event.type == pygame.KEYDOWN:
-                # To change weapons
-                if event.key == pygame.K_f:
-
-                    self.player.currentGun += 1
-                    self.player.currentGun %= len(Laser.imgs)
-                # To save game
-                if event.key == pygame.K_x:
-
-                    GameOption.saveGame(self.currentLevel)
-
-                if event.key == pygame.K_z:
-                    self.showMenu = not self.showMenu
-
         # Key events
         keys = pygame.key.get_pressed()
 
+        #  To show menu
+        if keys[pygame.K_ESCAPE]:
+            self.showMenu = True
         # Changing gun key
         if keys[pygame.K_f]:
-            pass
-
+            self.player.changeGun()
         # Movement and shooting keys
         # West
         if keys[pygame.K_w]:
@@ -61,14 +48,9 @@ class Interaction:
         #East
         elif keys[pygame.K_d]:
             self.player.moveEast()
-
-        elif keys[pygame.K_e]:  # Toggle lever
-            for lever in Lever.allLevers:
-                distance2 = (lever.rect.x-self.player.x)*(lever.rect.x-self.player.x)+(
-                    lever.rect.y-self.player.y)*(lever.rect.y-self.player.y)
-                if distance2 < 4*(lever.width*lever.width+
-                                    lever.height*lever.height):
-                    lever.toggle()
+        # Toggle lever
+        elif keys[pygame.K_e]:
+            Lever.interactionToggleHandler(self.player)
         # Fire Left
         if keys[pygame.K_LEFT]:
             self.player.fireWest()

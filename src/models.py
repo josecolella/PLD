@@ -94,31 +94,31 @@ class Character(pygame.Rect):
         return Tile.get_tile(self.get_number())
 
     def rotate(self, direction):
-       """
-       Method created to manage the rotation of the Character
-       and to set the appropriate image
-       """
-       png = '.png'
+        """
+        Method created to manage the rotation of the Character
+        and to set the appropriate image
+        """
+        png = '.png'
 
-       if direction == 'n':
-           if self.direction != 'n':
-               self.direction = 'n'
-               self.img = pygame.image.load(self.imgPath + self.direction + png)
+        if direction == 'n':
+            if self.direction != 'n':
+                self.direction = 'n'
+                self.img = pygame.image.load(self.imgPath + self.direction + png)
 
-       if direction == 's':
-           if self.direction != 's':
-               self.direction = 's'
-               self.img = pygame.image.load(self.imgPath + self.direction + png)
+        if direction == 's':
+            if self.direction != 's':
+                self.direction = 's'
+                self.img = pygame.image.load(self.imgPath + self.direction + png)
 
-       if direction == 'e':
-           if self.direction != 'e':
-               self.direction = 'e'
-               self.img = pygame.image.load(self.imgPath + self.direction + png)
+        if direction == 'e':
+            if self.direction != 'e':
+                self.direction = 'e'
+                self.img = pygame.image.load(self.imgPath + self.direction + png)
 
-       if direction == 'w':
-           if self.direction != 'w':
-               self.direction = 'w'
-               self.img = pygame.image.load(self.imgPath + self.direction + png)
+        if direction == 'w':
+            if self.direction != 'w':
+                self.direction = 'w'
+                self.img = pygame.image.load(self.imgPath + self.direction + png)
 
 
     # def rotate(self, direction, original_img):
@@ -143,7 +143,6 @@ class Character(pygame.Rect):
     #         if self.direction != 'w':
     #             self.direction = 'w'
     #             self.img = original_img
-
     def movement(self, screen):
         """
         This method deals with everything related to the movement of the character.
@@ -180,6 +179,16 @@ class Character(pygame.Rect):
             return 'automatic'
         elif self.currentGun == 1:
             return 'shotgun'
+
+    def changeGun(self):
+        """
+        Method that allows the character to change guns
+        changeGun() -> switches to the next gun, so if the automatic gun
+        was the current gun, then the shotgun is now the current gun and
+        vice-versa
+        """
+        self.currentGun += 1
+        self.currentGun %= len(Laser.imgs)
 
     def fireWest(self):
         """
@@ -811,6 +820,23 @@ class Lever(pygame.sprite.Sprite):
         if hasattr(self, 'toggle_objects') and doToggle:
             for obj in self.toggle_objects:
                 obj.toggle()
+
+    @staticmethod
+    def interactionToggleHandler(player):
+        """
+        Method that handles the interaction of toggling the lever when the instance
+        of the player parameter is close to the lever
+
+        Parameters
+        ----------
+        player : instance of a class that extends Character
+           The instance of the player that is interacting with the game
+        """
+        for lever in Lever.allLevers:
+                distance2 = (lever.rect.x-player.x)*(lever.rect.x-player.x)+(
+                    lever.rect.y-player.y)*(lever.rect.y-player.y)
+                if distance2 < 4 * (lever.width * lever.width+ lever.height*lever.height):
+                    lever.toggle()
 
 
 class Door(pygame.sprite.Sprite):

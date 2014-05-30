@@ -21,6 +21,7 @@ class Game:
         height = 768
         screen = pygame.Surface((width, height))
         menuShow = False
+        pauseMenu = Menu()
         # Main theme music
         pygame.mixer.music.load("audio/laberynth2.ogg")
         pygame.mixer.music.set_volume(0.5)
@@ -83,7 +84,16 @@ class Game:
                 Robot.draw_robots(screen)
                 Lever.allLevers.draw(screen)
             else:
-                show_menu(screen2, FPS)
+                selections = pauseMenu.show_menu(screen2, FPS, "pauseMenu")
+                if selections['exit_game'] is True:
+                    pygame.quit()
+                    exit(0)
+                elif selections['resume_game'] is True:
+                    menuShow = False
+                    interaction.showMenu = False
+                elif selections['save_game'] is True:
+                    GameOption.saveGame(currentLevel)
+                    print('Game Saved')
 
             screen2.blit(pygame.transform.scale(
                 screen, screen2.get_rect().size), (0, 0))

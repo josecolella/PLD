@@ -146,6 +146,12 @@ class Menu:
 
         return selections
 
+    def menuOptionHandler(selections):
+        """
+        Method that handles the actions corresponding to the different menu
+        selections
+        """
+        pass
 
 
 class Button:
