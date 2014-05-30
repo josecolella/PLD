@@ -8,7 +8,9 @@ class Interaction:
     Manages the key interaction with the player.
     """
     def __init__(self, screen, FPS, currentLevel):
+        """
 
+        """
         self.showMenu = False
         self.screen = screen
         self.fps = FPS
@@ -19,6 +21,7 @@ class Interaction:
         """
         The handler that manages the user interaction with the game.
         All posible game keys are defined here and how they are managed
+        interactionHandler() -> bool Whether to show the menu or not
         """
         for event in pygame.event.get():
 

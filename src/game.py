@@ -24,7 +24,7 @@ class Game:
         pauseMenu = Menu()
         # Main theme music
         pygame.mixer.music.load("audio/laberynth2.ogg")
-        pygame.mixer.music.set_volume(0.5)
+        pygame.mixer.music.set_volume(0.8)
         pygame.mixer.music.play(-1)  # Continuous Loop
 
         clock = pygame.time.Clock()  # Initialize Game Clock
@@ -77,6 +77,9 @@ class Game:
                 #A_Star(screen, mainCharacter, total_frames, FPS)
                 menuShow = interaction.interactionHandler()
                 text_to_screen(screen, 'Health: {0}'.format(mainCharacter.health),0, -1)
+                # General Game Information
+                text_to_screen(screen, 'Press ESC: Game Menu', 200, -1, 16)
+
                 Door.draw(screen)
                 mainCharacter.draw(screen)
 
