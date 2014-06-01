@@ -255,5 +255,69 @@ class Level:
         """
         pass
 
-    def generateMapMatrix(self):
-        pass
+    def zone_coordinates(self):
+        """
+        Returns cell based (tile) coordinates grouped by zones.
+        Zones are detected automatically as areas delimited by doors or walls.
+        """
+        lines = len(self.rep)
+        columns = len(self.rep[0])
+        non_conducting = {'x'}
+        non_conducting.update(self.objects['door'])
+        m = [ [0]*columns for i in range(lines) ]
+        zone_count = 1
+        equivalent = set()
+        coords = {}
+        done = set()
+        equiv_zone = {}
+        zone_coords = {}
+
+
+        for y in range(1,lines):
+            for x in range(1,columns):
+                if self.rep[y][x] not in non_conducting:
+                    if self.rep[y-1][x] not in non_conducting or self.rep[y][x-1] not in non_conducting:
+                        m[y][x] = max(m[y-1][x], m[y][x-1])
+                        if m[y-1][x] != m[y][x-1] and m[y-1][x] != 0 != m[y][x-1]:
+                            equivalent.add((m[y-1][x], m[y][x-1]))
+
+                    else:
+                        m[y][x] = zone_count
+                        zone_count +=1
+                    
+                    try:    
+                        coords[m[y][x]].add((self.min_tile_w * x, self.min_tile_h * y))
+                    except KeyError:
+                        coords[m[y][x]] = {(self.min_tile_w * x, self.min_tile_h * y)}
+
+
+        for i in range(1, zone_count):
+            if i not in done:
+                changed = True
+                equiv_zone[i] = {i}
+                done.add(i)
+                while changed:
+                    zone_size = len(equiv_zone[i])
+                    for z1, z2 in equivalent:
+                        if z1 in equiv_zone[i]:
+                            equiv_zone[i].add(z2)
+                            done.add(z2)
+                        elif z2 in equiv_zone[i]:
+                            equiv_zone[i].add(z1)
+                            done.add(z1)
+                            
+                    if len(equiv_zone[i]) == zone_size:
+                        changed = False
+                    else:
+                        changed = True
+
+
+        for z1 in equiv_zone:
+            zone_coords[z1] = set()
+            
+            for z2 in equiv_zone[z1]:
+                zone_coords[z1].update(coords[z2])
+
+                   
+        return zone_coords 
+        
