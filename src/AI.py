@@ -43,11 +43,13 @@ class A_star:
 
 class Think(multiprocessing.Process):
     #The following class code is deprecated (thread oriented ...)
-    def __init__(self, agent_conn, child_conn, initial_state, depth):
+    def __init__(self, agent_conn, child_conn, depth):
         multiprocessing.Process.__init__(self)
-        self.level1 = A_star()
-        self.level2 = AB(initial_state, depth)
+        #self.level1 = A_star()
+        #self.level2 = AB(initial_state, depth)
         self.agent_conn = agent_conn
+        self.child_conn = child_conn
+        self.depth = depth
         #self.ready = threading.Event()
         #self.access_lock = threading.Lock()
 
@@ -88,15 +90,22 @@ class Agent:
     agent server. When a response is available, it makes the agent assets
     execute their AI core commands.
     """
-    def __init__(self, think_conn):
+    def __init__(self, think_conn, agent_id, server):
         self.think_conn = think_conn
+        self.agent_id = agent_id
+        self.server = server
+        self.engaged = False
+        self.action_done = True
+        self.List = []
 
     def addAsset(self, asset):
         """
         Add asset to this agent and send event to the server in order
         to make visible this change to the other agent cores.
         """
-        pass
+        asset_id = len(self.List)
+        self.List.append(asset)
+        return asset_id
 
     def delAsset(self):
         """
@@ -119,10 +128,47 @@ class Agent:
 
     def next(self):
         """
-        Executes next command of the plan (if previous is complete).
+        Executes next command of the plan (if previous action has been completed).
         """
+        if self.engaged:
+            if self.pos == len(self.plan):
+                self.think_conn.send('bored')
+                self.engaged = False
+            elif self.action_done:
+                action = self.plan[self.pos]
+                self.action_done = False
+                asset = self.List[action[0]]
+
+                if action[1] == 'moveEast':
+                    asset.moveEast()
+                elif action[1] == 'moveWest':
+                    asset.moveWest()
+                elif action[1] == 'moveNorth':
+                    asset.moveNorth()
+                elif action[1] == 'moveSouth':
+                    asset.moveSouth()
+                elif action[1] == 'changeGun':
+                    asset.changeGun()
+                elif action[1] == 'fireWest':
+                    asset.fireWest()
+                elif action[1] == 'fireNorth':
+                    asset.fireNorth()
+                elif action[1] == 'fireEast':
+                    asset.fireEast()
+                elif action[1] == 'fireSouth':
+                    asset.fireSouth()                                                            
+
         if self.think_conn.poll():
             self.plan = self.think_conn.recv()
+            self.pos = 0
+            self.engaged = True
+
+    def actionCompleted(self):
+        """
+        The current action has been completed.
+        """
+        self.action_done = True
+        self.pos += 1
 
 
 class AgentServer:
@@ -145,14 +191,14 @@ class AgentServer:
         self.core_list = []
       
 
-    def newAgent(self):
+    def newAgent(self, depth):
         """
         Creates a new agent and prepares data structures.
         """
         think_conn, agent_conn = multiprocessing.Pipe()
         parent_conn, child_conn = multiprocessing.Pipe()
-        agent = Agent(think_conn)
-        think = Think(agent_conn, child_conn)
+        agent = Agent(think_conn, len(self.core_list), self)
+        think = Think(agent_conn, child_conn, depth)
         self.core_list.append((agent, think, parent_conn))
         return agent
 
