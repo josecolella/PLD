@@ -1,6 +1,6 @@
 import pygame
 import sys
-from models import Lever
+from models import Lever, Treasure
 
 
 class Interaction:
@@ -36,8 +36,14 @@ class Interaction:
         if keys[pygame.K_ESCAPE]:
             self.showMenu = True
         # Changing gun key
-        if keys[pygame.K_f]:
+        if keys[pygame.K_r]:
             self.player.changeGun()
+
+        if keys[pygame.K_f]:
+            Treasure.pickUpObject(self.player)
+        elif keys[pygame.K_g]:
+            Treasure.dropObject(self.player)
+
         # Movement and shooting keys
         # West
         if keys[pygame.K_w]:

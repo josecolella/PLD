@@ -1,57 +1,57 @@
 {
     "enemy": {
-        "direction": "w", 
-        "isTreasureCaptured": false, 
-        "gun": 0, 
-        "health": 100, 
-        "y": 672, 
-        "x": 960
-    }, 
-    "door": [
-        {
-            "id": "q", 
-            "toggled": false
-        }, 
-        {
-            "id": "p", 
-            "toggled": false
-        }
-    ], 
-    "level": 1, 
-    "object": {
-        "y": 80, 
-        "x": 496
-    }, 
-    "robot": [
-        {
-            "y": 240, 
-            "x": 464, 
-            "direction": "s", 
-            "health": 100
-        }, 
-        {
-            "y": 240, 
-            "x": 528, 
-            "direction": "s", 
-            "health": 100
-        }
-    ], 
-    "player": {
-        "direction": "n", 
-        "isTreasureCaptured": false, 
-        "gun": 0, 
-        "health": 100, 
-        "y": 608, 
-        "x": 32
-    }, 
+        "y": 672,
+        "isTreasureCaptured": false,
+        "x": 960,
+        "direction": "w",
+        "gun": 0,
+        "health": 100
+    },
+    "level": 1,
     "lever": [
         {
-            "off": true, 
-            "id": "m"
-        }, 
+            "id": "m",
+            "off": true
+        },
         {
-            "off": true, 
-            "id": "l"
+            "id": "l",
+            "off": false
+        }
+    ],
+    "object": {
+        "x": 496,
+        "y": 80
+    },
+    "robot": [
+        {
+            "x": 464,
+            "y": 240,
+            "health": 100,
+            "direction": "s"
+        },
+        {
+            "x": 528,
+            "y": 240,
+            "health": 100,
+            "direction": "s"
+        }
+    ],
+    "player": {
+        "y": 160,
+        "isTreasureCaptured": false,
+        "x": 496,
+        "direction": "n",
+        "gun": 0,
+        "health": 100
+    },
+    "door": [
+        {
+            "id": "q",
+            "toggled": false
+        },
+        {
+            "id": "p",
+            "toggled": true
         }
     ]
 }

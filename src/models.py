@@ -23,17 +23,30 @@ class Livebar(pygame.Rect):
     This class represent the Character's healthbar
     """
 
+    colors = {
+        'green': (0, 255, 0),
+        'orange': (255, 165, 0),
+        'red': (255, 0, 0),
+        'blue': (0, 0, 255)
+    }
+
     def __init__(self, boss):
 
         self.boss = boss
         self.image = pygame.Surface((self.boss.width * 2, 7))
         self.image.set_colorkey((0, 0, 0))  # black transparent
+        self.color = Livebar.colors['green']
         pygame.draw.rect(
-            self.image, (0, 255, 0), (0, 0, self.boss.width * 2, 7
-                                      ), 1)
+            self.image, self.color,
+            (0, 0, self.boss.width * 2, 7), 1)
+
         self.rect = self.image.get_rect()
         self.rect.x = self.boss.x
         self.rect.y = self.boss.y
+        pygame.draw.rect(
+            self.image, Livebar.colors['blue'],
+            (0, 0, self.boss.width / 2, 5), 1)
+
         self.oldpercent = 0
 
         pygame.Rect.__init__(
@@ -41,12 +54,21 @@ class Livebar(pygame.Rect):
 
     def update(self):
         self.percent = self.boss.health / self.boss.__class__.health
-        if self.percent != self.oldpercent:
+        if self.percent != self.oldpercent or self.boss.treasureCaptured:
             # fill black
+            if self.percent != self.oldpercent and self.percent > 0:
+                self.color = self.percentageColor()
+            pygame.draw.rect(
+            self.image, self.color,
+            (0, 0, self.boss.width * 2, 7), 1)
+            if self.boss.treasureCaptured:
+                pygame.draw.rect(
+                self.image, Livebar.colors['blue'],
+                (0, 0, self.boss.width, 5), 1)
             pygame.draw.rect(
                 self.image, (0, 0, 0), (1, 1, self.boss.width * 2 - 2, 5))
-            pygame.draw.rect(self.image, (0, 255, 0), (1, 1,
-                                                       int(self.boss.width * 2 * self.percent), 5), 0)  # fill green
+            pygame.draw.rect(self.image, self.color, (1, 1,
+                                                       int(self.boss.width * 2 * self.percent), 5), 0)
         self.oldpercent = self.percent
         self.rect.centerx = self.boss.centerx + 7
         self.rect.centery = self.boss.centery - \
@@ -54,6 +76,19 @@ class Livebar(pygame.Rect):
 
     def draw(self, screen):
         screen.blit(self.image, (self.rect.x, self.rect.y))
+        if self.boss.treasureCaptured:
+            screen.blit(pygame.transform.scale(self.image, (7, 7)), (self.rect.x + self.boss.width -4, self.rect.y - 15))
+
+
+    def percentageColor(self):
+        tup = None
+        if self.percent >= 0.7:
+            tup = Livebar.colors['green']
+        elif self.percent >= 0.3 and self.percent < 0.7:
+            tup = Livebar.colors['orange']
+        elif self.percent >= 0.0 and self.percent < 0.3:
+            tup = Livebar.colors['red']
+        return tup
 
 
 class Character(pygame.Rect):
@@ -75,6 +110,33 @@ class Character(pygame.Rect):
         self.tx, self.ty = None, None
         self.treasureCaptured = False
         self.currentGun = 0  # 0 -> shotgun, 1 -> automatic
+
+        # Use cycle so that it iterates forever
+        self.walking_west_images = itertools.cycle(
+            (self.imgPath+'w_walk_l.png',
+             self.imgPath+'w.png',
+             self.imgPath+'w_walk_r.png'
+             )
+        )
+        self.walking_east_images = itertools.cycle(
+            (self.imgPath+'e_walk_l.png',
+             self.imgPath+'e.png',
+             self.imgPath+'e_walk_r.png'
+             )
+        )
+        self.walking_north_images = itertools.cycle(
+            (self.imgPath+'n_walk_l.png',
+             self.imgPath+'n.png',
+             self.imgPath+'n_walk_r.png'
+             )
+        )
+        self.walking_south_images = itertools.cycle(
+            (self.imgPath+'s_walk_l.png',
+             self.imgPath+'s.png',
+             self.imgPath+'s_walk_r.png'
+             )
+        )
+
         pygame.Rect.__init__(self, x, y, Character.width, Character.height)
 
     def __str__(self):
@@ -113,12 +175,12 @@ class Character(pygame.Rect):
         if direction == 'e':
             if self.direction != 'e':
                 self.direction = 'e'
-                self.img = pygame.image.load(self.imgPath + self.direction + png)
+                self.img = pygame.image.load(self.imgPath+self.direction + png)
 
         if direction == 'w':
             if self.direction != 'w':
                 self.direction = 'w'
-                self.img = pygame.image.load(self.imgPath + self.direction + png)
+                self.img = pygame.image.load(self.imgPath+self.direction+png)
 
 
     # def rotate(self, direction, original_img):
@@ -290,9 +352,12 @@ class Character(pygame.Rect):
             img = pygame.transform.flip(south, False, True)
             screen.blit(img, (self.x + h, self.y - h))
 
-    @staticmethod
-    def clear():
-        pass
+    def satifiesWinConditions(self, coordinates):
+
+        if self.treasureCaptured and (self.x, self.y) in coordinates:
+            return True
+        else:
+            return False
 
 
 class MainCharacter(Character):
@@ -314,44 +379,16 @@ class MainCharacter(Character):
         self.healthbar = Livebar(self)
         self.description = "maincharacter"
         self.direction = 'w'
-        self.velocity = 8
+        self.velocity = 16
         self.imgPath = 'img/player_'
         self.img = pygame.image.load(self.imgPath+'w.png')
-        # Use cycle so that it iterates forever
-        self.walking_west_images = itertools.cycle(
-            (self.imgPath+'w_walk_l.png',
-             self.imgPath+'w.png',
-             self.imgPath+'w_walk_r.png'
-             )
-        )
-        self.walking_east_images = itertools.cycle(
-            (self.imgPath+'e_walk_l.png',
-             self.imgPath+'e.png',
-             self.imgPath+'e_walk_r.png'
-             )
-        )
-        self.walking_north_images = itertools.cycle(
-            (self.imgPath+'n_walk_l.png',
-             self.imgPath+'n.png',
-             self.imgPath+'n_walk_r.png'
-             )
-        )
-        self.walking_south_images = itertools.cycle(
-            (self.imgPath+'s_walk_l.png',
-             self.imgPath+'s.png',
-             self.imgPath+'s_walk_r.png'
-             )
-        )
 
         Character.__init__(self, x, y)
         MainCharacter.List.append(self)
 
-    def clear(self):
-        """
-        Removes all MainCharacter objects from the game
-        """
+    @staticmethod
+    def clear():
         MainCharacter.List.clear()
-
 
 class Robot(Character):
 
@@ -374,30 +411,6 @@ class Robot(Character):
         self.health = Robot.health
         self.img = Robot.original_img
         self.imgPath = 'img/guardian_'
-        self.walking_west_images = itertools.cycle(
-            (self.imgPath+'w_walk_l.png',
-             self.imgPath+'w_walk_c.png',
-             self.imgPath+'w_walk_r.png'
-             )
-        )
-        self.walking_east_images = itertools.cycle(
-            (self.imgPath+'e_walk_l.png',
-             self.imgPath+'e_walk_c.png',
-             self.imgPath+'e_walk_r.png'
-             )
-        )
-        self.walking_north_images = itertools.cycle(
-            (self.imgPath+'n_walk_l.png',
-             self.imgPath+'n_walk_c.png',
-             self.imgPath+'n_walk_r.png'
-             )
-        )
-        self.walking_south_images = itertools.cycle(
-            (self.imgPath+'s_walk_l.png',
-             self.imgPath+'s_walk_c.png',
-             self.imgPath+'s_walk_r.png'
-             )
-        )
 
         Character.__init__(self, x, y)
 
@@ -463,8 +476,8 @@ class Robot(Character):
             spawn_node = Tile.get_tile(tile_num)
             Robot(spawn_node.x, spawn_node.y)
     '''
-
-    def clear(self):
+    @staticmethod
+    def clear():
         Robot.List.clear()
 
 
@@ -489,36 +502,13 @@ class Enemy(Character):
         self.direction = 'w'
         self.imgPath = 'img/thief_'
         self.img = pygame.image.load(self.imgPath+'w.png')
-        # Use cycle so that it iterates forever
-        self.walking_west_images = itertools.cycle(
-            (self.imgPath+'w_walk_l.png',
-             self.imgPath+'w.png',
-             self.imgPath+'w_walk_r.png'
-             )
-        )
-        self.walking_east_images = itertools.cycle(
-            (self.imgPath+'e_walk_l.png',
-             self.imgPath+'e.png',
-             self.imgPath+'e_walk_r.png'
-             )
-        )
-        self.walking_north_images = itertools.cycle(
-            (self.imgPath+'n_walk_l.png',
-             self.imgPath+'n.png',
-             self.imgPath+'n_walk_r.png'
-             )
-        )
-        self.walking_south_images = itertools.cycle(
-            (self.imgPath+'s_walk_l.png',
-             self.imgPath+'s.png',
-             self.imgPath+'s_walk_r.png'
-             )
-        )
+
         Enemy.List.append(self)
         Character.__init__(self, x, y)
 
-    def clear(self):
-        pass
+    @staticmethod
+    def clear():
+        Enemy.List.clear()
 
 
 class Laser(pygame.Rect):
@@ -640,6 +630,10 @@ class Laser(pygame.Rect):
                     except:
                         break  # if bullet cannot be removed, then GTFO
 
+    @staticmethod
+    def clear(self):
+        Laser.List.clear()
+
 
 class Treasure(pygame.Rect):
 
@@ -658,13 +652,41 @@ class Treasure(pygame.Rect):
 
     def __init__(self, x, y):
         pygame.Rect.__init__(self, x, y, Dimensions.width, Dimensions.height)
-        self.img = pygame.image.load(Treasure.treasure_img[0])
+        self.img = pygame.image.load(Treasure.treasure_img[0]).convert_alpha()
         Treasure.List.append(self)
+
+    @staticmethod
+    def pickUpObject(player):
+        """
+        pickObject() -> The method that allows the Character to pick object
+        """
+        for treasure in Treasure.List:
+            distance2 = (treasure.x-player.x)*(treasure.x-player.x)+(treasure.y-player.y)*(treasure.y-player.y)
+            if distance2 < 4 * (treasure.width * treasure.width+ treasure.height*treasure.height):
+                if not player.treasureCaptured:
+                    player.treasureCaptured = True
+                    treasure.img = pygame.image.load("img/light_gray_tile.png")
+
+    @staticmethod
+    def dropObject(player):
+        """
+        dropObject() -> The method that allows the Character to drop the object
+        """
+        for treasure in Treasure.List:
+            if player.treasureCaptured:
+                player.treasureCaptured = False
+                treasure.x = player.x
+                treasure.y = player.y
+                treasure.img = pygame.image.load(Treasure.treasure_img[0])
 
     @staticmethod
     def draw(screen):
         for treasure in Treasure.List:
             screen.blit(treasure.img, (treasure.x, treasure.y))
+
+    @staticmethod
+    def clear():
+        Treasure.List.clear()
 
 
 class Tile(pygame.Rect):
@@ -685,8 +707,6 @@ class Tile(pygame.Rect):
     # The horizontal and vertical difference between one tile
     # and another (64x16 = 1024 = screen.width)
     HorizontalDifference, VerticalDifference = 1, 64
-    # level = Level()
-    # invalids = level.leve1()
 
     def __init__(self, x, y, Type):
 
@@ -736,6 +756,11 @@ class Tile(pygame.Rect):
                 tile.walkable = True
                 tile.type = "empty"
                 Tile.List.append(tile)
+
+    @staticmethod
+    def clear():
+        Tile.List.clear()
+        Tile.total_tiles = 1
 
 
 class Lever(pygame.sprite.Sprite):
@@ -838,6 +863,10 @@ class Lever(pygame.sprite.Sprite):
                 if distance2 < 4 * (lever.width * lever.width+ lever.height*lever.height):
                     lever.toggle()
 
+    @staticmethod
+    def clear():
+        Lever.allLevers.empty()
+
 
 class Door(pygame.sprite.Sprite):
     """
@@ -897,6 +926,10 @@ class Door(pygame.sprite.Sprite):
         for door in Door.List:
             screen.blit(door.image, (door.rect.x, door.rect.y))
 
+    @staticmethod
+    def clear():
+        Door.List.clear()
+
 
 class LevelList:
     """
@@ -910,6 +943,11 @@ class LevelList:
         self.width = width
         self.height = height
         self.screen = screen
+        self.currentLevel = 1
+        self.levels = {
+            1: self.level1Representation(),
+            2: self.level2Representation()
+        }
 
     def allLevels(self):
         """
@@ -917,10 +955,7 @@ class LevelList:
 
         allLevels() -> tuple(dict, dict, ...)
         """
-        return (
-            self.level1Representation(),
-            self.level2Representation()
-        )
+        return (i for i in self.levels.values())
 
     def level1Representation(self):
         """
@@ -1001,7 +1036,73 @@ class LevelList:
         return level1Dict
 
     def level2Representation(self):
-        return {}
+        rep = Level.load_rep('level/level2.txt')
+        objects = {
+            'lever': {'l', 'm'},
+            'door': {'p', 'q'},
+            'player': {'j'},
+            'enemy': {'e'},
+            'object': {'a'},
+            'robot': {'r'}
+        }
+        toggle_objects = {
+            'l': {'p'},
+            'm': {'q'}
+        }
+        tile_map = {
+            'x': pygame.image.load('img/wall.png'),
+            ',': pygame.image.load('img/dark_gray_tile.png'),
+            '.': pygame.image.load('img/light_gray_tile.png'),
+            '-': pygame.image.load('img/dark_red_tile.png')
+        }
+        level = Level(
+            rep,
+            objects,
+            toggle_objects,
+            self.width,
+            self.height,
+            Dimensions.width,
+            Dimensions.height
+        )
+        class_map = {
+            'lever': Lever,
+            'robot': Robot,
+            'enemy': Enemy,
+            'player': MainCharacter,
+            'door': Door,
+            'object': Treasure
+        }
+        values = {
+            'l':{'image':'img/lever_a_0.png', 'screen': self.screen},
+            'm': {'image': 'img/lever_b_0.png', 'screen': self.screen},
+            'p':{'toggled':False},
+            'q': {'toggled': False},
+            'j': {},
+            'e': {},
+            'a': {},
+            'r': {}
+        }
+
+        coords = level.coordinates(['x'])
+        unwalkable = {x for k in coords for x in coords[k]}
+
+        level2Dict = {
+          'levelIndex': 2,
+          'rep': rep,
+          'objects': objects,
+          'toggle_objects': toggle_objects,
+          'tile_map': tile_map,
+          'level': level,
+          'class_map': class_map,
+          'values': values,
+          'coords': coords,
+          'unwalkable': unwalkable
+        }
+        return level2Dict
+
+    def clearCurrentLevel(self):
+        for key, value in self.levels[self.currentLevel]['class_map'].items():
+            value.clear()
 
     def buildLevelObject(self, levelRepresentation):
         level = levelRepresentation['level']
