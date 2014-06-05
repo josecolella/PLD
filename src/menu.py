@@ -5,8 +5,28 @@ Module that manages the creating of GUI menus for the game
 import pygame
 import os
 
+
 class Message:
 
+    @staticmethod
+    def showGeneralGameInformation(screen, interactionKeys):
+        """
+        Shows the general game control according to
+        """
+        # General Game Information
+        initialX = 800
+        initialY = -1
+        isHelpMenu = type(interactionKeys) == dict
+        key = None
+        value = None
+        for interactionKey in interactionKeys:
+                if isHelpMenu:
+                    key, value = interactionKey, interactionKeys[interactionKey]
+                else:
+                    key, value = interactionKey[0], interactionKey[1]
+                outputString = "Press {}: {}".format(key, value)
+                Message.text_to_screen(screen, outputString, initialX, initialY, 18)
+                initialY += 20
 
     @staticmethod
     def write(msg="pygame is cool", size=15, color=(255, 255, 255), bold = False, font_type = "None"):

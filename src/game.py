@@ -83,10 +83,16 @@ class Game:
 
                     mainCharacter.movement(screen)
 
-                    menuShow = interaction.interactionHandler()
+                    interaction.interactionHandler()
+                    menuShow = interaction.isUserCallingGameMenu()
+
                     Message.text_to_screen(screen, 'Health: {0}'.format(mainCharacter.health),0, -1)
-                    # General Game Information
-                    Message.text_to_screen(screen, 'Press ESC: Game Menu', 200, -1, 16)
+                    # show general game information
+                    if interaction.isUserCallingHelpScreen():
+                        Message.showGeneralGameInformation(screen, interaction.controlDefinition)
+                    else:
+                        Message.showGeneralGameInformation(screen, interaction.helpButton)
+
                     if mainCharacter.satifiesWinConditions(winCoordinates):
                         currentLevelList.clearCurrentLevel()
                         levelContinue = True
