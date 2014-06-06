@@ -8,7 +8,7 @@ from models import *
 from gameoptions import *
 from Interactions import *
 from menu import *
-
+from AI import AgentServer
 
 class Game:
     """
@@ -124,6 +124,8 @@ class Game:
 
             background = currentLevel['level'].build_static_background(currentLevel['tile_map'], default='.')
             interaction = Interaction(self.screen, self.FPS, currentLevel)
+            AI_server = AgentServer.get()  # The server must be configured at this point
+            AI_server.startAll()
             levelContinue = False
 
             # Game Loop
@@ -137,7 +139,9 @@ class Game:
 
                     interaction.interactionHandler()
                     menuShow = interaction.isUserCallingGameMenu()
-
+                    
+                    AI_server.next() # apply interaction of all AI cores
+                    
                     Message.text_to_screen(self.screen, 'Health: {0}'.format(mainCharacter.health),0, -1)
                     # show general game information
                     if interaction.isUserCallingHelpScreen():

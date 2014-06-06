@@ -61,15 +61,37 @@ class Think(multiprocessing.Process):
 
 
     def run(self):
-        while not self.level2.max_depth_reached():
-            new_high_level_action = self.level2.fathom()
-            new_plan = self.level1.search(new_high_level_action)
-            self._reveal_plan(new_plan)
+        thinking = True
+        
+        while thinking:
+            if self.agent_conn.poll():
+                from_agent = self.agent_conn.recv()
+                
+                if isinstance(from_agent, str):
+                    if from_agent == 'bored':
+                        print("Bored received. Sending fire command ...")
+                        self.agent_conn.send([ (0, 'fireNorth') * 40 ])
+                        
+            if self.child_conn.poll():
+                from_server = self.child_conn.recv()
+                
+                if isinstance(from_server, str):
+                    if from_server == 'shutdown':
+                        print("Shutting down AI core ...")
+                        thinking = False
+                elif isinstance(from_conn, tuple):
+                    pass
+            '''        
+            while not self.level2.max_depth_reached():
+                new_high_level_action = self.level2.fathom()
+                new_plan = self.level1.search(new_high_level_action)
+                self._reveal_plan(new_plan)
 
-            if not self.ready.is_set():
-                self.ready.set()
+                if not self.ready.is_set():
+                    self.ready.set()
+            '''
 
-
+    '''
     def partial_plan(self):
         self.ready.wait()
         self.access_lock.acquire()
@@ -80,6 +102,60 @@ class Think(multiprocessing.Process):
 
     def ready(self):
         return self.ready.is_set()
+    '''
+
+class FakeAgent:
+    """
+    This class notifies world changes caused by non-AI agent to the AgentServer.
+    This class has the same Agent methods but some of them do nothing.
+    """
+    def __init__(self, agent_id, server):
+        self.agent_id = agent_id
+        self.server = server
+        self.List = []
+
+    def addAsset(self, asset):
+        """
+        Add asset to this agent and send event to the server in order
+        to make visible this change to the other agent cores.
+        """
+        asset_id = len(self.List)
+        self.List.append(asset)
+        return asset_id
+
+    def delAsset(self):
+        """
+        Remove asset from this agent and send event to the server in order
+        to make visible this change to the other agent cores.
+        """
+        pass
+
+    def start(self):
+        """
+        Order the execution of the AI core associated to this agent.
+        """
+        pass
+
+    def stop(self):
+        """
+        Order the shutdown of the AI core associated to this agent.
+        """
+        pass
+
+    def next(self):
+        """
+        This method does nothing.
+        """
+        pass                                                           
+
+    def actionCompleted(self):
+        """
+        The current action has been completed.
+        """
+        pass
+        
+    def updateHealth(self, asset_id, health):
+        pass
 
 
 class Agent:
@@ -96,6 +172,8 @@ class Agent:
         self.server = server
         self.engaged = False
         self.action_done = True
+        self.pos = 0
+        self.plan = []
         self.List = []
 
     def addAsset(self, asset):
@@ -130,6 +208,11 @@ class Agent:
         """
         Executes next command of the plan (if previous action has been completed).
         """
+        if self.think_conn.poll():
+            self.plan = self.think_conn.recv()
+            self.pos = 0
+            self.engaged = True
+                    
         if self.engaged:
             if self.pos == len(self.plan):
                 self.think_conn.send('bored')
@@ -158,18 +241,15 @@ class Agent:
                 elif action[1] == 'fireSouth':
                     asset.fireSouth()                                                            
 
-        if self.think_conn.poll():
-            self.plan = self.think_conn.recv()
-            self.pos = 0
-            self.engaged = True
-
     def actionCompleted(self):
         """
         The current action has been completed.
         """
         self.action_done = True
         self.pos += 1
-
+        
+    def updateHealth(self, asset_id, health):
+        print("Update Health request from agent", self.agent_id, "- asset", asset_id, "with value", health)
 
 class AgentServer:
     """
@@ -202,18 +282,44 @@ class AgentServer:
         self.core_list.append((agent, think, parent_conn))
         return agent
 
+    def newFakeAgent(self):
+        """
+        Creates a new fake agent and prepares data structures.
+        """
+        agent = FakeAgent(len(self.core_list), self)
+        self.core_list.append((agent, None, None))
+        return agent
+
     def startAll(self):
         """
         Order the execution of all AI cores registered in the server.
         """
         for core in self.core_list:
-            core[1].start()
+            try:
+                core[1].start()
+            except AttributeError:
+                pass 
 
     def stopAll(self):
         """
         Order the shutdown of all AI cores running in the server.
         """
+        for core in self.core_list:
+            try:
+                core[2].send('shutdown')
+                core[1].join()
+            except AttributeError:
+                pass
+
+    def configure(self):
         pass
+        
+    def clear(self):
+        pass
+
+    def next(self):
+        for agent, think, conn in self.core_list:
+            agent.next()
 
     def moveEast(self):
         """

@@ -5,6 +5,7 @@ import pygame
 from levels import Level
 import itertools
 import re
+from AI import AgentServer
 
 
 class Dimensions:
@@ -103,12 +104,13 @@ class Character(pygame.Rect):
 
     width, height = Dimensions.width, Dimensions.height
 
-    def __init__(self, x, y):
+    def __init__(self, x, y, agent):
 
         self.tx, self.ty = None, None
         self.treasureCaptured = False
         self.currentGun = 0  # 0 -> shotgun, 1 -> automatic
-
+        self.agent = agent
+        self.asset_id = self.agent.addAsset(self)
         # Use cycle so that it iterates forever
         self.walking_west_images = itertools.cycle(
             (self.imgPath+'w_walk_l.png',
@@ -230,6 +232,7 @@ class Character(pygame.Rect):
 
             if X == 0 and Y == 0:
                 self.tx, self.ty = None, None
+                self.agent.actionCompleted()
 
     def get_bullet_type(self):
         """
@@ -249,6 +252,7 @@ class Character(pygame.Rect):
         """
         self.currentGun += 1
         self.currentGun %= len(Laser.imgs)
+        self.agent.actionCompleted()
 
     def fireWest(self):
         """
@@ -258,6 +262,7 @@ class Character(pygame.Rect):
         self.rotate('w')
         Laser(self.centerx, self.centery,
               -10, 0, 'w', self.get_bullet_type())
+        self.agent.actionCompleted()      
 
     def fireNorth(self):
         """
@@ -267,6 +272,7 @@ class Character(pygame.Rect):
         self.rotate('n')
         Laser(self.centerx, self.centery,
               0, -10, 'n', self.get_bullet_type())
+        self.agent.actionCompleted()      
 
     def fireEast(self):
         """
@@ -276,6 +282,7 @@ class Character(pygame.Rect):
         self.rotate('e')
         Laser(self.centerx, self.centery,
               10, 0, 'e', self.get_bullet_type())
+        self.agent.actionCompleted()      
 
     def fireSouth(self):
         """
@@ -285,6 +292,7 @@ class Character(pygame.Rect):
         self.rotate('s')
         Laser(self.centerx, self.centery,
               0, 10, 's', self.get_bullet_type())
+        self.agent.actionCompleted()      
 
     def _move(self, direction, difference):
         """
@@ -371,7 +379,7 @@ class MainCharacter(Character):
     health = 100
     List = []
 
-    def __init__(self, x, y):
+    def __init__(self, x, y, agent):
         """
         Initializes the main character in the specified
         x and y coordinates of the map
@@ -384,7 +392,7 @@ class MainCharacter(Character):
         self.imgPath = 'img/player_'
         self.img = pygame.image.load(self.imgPath+'w.png')
 
-        Character.__init__(self, x, y)
+        Character.__init__(self, x, y, agent)
         MainCharacter.List.append(self)
 
     @staticmethod
@@ -406,7 +414,7 @@ class Robot(Character):
         ('audio/findseekanddestroy.ogg', 'audio/cmu_us_rms_arctic_clunits.ogg')
     )
 
-    def __init__(self, x, y):
+    def __init__(self, x, y, agent):
         self.health = Robot.health
         self.healthbar = Livebar(self)
         self.direction = 's'
@@ -414,7 +422,7 @@ class Robot(Character):
         self.img = Robot.original_img
         self.imgPath = 'img/guardian_'
 
-        Character.__init__(self, x, y)
+        Character.__init__(self, x, y, agent)
 
         Robot.List.append(self)
 
@@ -454,7 +462,7 @@ class Enemy(Character):
     List = [] # A List of enemies
     health = 100
 
-    def __init__(self, x, y):
+    def __init__(self, x, y, agent):
         """
         Initializes the main character in the specified
         x and y coordinates of the map
@@ -468,7 +476,7 @@ class Enemy(Character):
         self.img = pygame.image.load(self.imgPath+'w.png')
 
         Enemy.List.append(self)
-        Character.__init__(self, x, y)
+        Character.__init__(self, x, y, agent)
 
     @staticmethod
     def clear():
@@ -580,6 +588,7 @@ class Laser(pygame.Rect):
                     """
 
                     robot.health -= Laser.gun_dmg[bullet.type]
+                    robot.agent.updateHealth(robot.asset_id, robot.health)
                     robot.healthbar.update()
                     robot.healthbar.draw(screen)
 
@@ -944,6 +953,16 @@ class LevelList:
         """
         return (i for i in self.levels.values())
 
+    def level1AI(self, values):
+        """
+        Adds AI cores in order to build level objects
+        This also configures the AI core layout
+        """
+        AI_server = AgentServer.get()
+        values['e']['agent'] = AI_server.newAgent(2)
+        values['r']['agent'] = AI_server.newAgent(2)
+        values['j']['agent'] = AI_server.newFakeAgent()
+
     def level1Representation(self):
         """
         Returns the representation for the first level of the game
@@ -1018,10 +1037,23 @@ class LevelList:
           'class_map': class_map,
           'values': values,
           'coords': coords,
-          'unwalkable': unwalkable
+          'unwalkable': unwalkable,
+          'config_ai' : self.level1AI
         }
         return level1Dict
-
+        
+        
+    def level2AI(self, values):
+        """
+        Adds AI cores in order to build level objects
+        This also configures the AI core layout
+        """
+        AI_server = AgentServer.get()
+        values['e']['agent'] = AI_server.newAgent(2)
+        values['r']['agent'] = AI_server.newAgent(2)
+        values['j']['agent'] = AI_server.newFakeAgent()
+        
+        
     def level2Representation(self):
         rep = Level.load_rep('level/level2.txt')
         objects = {
@@ -1083,11 +1115,15 @@ class LevelList:
           'class_map': class_map,
           'values': values,
           'coords': coords,
-          'unwalkable': unwalkable
+          'unwalkable': unwalkable,
+          'config_ai' : self.level2AI
         }
         return level2Dict
 
     def clearCurrentLevel(self):
+        AI_server = AgentServer.get()
+        AI_server.stopAll()
+        AI_server.clear()
         for key, value in self.levels[self.currentLevel]['class_map'].items():
             value.clear()
 
@@ -1095,5 +1131,8 @@ class LevelList:
         level = levelRepresentation['level']
         class_map = levelRepresentation['class_map']
         values = levelRepresentation['values']
+        AgentServer.get().configure()  # TODO: levelRepresentation -> AgentServer (worldview ...)
+        levelRepresentation['config_ai'](values)  # this is a callable object
+        print(values)
         levelRepresentation['built_objects'] = level.build_objects(class_map, values)
         return levelRepresentation
