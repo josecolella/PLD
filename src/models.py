@@ -109,6 +109,7 @@ class Character(pygame.Rect):
         self.tx, self.ty = None, None
         self.treasureCaptured = False
         self.currentGun = 0  # 0 -> shotgun, 1 -> automatic
+        self.healthbar = Livebar(self)
         self.agent = agent
         self.asset_id = self.agent.addAsset(self)
         # Use cycle so that it iterates forever
@@ -260,9 +261,9 @@ class Character(pygame.Rect):
         fireWest() -> Character will rotate west and fire
         """
         self.rotate('w')
-        Laser(self.centerx, self.centery,
-              -10, 0, 'w', self.get_bullet_type())
-        self.agent.actionCompleted()      
+        gun = Laser(self)
+        gun.shoot('w')
+        self.agent.actionCompleted()
 
     def fireNorth(self):
         """
@@ -270,9 +271,9 @@ class Character(pygame.Rect):
         fireWest() -> Character will rotate north and fire
         """
         self.rotate('n')
-        Laser(self.centerx, self.centery,
-              0, -10, 'n', self.get_bullet_type())
-        self.agent.actionCompleted()      
+        gun = Laser(self)
+        gun.shoot('n')
+        self.agent.actionCompleted()
 
     def fireEast(self):
         """
@@ -280,9 +281,9 @@ class Character(pygame.Rect):
         fireWest() -> Character will rotate east and fire
         """
         self.rotate('e')
-        Laser(self.centerx, self.centery,
-              10, 0, 'e', self.get_bullet_type())
-        self.agent.actionCompleted()      
+        gun = Laser(self)
+        gun.shoot('e')
+        self.agent.actionCompleted()
 
     def fireSouth(self):
         """
@@ -290,9 +291,9 @@ class Character(pygame.Rect):
         fireWest() -> Character will rotate down and fire
         """
         self.rotate('s')
-        Laser(self.centerx, self.centery,
-              0, 10, 's', self.get_bullet_type())
-        self.agent.actionCompleted()      
+        gun = Laser(self)
+        gun.shoot('s')
+        self.agent.actionCompleted()
 
     def _move(self, direction, difference):
         """
@@ -385,7 +386,6 @@ class MainCharacter(Character):
         x and y coordinates of the map
         """
         self.health = MainCharacter.health
-        self.healthbar = Livebar(self)
         self.description = "maincharacter"
         self.direction = 'w'
         self.velocity = 16
@@ -416,7 +416,6 @@ class Robot(Character):
 
     def __init__(self, x, y, agent):
         self.health = Robot.health
-        self.healthbar = Livebar(self)
         self.direction = 's'
         self.health = Robot.health
         self.img = Robot.original_img
@@ -468,7 +467,6 @@ class Enemy(Character):
         x and y coordinates of the map
         """
         self.health = Enemy.health
-        self.healthbar = Livebar(self)
         self.description = "enemy"
         self.velocity = 4 # The enemy velocity
         self.direction = 'w'
@@ -493,10 +491,10 @@ class Laser(pygame.Rect):
     width, height = 3.5, 5
     List = []
 
-    sounds = (
-        'audio/fire.ogg',
-        'audio/bullet.ogg'
-    )
+    sounds = {
+        'automatic': 'audio/fire.ogg',
+        'shotgun': 'audio/bullet.ogg'
+    }
 
     imgs = {
         'shotgun': pygame.image.load('img/shotgun_b.png'),
@@ -508,44 +506,53 @@ class Laser(pygame.Rect):
         'automatic': (Robot.health / 6) + 1
     }
 
-    def __init__(self, x, y, velx, vely, direction, type_):
+    velocity = {
+        'w': {'x': -10, 'y': 0},
+        'e': {'x': 10, 'y': 0},
+        'n': {'x': 0, 'y': -10},
+        's': {'x': 0, 'y': 10}
+    }
 
-        if type_ == 'shotgun':
+    def __init__(self, boss):
 
+        self.boss = boss
+        self.x = self.boss.centerx
+        self.y = self.boss.centery
+        self.bossId = id(self.boss)
+        pygame.Rect.__init__(self, self.x, self.y, Laser.width, Laser.height)
+
+    def shoot(self, direction):
+        self.type = self.boss.get_bullet_type()
+        if self.type == 'shotgun':
             try:
-
-                dx = abs(Laser.List[-1].x - x)
-                dy = abs(Laser.List[-1].y - y)
-
-                if dx < 50 and dy < 50 and type_ == 'shotgun':
+                dx = abs(Laser.List[-1].x - self.x)
+                dy = abs(Laser.List[-1].y - self.y)
+                if dx < 50 and dy < 50 and self.type == 'shotgun':
                     return
-
-            except:
+            except Exception:
                 pass
 
-        self.type = type_
         if(self.type == 'shotgun'):
-            sound = pygame.mixer.Sound(Laser.sounds[1])
+            sound = pygame.mixer.Sound(Laser.sounds['shotgun'])
         else:
-            sound = pygame.mixer.Sound(Laser.sounds[0])
+            sound = pygame.mixer.Sound(Laser.sounds['automatic'])
         sound.play()
         self.direction = direction
-        self.velx, self.vely = velx, vely
+        self.velx = Laser.velocity[self.direction]['x']
+        self.vely = Laser.velocity[self.direction]['y']
 
-        if direction == 'n':
-            south = pygame.transform.rotate(Laser.imgs[type_], 90)  # CCW
+        if self.direction == 'n':
+            south = pygame.transform.rotate(Laser.imgs[self.type], 90)  # CCW
             self.img = pygame.transform.flip(south, False, True)
 
-        if direction == 's':
-            self.img = pygame.transform.rotate(Laser.imgs[type_], 90)  # CCW
+        if self.direction == 's':
+            self.img = pygame.transform.rotate(Laser.imgs[self.type], 90)  # CCW
 
-        if direction == 'e':
-            self.img = pygame.transform.flip(Laser.imgs[type_], True, False)
+        if self.direction == 'e':
+            self.img = pygame.transform.flip(Laser.imgs[self.type], True, False)
 
-        if direction == 'w':
-            self.img = Laser.imgs[type_]
-
-        pygame.Rect.__init__(self, x, y, Laser.width, Laser.height)
+        if self.direction == 'w':
+            self.img = Laser.imgs[self.type]
 
         Laser.List.append(self)
 
@@ -577,20 +584,21 @@ class Laser(pygame.Rect):
             if bullet.offscreen(screen):
                 Laser.List.remove(bullet)
                 continue
-
-            for robot in Robot.List:
-                if bullet.colliderect(robot):
+            Characters = (i for i in itertools.chain(
+                          Robot.List, MainCharacter.List, Enemy.List))
+            for character in Characters:
+                if bullet.colliderect(character) and bullet.bossId != id(character):
 
                     """
                     The same bullet cannot be used to kill
-                    multiple robot and as the bullet was
+                    multiple character and as the bullet was
                     no longer in Laser.List error was raised
                     """
 
-                    robot.health -= Laser.gun_dmg[bullet.type]
-                    robot.agent.updateHealth(robot.asset_id, robot.health)
-                    robot.healthbar.update()
-                    robot.healthbar.draw(screen)
+                    character.health -= Laser.gun_dmg[bullet.type]
+                    # character.agent.updateHealth(character.asset_id, character.health)
+                    character.healthbar.update()
+                    character.healthbar.draw(screen)
 
                     Laser.List.remove(bullet)
                     break
@@ -1041,8 +1049,8 @@ class LevelList:
           'config_ai' : self.level1AI
         }
         return level1Dict
-        
-        
+
+
     def level2AI(self, values):
         """
         Adds AI cores in order to build level objects
@@ -1052,8 +1060,8 @@ class LevelList:
         values['e']['agent'] = AI_server.newAgent(2)
         values['r']['agent'] = AI_server.newAgent(2)
         values['j']['agent'] = AI_server.newFakeAgent()
-        
-        
+
+
     def level2Representation(self):
         rep = Level.load_rep('level/level2.txt')
         objects = {
