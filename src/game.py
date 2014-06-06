@@ -13,6 +13,20 @@ from menu import *
 class Game:
 
     @staticmethod
+    def initializeLoadedGame(currentLevel):
+        for toggleObject, toggleEffect, in currentLevel['toggle_objects'].items():
+            print("{} -> {}".format(toggleObject, toggleEffect))
+            if not currentLevel['built_objects'][toggleObject][0].off:
+                pass
+                #  Get all elements affected by the toggling
+                # toggle the object
+                lever = currentLevel['built_objects'][toggleObject][0]
+                lever.turnOn()
+                # lever.toggle()
+
+
+
+    @staticmethod
     def start(screen2, screenheight, screenwidth, FPS, loadgame):
         """
         Method that initializes the game and the corresponding pieces of the game
@@ -26,14 +40,13 @@ class Game:
         gameNotEnd = True
 
         # Main theme music
-        pygame.mixer.music.load("audio/laberynth2.ogg")
-        pygame.mixer.music.set_volume(0.8)
-        pygame.mixer.music.play(-1)  # Continuous Loop
+        # pygame.mixer.music.load("audio/laberynth2.ogg")
+        # pygame.mixer.music.set_volume(0.8)
+        # pygame.mixer.music.play(-1)  # Continuous Loop
 
         clock = pygame.time.Clock()  # Initialize Game Clock
         total_frames = 0
         level = 1
-
 
         # Game Start
         while gameNotEnd:
@@ -52,8 +65,8 @@ class Game:
             if not loadgame:
                 currentLevel = currentLevelList.buildLevelObject(currentLevelList.levels[level])
             else:
-                print("Loading Game")
-                currentLevel = GameOption.loadGame(currentLevelList, allLevels)
+                currentLevel = GameOption.loadGame(currentLevelList, currentLevelList.levels[level])
+                Game.initializeLoadedGame(currentLevel)
 
             winCoordinates = currentLevel['level'].coordinates(('-',))['-']
             # make unbuildable and unwalkable objects unwalkable (walls)
@@ -122,6 +135,5 @@ class Game:
                 pygame.display.flip()
                 clock.tick(FPS)
                 total_frames += 1
-                # print(pygame.font.get_fonts())
 
-        pygame.quit()
+        GameOption.exitGame()

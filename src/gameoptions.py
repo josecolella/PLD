@@ -2,17 +2,25 @@
 Module that carries out the possible game actions
 """
 import json
+from sys import exit
+import pygame
 
 class GameOption:
     """
-    Class that represents the management options allowed to the user when in the game
+    Class that represents the management options allowed to the user
+    when in the game. This includes saving the game and loading the game
     """
 
     @staticmethod
     def saveGame(currentLevel):
         """
-        saveGame(currentLevel) -> saves the current game state to a json file named "game.json"
+        saveGame(currentLevel) -> saves the current game state to a json
+        file named "game.json"
         This means all the objects that are in the current level
+        Parameters
+        -----------
+        currentLevel
+        saveGame(currentLevel) -> The game state is saved in game.json
         """
         saveStructure = {'level': currentLevel['levelIndex']}
 
@@ -72,18 +80,17 @@ class GameOption:
             json.dump(saveStructure, f, indent=4)
 
     @staticmethod
-    def loadGame(currentLevelList, allLevels):
+    def loadGame(currentLevelList, currentLevel):
         """
-        loadGame() -> loads the game state that is present in the game.json and sets up the game board,
-        as stated in the file
+        loadGame() -> loads the game state that is present in the game.json
+        and sets up the game board, as stated in the file
         """
 
         game_state = {}
         with open("game.json", "r") as f:
             game_state = json.load(f)
 
-        current = currentLevelList.buildLevelObject(list(allLevels)[game_state['level'] - 1])
-        print(current['built_objects']['j'])
+        current = currentLevelList.buildLevelObject(currentLevel)
         for key in game_state:
             if key == "robot":
                 for jsonRobot, pythonRobot in zip(game_state[key], current['built_objects']['r']):
@@ -98,13 +105,21 @@ class GameOption:
                 current['built_objects']['j'][0].health = game_state[key]['health']
                 current['built_objects']['j'][0].gun = game_state[key]['gun']
             elif key == "lever":
-                current['built_objects']['l'][0].off = game_state[key]['off']
-                current['built_objects']['m'][0].off = game_state[key]['off']
+                for lever in game_state[key]:
+                    current['built_objects'][lever['id']][0].off = lever['off']
             elif key == "door":
-                current['built_objects']['p'][0].toggled = game_state[key]['toggled']
-                current['built_objects']['q'][0].toggled = game_state[key]['toggled']
+                for door in game_state[key]:
+                    current['built_objects'][door['id']][0].toggled = door['toggled']
             elif key == "object":
                 current['built_objects']['a'][0].x = game_state[key]['x']
                 current['built_objects']['a'][0].y = game_state[key]['y']
 
         return current
+
+    @staticmethod
+    def exitGame():
+        """
+        exitGame() -> The game is exited
+        """
+        pygame.quit()
+        exit(0)

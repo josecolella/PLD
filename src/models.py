@@ -905,6 +905,7 @@ class Door(pygame.sprite.Sprite):
 
     def toggle(self):
         self.toggled = not self.toggled
+
         if self.toggled:
             self.image = Door.open_door_image
         else:

@@ -11,7 +11,8 @@ class Message:
     @staticmethod
     def showGeneralGameInformation(screen, interactionKeys):
         """
-        Shows the general game control according to
+        Shows the general game control according to the keys that are defined
+        by the game
         """
         # General Game Information
         initialX = 800
@@ -169,13 +170,6 @@ class Menu:
             pygame.display.flip()
 
         return selections
-
-    def menuOptionHandler(selections):
-        """
-        Method that handles the actions corresponding to the different menu
-        selections
-        """
-        pass
 
 
 class Button:
