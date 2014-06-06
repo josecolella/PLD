@@ -514,7 +514,9 @@ class Laser(pygame.Rect):
     }
 
     def __init__(self, boss):
-
+        """
+        Creates a Laser that is associated with a boss
+        """
         self.boss = boss
         self.x = self.boss.centerx
         self.y = self.boss.centery
@@ -522,6 +524,9 @@ class Laser(pygame.Rect):
         pygame.Rect.__init__(self, self.x, self.y, Laser.width, Laser.height)
 
     def shoot(self, direction):
+        """
+        shoot(direction) -> fires a shot in the direction specified
+        """
         self.type = self.boss.get_bullet_type()
         if self.type == 'shotgun':
             try:
@@ -557,7 +562,9 @@ class Laser(pygame.Rect):
         Laser.List.append(self)
 
     def offscreen(self, screen):
-
+        """
+        offscreen(screen) -> handler for when the bullets exit offscreen
+        """
         if self.x < 0:
             return True
         elif self.y < 0:
@@ -569,9 +576,9 @@ class Laser(pygame.Rect):
         return False
 
     @staticmethod
-    def super_massive_jumbo_loop(screen):
+    def charactersShotDamageHandler(screen):
         """
-        super_massive_jumbo_loop(screen) -> Loop that deals with the removing
+        charactersShotDamageHandler(screen) -> Loop that deals with the removing
         of enemies, and bullets that are shot offscreen
         """
         for bullet in Laser.List:

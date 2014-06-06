@@ -124,8 +124,8 @@ class Game:
 
             background = currentLevel['level'].build_static_background(currentLevel['tile_map'], default='.')
             interaction = Interaction(self.screen, self.FPS, currentLevel)
-            # AI_server = AgentServer.get()  # The server must be configured at this point
-            # AI_server.startAll()
+            AI_server = AgentServer.get()  # The server must be configured at this point
+            AI_server.startAll()
             levelContinue = False
 
             # Game Loop
@@ -133,7 +133,7 @@ class Game:
                 if not menuShow:
                     self.screen.blit(background, (0, 0))  # blit the background
                     Treasure.draw(self.screen)
-                    Laser.super_massive_jumbo_loop(self.screen)
+                    Laser.charactersShotDamageHandler(self.screen)
 
                     mainCharacter.movement(self.screen)
 
