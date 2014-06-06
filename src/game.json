@@ -1,59 +1,62 @@
 {
     "player": {
-        "x": 288,
-        "health": 100,
+        "y": 496,
+        "x": 336,
         "gun": 0,
         "direction": "w",
-        "y": 496,
-        "isTreasureCaptured": true
+        "isTreasureCaptured": true,
+        "health": 100
     },
-    "object": {
-        "x": 496,
-        "y": 80
+    "enemy": {
+        "y": 672,
+        "x": 960,
+        "gun": 0,
+        "direction": "w",
+        "isTreasureCaptured": false,
+        "health": 100
     },
     "door": [
         {
-            "toggled": false,
-            "id": "q"
-        },
-        {
             "toggled": true,
             "id": "p"
-        }
-    ],
-    "enemy": {
-        "x": 960,
-        "health": 100,
-        "gun": 0,
-        "direction": "w",
-        "y": 672,
-        "isTreasureCaptured": false
-    },
-    "robot": [
-        {
-            "x": 464,
-            "y": 240,
-            "health": 100,
-            "direction": "s",
-            "isTreasureCaptured": false
         },
         {
-            "x": 528,
-            "y": 240,
-            "health": 100,
-            "direction": "s",
-            "isTreasureCaptured": false
+            "toggled": false,
+            "id": "q"
         }
     ],
-    "level": 1,
     "lever": [
         {
-            "id": "m",
-            "off": true
+            "off": false,
+            "id": "l"
         },
         {
-            "id": "l",
-            "off": false
+            "off": true,
+            "id": "m"
+        }
+    ],
+    "object": {
+        "y": 80,
+        "x": 496,
+        "isCaptured": true
+    },
+    "level": 1,
+    "robot": [
+        {
+            "y": 240,
+            "x": 464,
+            "gun": 0,
+            "direction": "s",
+            "isTreasureCaptured": false,
+            "health": 64.66666666666666
+        },
+        {
+            "y": 240,
+            "x": 528,
+            "gun": 0,
+            "direction": "s",
+            "isTreasureCaptured": false,
+            "health": 100
         }
     ]
 }

@@ -47,6 +47,7 @@ class GameOption:
                         'y': robot.y,
                         'direction': robot.direction,
                         'health': robot.health,
+                        'gun': robot.currentGun,
                         'isTreasureCaptured': robot.treasureCaptured
                     })
                 saveStructure[className] = robotsArray
@@ -54,7 +55,8 @@ class GameOption:
                 treasure = currentLevel['built_objects'][next(iter(classNameSet))][0]
                 saveStructure[className] = {
                     'x': treasure.x,
-                    'y': treasure.y
+                    'y': treasure.y,
+                    'isCaptured': treasure.isCaptured
                 }
             elif className == "door":
                 doorsArray = []
@@ -101,13 +103,17 @@ class GameOption:
                     pythonRobot.y = jsonRobot['y']
                     pythonRobot.direction = jsonRobot['direction']
                     pythonRobot.health = jsonRobot['health']
-            elif key == "player":
-                current['built_objects']['j'][0].x = game_state[key]['x']
-                current['built_objects']['j'][0].y = game_state[key]['y']
-                current['built_objects']['j'][0].direction = game_state[key]['direction']
-                current['built_objects']['j'][0].health = game_state[key]['health']
-                current['built_objects']['j'][0].gun = game_state[key]['gun']
-                current['built_objects']['j'][0].treasureCaptured = game_state[key]['isTreasureCaptured']
+                    pythonRobot.currentGun = jsonRobot['gun']
+                    pythonRobot.treasureCaptured = jsonRobot['isTreasureCaptured']
+
+            elif key == "player" or key == "enemy":
+                for charactIdentifier in currentLevel['objects'][key]:
+                    currentLevel['built_objects'][charactIdentifier][0].x = game_state[key]['x']
+                    currentLevel['built_objects'][charactIdentifier][0].y = game_state[key]['y']
+                    currentLevel['built_objects'][charactIdentifier][0].direction = game_state[key]['direction']
+                    currentLevel['built_objects'][charactIdentifier][0].health = game_state[key]['health']
+                    currentLevel['built_objects'][charactIdentifier][0].gun = game_state[key]['gun']
+                    currentLevel['built_objects'][charactIdentifier][0].treasureCaptured = game_state[key]['isTreasureCaptured']
             elif key == "lever":
                 for lever in game_state[key]:
                     current['built_objects'][lever['id']][0].off = lever['off']
@@ -115,9 +121,10 @@ class GameOption:
                 for door in game_state[key]:
                     current['built_objects'][door['id']][0].toggled = door['toggled']
             elif key == "object":
-                current['built_objects']['a'][0].x = game_state[key]['x']
-                current['built_objects']['a'][0].y = game_state[key]['y']
-
+                for strIdentifier in currentLevel['objects'][key]:
+                    current['built_objects'][strIdentifier][0].x = game_state[key]['x']
+                    current['built_objects'][strIdentifier][0].y = game_state[key]['y']
+                    current['built_objects'][strIdentifier][0].isCaptured = game_state[key]['isCaptured']
         return current
 
     @staticmethod

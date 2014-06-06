@@ -64,7 +64,7 @@ class Livebar(pygame.Rect):
             if self.boss.treasureCaptured:
                 pygame.draw.rect(
                 self.image, Livebar.colors['blue'],
-                (0, 0, self.boss.width, 5), 1)
+                (0, 0, self.boss.width /2, 5), 1)
             pygame.draw.rect(
                 self.image, (0, 0, 0), (1, 1, self.boss.width * 2 - 2, 5))
             pygame.draw.rect(self.image, self.color, (1, 1,
@@ -78,8 +78,6 @@ class Livebar(pygame.Rect):
         screen.blit(self.image, (self.rect.x, self.rect.y))
         if self.boss.treasureCaptured:
             screen.blit(pygame.transform.scale(self.image, (7, 7)), (self.rect.x + self.boss.width -4, self.rect.y - 15))
-
-
     def percentageColor(self):
         tup = None
         if self.percent >= 0.7:
@@ -352,6 +350,9 @@ class Character(pygame.Rect):
             img = pygame.transform.flip(south, False, True)
             screen.blit(img, (self.x + h, self.y - h))
 
+        if self.health <= 0:
+            self.__class__.List.remove(self)
+
     def satifiesWinConditions(self, coordinates):
 
         if self.treasureCaptured and (self.x, self.y) in coordinates:
@@ -390,6 +391,7 @@ class MainCharacter(Character):
     def clear():
         MainCharacter.List.clear()
 
+
 class Robot(Character):
 
     """
@@ -419,51 +421,13 @@ class Robot(Character):
     @staticmethod
     def draw_robots(screen):
         for robot in Robot.List:
-            screen.blit(robot.img, (robot.x, robot.y))
-            robot.healthbar.update()
-            robot.healthbar.draw(screen)
-
-            if robot.health <= 0:
-                Robot.List.remove(robot)
+            robot.draw(screen)
 
     @staticmethod
     def movement(screen):
         for robot in Robot.List:
             # Target is set
-            if robot.tx is not None and robot.ty is not None:
-
-                X = robot.x - robot.tx
-                Y = robot.y - robot.ty
-
-                vel = 4
-                if X < 0:  # --->
-                    robot.img = pygame.image.load(
-                        next(robot.walking_east_images))
-                    robot.x += vel
-                    robot.rotate('e', Robot.original_img)
-
-                elif X > 0:  # <----
-                    robot.img = pygame.image.load(
-                        next(robot.walking_west_images))
-                    robot.x -= vel
-                    robot.rotate('w', Robot.original_img)
-
-                if Y > 0:  # up
-                    robot.img = pygame.image.load(
-                        next(robot.walking_north_images))
-                    robot.y -= vel
-                    robot.rotate('n', Robot.original_img)
-
-                elif Y < 0:  # dopwn
-                    robot.img = pygame.image.load(
-                        next(robot.walking_west_images))
-                    robot.y += vel
-                    robot.rotate('s', Robot.original_img)
-
-                screen.blit(robot.img, (robot.x, robot.y))
-
-                if X == 0 and Y == 0:
-                    robot.tx, robot.ty = None, None
+            robot.movement(screen)
 
     '''
     def spawn(total_frames, FPS):
@@ -653,6 +617,7 @@ class Treasure(pygame.Rect):
     def __init__(self, x, y):
         pygame.Rect.__init__(self, x, y, Dimensions.width, Dimensions.height)
         self.img = pygame.image.load(Treasure.treasure_img[0]).convert_alpha()
+        self.isCaptured = False
         Treasure.List.append(self)
 
 
@@ -666,7 +631,8 @@ class Treasure(pygame.Rect):
             if distance2 < 4 * (treasure.width * treasure.width+ treasure.height*treasure.height):
                 if not player.treasureCaptured:
                     player.treasureCaptured = True
-                    treasure.img = pygame.image.load("img/light_gray_tile.png")
+                    treasure.isCaptured = True
+                    treasure.showCaptured()
 
     @staticmethod
     def dropObject(player):
@@ -680,6 +646,11 @@ class Treasure(pygame.Rect):
                 treasure.y = player.y
                 treasure.img = pygame.image.load(Treasure.treasure_img[0])
 
+    def showCaptured(self):
+        self.img = pygame.image.load("img/light_gray_tile.png")
+
+    def showNotCaptured(self):
+        self.isCaptured = False
 
     @staticmethod
     def draw(screen):

@@ -46,8 +46,18 @@ class Game:
         Helper method created to initialize games that are to be loaded
         from file
         """
+
+        self._initializeLoadedToggleObjects(currentLevel)
+        self._initializeLoadedTreasure(currentLevel)
+
+    def _initializeLoadedTreasure(self, currentLevel):
+        for treasureIdentifier in currentLevel['objects']['object']:
+            for treasure in currentLevel['built_objects'][treasureIdentifier]:
+                if treasure.isCaptured:
+                    treasure.showCaptured()
+
+    def _initializeLoadedToggleObjects(self, currentLevel):
         for toggleObject, toggleEffect, in currentLevel['toggle_objects'].items():
-            print("{} -> {}".format(toggleObject, toggleEffect))
             if not currentLevel['built_objects'][toggleObject][0].off:
                 #  Get all elements affected by the toggling
                 # toggle the object
@@ -139,6 +149,7 @@ class Game:
                         currentLevelList.clearCurrentLevel()
                         levelContinue = True
                         level += 1
+                        self.loadgame = False
                         # Show message
                         # Reset del nivel -> If won se mueve al proximo nivel, else se recarga el nivel
                     Door.draw(self.screen)
