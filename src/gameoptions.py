@@ -5,6 +5,7 @@ import json
 from sys import exit
 import pygame
 
+
 class GameOption:
     """
     Class that represents the management options allowed to the user

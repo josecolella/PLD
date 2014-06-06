@@ -815,6 +815,9 @@ class Lever(pygame.sprite.Sprite):
         touch a deactivated Lever
         """
         self.off = False
+        self.turnOnAnimation()
+
+    def turnOnAnimation(self):
         self.image = next(self.animatedImages)
         self.screen.blit(self.image, (self.rect.x, self.rect.y))
         pygame.time.delay(1000)
@@ -827,6 +830,9 @@ class Lever(pygame.sprite.Sprite):
         touch an activated Lever
         """
         self.off = True
+        self.turnOffAnimation()
+
+    def turnOffAnimation(self):
         self.image = next(self.reverseAnimatedImages)
         self.screen.blit(self.image, (self.rect.x, self.rect.y))
         pygame.time.delay(1000)
@@ -874,6 +880,10 @@ class Door(pygame.sprite.Sprite):
     """
     open_door_image = pygame.image.load("img/brown_tile.png")
     closed_door_image = pygame.image.load("img/radioactive_tile.png")
+    images = {
+        'open': pygame.image.load("img/brown_tile.png"),
+        'close': pygame.image.load("img/radioactive_tile.png")
+    }
     List = []
 
     def get_number(self):
@@ -906,10 +916,13 @@ class Door(pygame.sprite.Sprite):
     def toggle(self):
         self.toggled = not self.toggled
 
+        self.toggleAction()
+
+    def toggleAction(self):
         if self.toggled:
-            self.image = Door.open_door_image
+            self.image = Door.images['open']
         else:
-            self.image = Door.closed_door_image
+            self.image = Door.images['close']
 
         if self.toggled:
             self.tile.walkable = True
