@@ -139,9 +139,9 @@ class Game:
 
                     interaction.interactionHandler()
                     menuShow = interaction.isUserCallingGameMenu()
-                    
+
                     AI_server.next() # apply interaction of all AI cores
-                    
+
                     Message.text_to_screen(self.screen, 'Health: {0}'.format(mainCharacter.health),0, -1)
                     # show general game information
                     if interaction.isUserCallingHelpScreen():
@@ -165,8 +165,7 @@ class Game:
                 else:
                     selections = pauseMenu.show_menu(screen2, self.FPS, "pauseMenu")
                     if selections['exit_game'] is True:
-                        pygame.quit()
-                        exit(0)
+                        GameOption.exitGame()
                     elif selections['resume_game'] is True:
                         menuShow = False
                         interaction.showGameMenu = False

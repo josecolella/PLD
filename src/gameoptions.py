@@ -4,6 +4,7 @@ Module that carries out the possible game actions
 import json
 from sys import exit
 import pygame
+from AI import AgentServer
 
 
 class GameOption:
@@ -132,5 +133,6 @@ class GameOption:
         """
         exitGame() -> The game is exited
         """
+        AgentServer.get().stopAll()
         pygame.quit()
         exit(0)
