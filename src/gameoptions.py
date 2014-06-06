@@ -47,6 +47,7 @@ class GameOption:
                         'y': robot.y,
                         'direction': robot.direction,
                         'health': robot.health,
+                        'isTreasureCaptured': robot.treasureCaptured
                     })
                 saveStructure[className] = robotsArray
             elif className == "object":
@@ -88,6 +89,7 @@ class GameOption:
         """
 
         game_state = {}
+        taken = False
         with open("game.json", "r") as f:
             game_state = json.load(f)
 
@@ -105,6 +107,7 @@ class GameOption:
                 current['built_objects']['j'][0].direction = game_state[key]['direction']
                 current['built_objects']['j'][0].health = game_state[key]['health']
                 current['built_objects']['j'][0].gun = game_state[key]['gun']
+                current['built_objects']['j'][0].treasureCaptured = game_state[key]['isTreasureCaptured']
             elif key == "lever":
                 for lever in game_state[key]:
                     current['built_objects'][lever['id']][0].off = lever['off']

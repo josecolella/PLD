@@ -11,13 +11,21 @@ from menu import *
 
 
 class Game:
-
+    """
+    Class that represents the actual game. Initializes the interactions,
+    manages the user interaction with the game, as well as the control over
+    the levels, saving, loading, and exiting.
+    """
     music = {
         'main_theme': 'audio/laberynth2.ogg',
         'object_taken': 'audio/laberynth.ogg'
     }
 
     def __init__(self, FPS, loadgame):
+        """
+        Constructs the class with a Frame-Per-Second, and if the game
+        is to be loaded
+        """
         self.width = 1024
         self.height = 768
         self.screen = pygame.Surface((self.width, self.height))
@@ -25,12 +33,19 @@ class Game:
         self.loadgame = loadgame
 
     def playMainThemeMusic(self):
+        """
+        Manages the playing of the main theme music for the game
+        """
         # Main theme music
         pygame.mixer.music.load(Game.music['main_theme'])
         pygame.mixer.music.set_volume(0.8)
         pygame.mixer.music.play(-1)  # Continuous Loop
 
     def initializeLoadedGame(self, currentLevel):
+        """
+        Helper method created to initialize games that are to be loaded
+        from file
+        """
         for toggleObject, toggleEffect, in currentLevel['toggle_objects'].items():
             print("{} -> {}".format(toggleObject, toggleEffect))
             if not currentLevel['built_objects'][toggleObject][0].off:
@@ -49,10 +64,16 @@ class Game:
         Method that initializes the game and the corresponding pieces of the game
         """
         self.playMainThemeMusic()
+
+        # Whether to show the pause Menu
         menuShow = False
-        pauseMenu = Menu()
+        # Whether to continue the level
         levelContinue = True
+        # Whether the game continues
         gameNotEnd = True
+        # Inialize the pause menu
+        pauseMenu = Menu()
+
 
         clock = pygame.time.Clock()  # Initialize Game Clock
         total_frames = 0

@@ -655,6 +655,7 @@ class Treasure(pygame.Rect):
         self.img = pygame.image.load(Treasure.treasure_img[0]).convert_alpha()
         Treasure.List.append(self)
 
+
     @staticmethod
     def pickUpObject(player):
         """
@@ -678,6 +679,7 @@ class Treasure(pygame.Rect):
                 treasure.x = player.x
                 treasure.y = player.y
                 treasure.img = pygame.image.load(Treasure.treasure_img[0])
+
 
     @staticmethod
     def draw(screen):

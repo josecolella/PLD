@@ -53,4 +53,5 @@ class TreasureHunters(object):
             # Game.start(screen)
         elif selections['load_game'] is True:
             menu_sound.fadeout(1000)
-            Game.start(screen, screenheight, screenwidth, FPS, loadgame=True)
+            loadedGame = Game(FPS, loadgame=True)
+            loadedGame.start(screen)
