@@ -170,7 +170,7 @@ class Agent:
         self.think_conn = think_conn
         self.agent_id = agent_id
         self.server = server
-        self.engaged = False
+        self.engaged = True
         self.action_done = True
         self.pos = 0
         self.plan = []
@@ -212,6 +212,7 @@ class Agent:
             self.plan = self.think_conn.recv()
             self.pos = 0
             self.engaged = True
+            print("Agent ID", self.agent_id, "is now engaged!")
                     
         if self.engaged:
             if self.pos == len(self.plan):
@@ -221,6 +222,7 @@ class Agent:
                 action = self.plan[self.pos]
                 self.action_done = False
                 asset = self.List[action[0]]
+                print("Agent ID", self.agent_id, "is doing", action[1])
 
                 if action[1] == 'moveEast':
                     asset.moveEast()
