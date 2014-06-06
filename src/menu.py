@@ -5,22 +5,47 @@ Module that manages the creating of GUI menus for the game
 import pygame
 import os
 
-def write(msg="pygame is cool", size=15, color=(255, 255, 255), bold = False, font_type = "None"):
-    myfont = pygame.font.SysFont(font_type, size, bold)
-    mytext = myfont.render(msg, True, color)
-    mytext = mytext.convert_alpha()
-    return mytext
 
+class Message:
 
-def text_to_screen(screen, text, x, y, size = 16, color = (255, 255, 255), font_type = 'couriernew'):
-    try:
-        text = str(text)
-        font = pygame.font.SysFont(font_type, size)
-        text = font.render(text, True, color)
-        screen.blit(text, (x, y))
+    @staticmethod
+    def showGeneralGameInformation(screen, interactionKeys):
+        """
+        Shows the general game control according to the keys that are defined
+        by the game
+        """
+        # General Game Information
+        initialX = 800
+        initialY = -1
+        isHelpMenu = type(interactionKeys) == dict
+        key = None
+        value = None
+        for interactionKey in interactionKeys:
+                if isHelpMenu:
+                    key, value = interactionKey, interactionKeys[interactionKey]
+                else:
+                    key, value = interactionKey[0], interactionKey[1]
+                outputString = "Press {}: {}".format(key, value)
+                Message.text_to_screen(screen, outputString, initialX, initialY, 18)
+                initialY += 20
 
-    except Exception:
-        print('Font Error, saw it coming')
+    @staticmethod
+    def write(msg="pygame is cool", size=15, color=(255, 255, 255), bold = False, font_type = "None"):
+        myfont = pygame.font.SysFont(font_type, size, bold)
+        mytext = myfont.render(msg, True, color)
+        mytext = mytext.convert_alpha()
+        return mytext
+
+    @staticmethod
+    def text_to_screen(screen, text, x, y, size = 16, color = (255, 255, 255), font_type = 'couriernew'):
+        try:
+            text = str(text)
+            font = pygame.font.SysFont(font_type, size)
+            text = font.render(text, True, color)
+            screen.blit(text, (x, y))
+
+        except Exception:
+            print('Font Error, saw it coming')
 
 
 class Menu:
@@ -63,7 +88,7 @@ class Menu:
         selections = {}
         # Clear screen and create menu title text surface
         screen.fill((42, 54, 64))
-        menu_title = write(
+        menu_title = Message.write(
             "Treasure Hunters Menu", 40, (84, 183, 215), True, "couriernew")
         # Put menu title centered
         srect = screen.get_rect()
@@ -146,13 +171,6 @@ class Menu:
 
         return selections
 
-    def menuOptionHandler(selections):
-        """
-        Method that handles the actions corresponding to the different menu
-        selections
-        """
-        pass
-
 
 class Button:
     initialized = False
@@ -184,7 +202,7 @@ class Button:
         self.is_selected = not self.is_selected
 
     def set_label(self, text):
-        self.text_surface = write(text, 20, (0, 0, 0), True, "couriernew")
+        self.text_surface = Message.write(text, 20, (0, 0, 0), True, "couriernew")
         self.selected = Button.make_button(
             self.text_surface, self.min_width, (Button.selected_head, Button.selected_tail))
         self.unselected = Button.make_button(

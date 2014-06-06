@@ -1,57 +1,62 @@
 {
+    "player": {
+        "y": 496,
+        "x": 336,
+        "gun": 0,
+        "direction": "w",
+        "isTreasureCaptured": true,
+        "health": 100
+    },
     "enemy": {
-        "direction": "w", 
-        "isTreasureCaptured": false, 
-        "gun": 0, 
-        "health": 100, 
-        "y": 672, 
-        "x": 960
-    }, 
+        "y": 672,
+        "x": 960,
+        "gun": 0,
+        "direction": "w",
+        "isTreasureCaptured": false,
+        "health": 100
+    },
     "door": [
         {
-            "id": "q", 
-            "toggled": false
-        }, 
+            "toggled": true,
+            "id": "p"
+        },
         {
-            "id": "p", 
-            "toggled": false
+            "toggled": false,
+            "id": "q"
         }
-    ], 
-    "level": 1, 
-    "object": {
-        "y": 80, 
-        "x": 496
-    }, 
-    "robot": [
-        {
-            "y": 240, 
-            "x": 464, 
-            "direction": "s", 
-            "health": 100
-        }, 
-        {
-            "y": 240, 
-            "x": 528, 
-            "direction": "s", 
-            "health": 100
-        }
-    ], 
-    "player": {
-        "direction": "n", 
-        "isTreasureCaptured": false, 
-        "gun": 0, 
-        "health": 100, 
-        "y": 608, 
-        "x": 32
-    }, 
+    ],
     "lever": [
         {
-            "off": true, 
-            "id": "m"
-        }, 
-        {
-            "off": true, 
+            "off": false,
             "id": "l"
+        },
+        {
+            "off": true,
+            "id": "m"
+        }
+    ],
+    "object": {
+        "y": 80,
+        "x": 496,
+        "isCaptured": true
+    },
+    "level": 1,
+    "robot": [
+        {
+            "y": 240,
+            "x": 464,
+            "gun": 0,
+            "direction": "s",
+            "isTreasureCaptured": false,
+            "health": 64.66666666666666
+        },
+        {
+            "y": 240,
+            "x": 528,
+            "gun": 0,
+            "direction": "s",
+            "isTreasureCaptured": false,
+            "health": 100
         }
     ]
 }

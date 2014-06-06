@@ -1,6 +1,6 @@
 import pygame
 import sys
-from models import Lever
+from models import Lever, Treasure
 
 
 class Interaction:
@@ -9,13 +9,36 @@ class Interaction:
     """
     def __init__(self, screen, FPS, currentLevel):
         """
-
+        Constructs the interactions that will be used to manage user interactions
+        with the game.
+        Parameters
+        ----------
+        - screen: pygame.Surface
+        - FPS: The frames per second
+        - currentLevel: The current level that the user will interact with
         """
-        self.showMenu = False
+        self.showGameMenu = False
+        self.showHelpMenu = False
         self.screen = screen
         self.fps = FPS
         self.currentLevel = currentLevel
         self.player = currentLevel['built_objects']['j'][0]
+        self.controlDefinition = (
+            ('ESC', 'Show Menu'),
+            ('r', 'Change Gun'),
+            ('f', 'Pick Up'),
+            ('g', 'Drop'),
+            ('w', 'Move Up'),
+            ('a', 'Move Left'),
+            ('s', 'Move Down'),
+            ('d', 'Move Right'),
+            ('→', 'Shoot East'),
+            ('↓', 'Shoot South'),
+            ('↑', 'Shoot North'),
+            ('←', 'Shoot West'),
+            ('h', 'Close Help')
+        )
+        self.helpButton = {'h': 'Help'}
 
     def interactionHandler(self):
         """
@@ -34,10 +57,19 @@ class Interaction:
 
         #  To show menu
         if keys[pygame.K_ESCAPE]:
-            self.showMenu = True
+            self.showGameMenu = True
         # Changing gun key
-        if keys[pygame.K_f]:
+        if keys[pygame.K_r]:
             self.player.changeGun()
+
+        if keys[pygame.K_h]:
+            self.showHelpMenu = not self.showHelpMenu
+
+        if keys[pygame.K_f]:
+            Treasure.pickUpObject(self.player)
+        elif keys[pygame.K_g]:
+            Treasure.dropObject(self.player)
+
         # Movement and shooting keys
         # West
         if keys[pygame.K_w]:
@@ -67,4 +99,16 @@ class Interaction:
         elif keys[pygame.K_DOWN]:
             self.player.fireSouth()
 
-        return self.showMenu
+    def isUserCallingGameMenu(self):
+        """
+        isUserCallingGameMenu() -> True if the user is calling for the
+        game menu, False otherwise
+        """
+        return self.showGameMenu
+
+    def isUserCallingHelpScreen(self):
+        """
+        isUserCallingHelpScreen() -> True if user is calling for the
+        help menu, False otherwise
+        """
+        return self.showHelpMenu

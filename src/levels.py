@@ -234,11 +234,12 @@ class Level:
             for x in range(columns):
                 if self.rep[y][x] in symbols:
                     try:
-                        coordinates[self.rep[y][x]].append(
+                        coordinates[self.rep[y][x]].add(
                             (self.min_tile_w * x, self.min_tile_h * y))
                     except KeyError:
-                        coordinates[self.rep[y][x]] = [
-                            (self.min_tile_w * x, self.min_tile_h * y)]
+                        coordinates[self.rep[y][x]] = {
+                            (self.min_tile_w * x, self.min_tile_h * y)
+                        }
 
         return coordinates
 
@@ -284,8 +285,8 @@ class Level:
                     else:
                         m[y][x] = zone_count
                         zone_count +=1
-                    
-                    try:    
+
+                    try:
                         coords[m[y][x]].add((self.min_tile_w * x, self.min_tile_h * y))
                     except KeyError:
                         coords[m[y][x]] = {(self.min_tile_w * x, self.min_tile_h * y)}
@@ -305,7 +306,7 @@ class Level:
                         elif z2 in equiv_zone[i]:
                             equiv_zone[i].add(z1)
                             done.add(z1)
-                            
+
                     if len(equiv_zone[i]) == zone_size:
                         changed = False
                     else:
@@ -314,10 +315,10 @@ class Level:
 
         for z1 in equiv_zone:
             zone_coords[z1] = set()
-            
+
             for z2 in equiv_zone[z1]:
                 zone_coords[z1].update(coords[z2])
 
-                   
-        return zone_coords 
-        
+
+        return zone_coords
+

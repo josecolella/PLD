@@ -2,17 +2,26 @@
 Module that carries out the possible game actions
 """
 import json
+from sys import exit
+import pygame
+
 
 class GameOption:
     """
-    Class that represents the management options allowed to the user when in the game
+    Class that represents the management options allowed to the user
+    when in the game. This includes saving the game and loading the game
     """
 
     @staticmethod
     def saveGame(currentLevel):
         """
-        saveGame(currentLevel) -> saves the current game state to a json file named "game.json"
+        saveGame(currentLevel) -> saves the current game state to a json
+        file named "game.json"
         This means all the objects that are in the current level
+        Parameters
+        -----------
+        currentLevel
+        saveGame(currentLevel) -> The game state is saved in game.json
         """
         saveStructure = {'level': currentLevel['levelIndex']}
 
@@ -38,13 +47,16 @@ class GameOption:
                         'y': robot.y,
                         'direction': robot.direction,
                         'health': robot.health,
+                        'gun': robot.currentGun,
+                        'isTreasureCaptured': robot.treasureCaptured
                     })
                 saveStructure[className] = robotsArray
             elif className == "object":
                 treasure = currentLevel['built_objects'][next(iter(classNameSet))][0]
                 saveStructure[className] = {
                     'x': treasure.x,
-                    'y': treasure.y
+                    'y': treasure.y,
+                    'isCaptured': treasure.isCaptured
                 }
             elif className == "door":
                 doorsArray = []
@@ -72,18 +84,18 @@ class GameOption:
             json.dump(saveStructure, f, indent=4)
 
     @staticmethod
-    def loadGame(currentLevelList, allLevels):
+    def loadGame(currentLevelList, currentLevel):
         """
-        loadGame() -> loads the game state that is present in the game.json and sets up the game board,
-        as stated in the file
+        loadGame() -> loads the game state that is present in the game.json
+        and sets up the game board, as stated in the file
         """
 
         game_state = {}
+        taken = False
         with open("game.json", "r") as f:
             game_state = json.load(f)
 
-        current = currentLevelList.buildLevelObject(list(allLevels)[game_state['level'] - 1])
-        print(current['built_objects']['j'])
+        current = currentLevelList.buildLevelObject(currentLevel)
         for key in game_state:
             if key == "robot":
                 for jsonRobot, pythonRobot in zip(game_state[key], current['built_objects']['r']):
@@ -91,20 +103,34 @@ class GameOption:
                     pythonRobot.y = jsonRobot['y']
                     pythonRobot.direction = jsonRobot['direction']
                     pythonRobot.health = jsonRobot['health']
-            elif key == "player":
-                current['built_objects']['j'][0].x = game_state[key]['x']
-                current['built_objects']['j'][0].y = game_state[key]['y']
-                current['built_objects']['j'][0].direction = game_state[key]['direction']
-                current['built_objects']['j'][0].health = game_state[key]['health']
-                current['built_objects']['j'][0].gun = game_state[key]['gun']
-            elif key == "lever":
-                current['built_objects']['l'][0].off = game_state[key]['off']
-                current['built_objects']['m'][0].off = game_state[key]['off']
-            elif key == "door":
-                current['built_objects']['p'][0].toggled = game_state[key]['toggled']
-                current['built_objects']['q'][0].toggled = game_state[key]['toggled']
-            elif key == "object":
-                current['built_objects']['a'][0].x = game_state[key]['x']
-                current['built_objects']['a'][0].y = game_state[key]['y']
+                    pythonRobot.currentGun = jsonRobot['gun']
+                    pythonRobot.treasureCaptured = jsonRobot['isTreasureCaptured']
 
+            elif key == "player" or key == "enemy":
+                for charactIdentifier in currentLevel['objects'][key]:
+                    currentLevel['built_objects'][charactIdentifier][0].x = game_state[key]['x']
+                    currentLevel['built_objects'][charactIdentifier][0].y = game_state[key]['y']
+                    currentLevel['built_objects'][charactIdentifier][0].direction = game_state[key]['direction']
+                    currentLevel['built_objects'][charactIdentifier][0].health = game_state[key]['health']
+                    currentLevel['built_objects'][charactIdentifier][0].gun = game_state[key]['gun']
+                    currentLevel['built_objects'][charactIdentifier][0].treasureCaptured = game_state[key]['isTreasureCaptured']
+            elif key == "lever":
+                for lever in game_state[key]:
+                    current['built_objects'][lever['id']][0].off = lever['off']
+            elif key == "door":
+                for door in game_state[key]:
+                    current['built_objects'][door['id']][0].toggled = door['toggled']
+            elif key == "object":
+                for strIdentifier in currentLevel['objects'][key]:
+                    current['built_objects'][strIdentifier][0].x = game_state[key]['x']
+                    current['built_objects'][strIdentifier][0].y = game_state[key]['y']
+                    current['built_objects'][strIdentifier][0].isCaptured = game_state[key]['isCaptured']
         return current
+
+    @staticmethod
+    def exitGame():
+        """
+        exitGame() -> The game is exited
+        """
+        pygame.quit()
+        exit(0)
