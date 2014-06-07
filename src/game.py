@@ -10,6 +10,7 @@ from Interactions import *
 from menu import *
 from AI import AgentServer
 
+
 class Game:
     """
     Class that represents the actual game. Initializes the interactions,
@@ -51,6 +52,10 @@ class Game:
         self._initializeLoadedTreasure(currentLevel)
 
     def _initializeLoadedTreasure(self, currentLevel):
+        """
+        Helper method used to initialize the treasure in the map, and if any of the
+        characters have control of the treasure
+        """
         for treasureIdentifier in currentLevel['objects']['object']:
             for treasure in currentLevel['built_objects'][treasureIdentifier]:
                 if treasure.isCaptured:
@@ -71,7 +76,8 @@ class Game:
 
     def start(self, screen2):
         """
-        Method that initializes the game and the corresponding pieces of the game
+        Method that initializes the game and the corresponding pieces
+        of the game
         """
         self.playMainThemeMusic()
 

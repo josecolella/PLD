@@ -32,7 +32,10 @@ class Livebar(pygame.Rect):
     }
 
     def __init__(self, boss):
-
+        """
+        Constructs a healthbar that is associated to another class. A LiveBar
+        is dependent on another class for it's existence
+        """
         self.boss = boss
         self.image = pygame.Surface((self.boss.width * 2, 7))
         self.image.set_colorkey((0, 0, 0))  # black transparent
@@ -54,6 +57,9 @@ class Livebar(pygame.Rect):
             self, self.rect.x, self.rect.y, self.rect.width, self.rect.height)
 
     def update(self):
+        """
+        Redraws the healthbar and changes color based on the boss's health
+        """
         self.percent = self.boss.health / self.boss.__class__.health
         if self.percent != self.oldpercent or self.boss.treasureCaptured:
             # fill black
@@ -76,10 +82,24 @@ class Livebar(pygame.Rect):
             self.boss.height / 2 - 15
 
     def draw(self, screen):
+        """
+        draw(screen) -> draws the healthbar on the screen
+        """
         screen.blit(self.image, (self.rect.x, self.rect.y))
         if self.boss.treasureCaptured:
             screen.blit(pygame.transform.scale(self.image, (7, 7)), (self.rect.x + self.boss.width -4, self.rect.y - 15))
+
     def percentageColor(self):
+        """
+        Returns a tuple of length 3 that denotes the RGB colors corresponding
+        health
+
+        Returns:
+            A tuple with (R,G,B) values that correspond to the boss's health
+            70 - 100: Green
+            30 - 69: orange
+            0 - 29: red
+        """
         tup = None
         if self.percent >= 0.7:
             tup = Livebar.colors['green']
@@ -153,7 +173,12 @@ class Character(pygame.Rect):
         return ((self.x / self.width) + Tile.HorizontalDifference) + ((self.y / self.height) * Tile.VerticalDifference)
 
     def get_tile(self):
+        """
+        Returns the (x,y) coordinates where the character is located
 
+        Returns:
+            x, y coordinates
+        """
         return Tile.get_tile(self.get_number())
 
     def rotate(self, direction):
@@ -183,34 +208,12 @@ class Character(pygame.Rect):
                 self.direction = 'w'
                 self.img = pygame.image.load(self.imgPath+self.direction+png)
 
-
-    # def rotate(self, direction, original_img):
-
-    #     if direction == 'n':
-    #         if self.direction != 'n':
-    #             self.direction = 'n'
-    #             south = pygame.transform.rotate(original_img, 90)  # CCW
-    #             self.img = pygame.transform.flip(south, False, True)
-
-    #     if direction == 's':
-    #         if self.direction != 's':
-    #             self.direction = 's'
-    #             self.img = pygame.transform.rotate(original_img, 90)  # CCW
-
-    #     if direction == 'e':
-    #         if self.direction != 'e':
-    #             self.direction = 'e'
-    #             self.img = pygame.transform.flip(original_img, True, False)
-
-    #     if direction == 'w':
-    #         if self.direction != 'w':
-    #             self.direction = 'w'
-    #             self.img = original_img
     def movement(self, screen):
         """
-        This method deals with everything related to the movement of the character.
-        This method also manages the switch between the character walking with the left foot
-        and then right foot to give the walk a realistic feel
+        This method deals with everything related to the movement of the
+        character.
+        This method also manages the switch between the character walking with
+        the left foot and then right foot to give the walk a realistic feel
         """
         if self.tx is not None and self.ty is not None:  # Target is set
 
@@ -363,7 +366,12 @@ class Character(pygame.Rect):
             self.__class__.List.remove(self)
 
     def satifiesWinConditions(self, coordinates):
-
+        """
+        Method that checks whether the character (x,y) coordinates are located
+        inside the coordinates specified as a parameter
+        satifiesWinConditions(((x,y),(x,y), ...))-> True if (self.x, self.y) in
+        coordiantes, False otherwise
+        """
         if self.treasureCaptured and (self.x, self.y) in coordinates:
             return True
         else:
@@ -383,7 +391,8 @@ class MainCharacter(Character):
     def __init__(self, x, y, agent):
         """
         Initializes the main character in the specified
-        x and y coordinates of the map
+        x and y coordinates of the map, and associates an AI agent
+        to the class
         """
         self.health = MainCharacter.health
         self.description = "maincharacter"
@@ -397,7 +406,7 @@ class MainCharacter(Character):
 
     @staticmethod
     def clear():
-        MainCharacter.List = []
+        del MainCharacter.List[:]
 
 
 class Robot(Character):
@@ -415,6 +424,10 @@ class Robot(Character):
     )
 
     def __init__(self, x, y, agent):
+        """
+        Constructs a Robot that is positioned in the specified x, y coordinates
+        and has an AI agent associated
+        """
         self.health = Robot.health
         self.direction = 's'
         self.health = Robot.health
@@ -449,7 +462,7 @@ class Robot(Character):
     '''
     @staticmethod
     def clear():
-        Robot.List = []
+        del Robot.List[:]
 
 
 class Enemy(Character):
@@ -463,8 +476,8 @@ class Enemy(Character):
 
     def __init__(self, x, y, agent):
         """
-        Initializes the main character in the specified
-        x and y coordinates of the map
+        Initializes the Enemy in the specified
+        x and y coordinates of the map and has an agent
         """
         self.health = Enemy.health
         self.description = "enemy"
@@ -478,7 +491,7 @@ class Enemy(Character):
 
     @staticmethod
     def clear():
-        Enemy.List = []
+        del Enemy.List[:]
 
 
 class Laser(pygame.Rect):
@@ -620,7 +633,7 @@ class Laser(pygame.Rect):
 
     @staticmethod
     def clear(self):
-        Laser.List = []
+        del Laser.List[:]
 
 
 class Treasure(pygame.Rect):
@@ -683,7 +696,7 @@ class Treasure(pygame.Rect):
 
     @staticmethod
     def clear():
-        Treasure.List = []
+        del Treasure.List[:]
 
 
 class Tile(pygame.Rect):
@@ -939,7 +952,7 @@ class Door(pygame.sprite.Sprite):
 
     @staticmethod
     def clear():
-        Door.List = []
+        del Door.List[:]
 
 
 class LevelList:
