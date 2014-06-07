@@ -397,7 +397,7 @@ class MainCharacter(Character):
 
     @staticmethod
     def clear():
-        MainCharacter.List.clear()
+        MainCharacter.List = []
 
 
 class Robot(Character):
@@ -449,7 +449,7 @@ class Robot(Character):
     '''
     @staticmethod
     def clear():
-        Robot.List.clear()
+        Robot.List = []
 
 
 class Enemy(Character):
@@ -478,7 +478,7 @@ class Enemy(Character):
 
     @staticmethod
     def clear():
-        Enemy.List.clear()
+        Enemy.List = []
 
 
 class Laser(pygame.Rect):
@@ -620,7 +620,7 @@ class Laser(pygame.Rect):
 
     @staticmethod
     def clear(self):
-        Laser.List.clear()
+        Laser.List = []
 
 
 class Treasure(pygame.Rect):
@@ -683,7 +683,7 @@ class Treasure(pygame.Rect):
 
     @staticmethod
     def clear():
-        Treasure.List.clear()
+        Treasure.List = []
 
 
 class Tile(pygame.Rect):
@@ -756,7 +756,7 @@ class Tile(pygame.Rect):
 
     @staticmethod
     def clear():
-        Tile.List.clear()
+        Tile.List = []
         Tile.total_tiles = 1
 
 
@@ -939,7 +939,7 @@ class Door(pygame.sprite.Sprite):
 
     @staticmethod
     def clear():
-        Door.List.clear()
+        Door.List = []
 
 
 class LevelList:

@@ -69,8 +69,8 @@ class Think(multiprocessing.Process):
                 
                 if isinstance(from_agent, str):
                     if from_agent == 'bored':
-                        print("Bored received. Sending fire command ...")
-                        self.agent_conn.send([ (0, 'fireNorth') * 40 ])
+                        print("Bored received. Sending nothing ...")
+                        #self.agent_conn.send([ (0, 'fireNorth') * 40 ])
                         
             if self.child_conn.poll():
                 from_server = self.child_conn.recv()
@@ -309,15 +309,20 @@ class AgentServer:
         for core in self.core_list:
             try:
                 core[2].send('shutdown')
+            except AttributeError:
+                pass
+                
+        for core in self.core_list:
+            try:
                 core[1].join()
             except AttributeError:
                 pass
 
     def configure(self):
         pass
-        
+
     def clear(self):
-        pass
+        self.core_list = []
 
     def next(self):
         for agent, think, conn in self.core_list:
