@@ -111,7 +111,7 @@ class Game:
             if not self.loadgame:
                 currentLevel = currentLevelList.buildLevelObject(currentLevelList.levels[level])
             else:
-                currentLevel = GameOption.loadGame(currentLevelList, currentLevelList.levels[level])
+                currentLevel = GameOption.loadGame(currentLevelList)
                 self.initializeLoadedGame(currentLevel)
 
             winCoordinates = currentLevel['level'].coordinates(('-',))['-']

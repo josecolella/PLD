@@ -972,6 +972,7 @@ class LevelList:
             1: self.level1Representation(),
             2: self.level2Representation()
         }
+        self.totalLevels = len(self.levels)
 
     def allLevels(self):
         """

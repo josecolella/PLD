@@ -1,62 +1,62 @@
 {
-    "enemy": {
-        "gun": 0,
-        "isTreasureCaptured": false,
-        "health": 100,
-        "direction": "w",
-        "x": 960,
-        "y": 672
-    },
-    "object": {
-        "isCaptured": false,
-        "x": 496,
-        "y": 80
-    },
-    "robot": [
+    "door": [
         {
-            "gun": 0,
-            "isTreasureCaptured": false,
-            "health": 100,
-            "direction": "s",
-            "x": 464,
-            "y": 240
+            "toggled": false,
+            "id": "q"
         },
         {
-            "gun": 0,
-            "isTreasureCaptured": false,
+            "toggled": false,
+            "id": "p"
+        }
+    ],
+    "player": {
+        "health": 100,
+        "isTreasureCaptured": false,
+        "gun": 0,
+        "y": 672,
+        "x": 32,
+        "direction": "w"
+    },
+    "level": 2,
+    "robot": [
+        {
             "health": 100,
-            "direction": "s",
+            "isTreasureCaptured": false,
+            "gun": 0,
+            "y": 240,
+            "x": 464,
+            "direction": "s"
+        },
+        {
+            "health": 100,
+            "isTreasureCaptured": false,
+            "gun": 0,
+            "y": 240,
             "x": 528,
-            "y": 240
+            "direction": "s"
         }
     ],
     "lever": [
         {
             "off": true,
-            "id": "m"
+            "id": "l"
         },
         {
             "off": true,
-            "id": "l"
+            "id": "m"
         }
     ],
-    "door": [
-        {
-            "id": "p",
-            "toggled": false
-        },
-        {
-            "id": "q",
-            "toggled": false
-        }
-    ],
-    "level": 1,
-    "player": {
-        "gun": 0,
-        "isTreasureCaptured": false,
+    "enemy": {
         "health": 100,
-        "direction": "n",
-        "x": 32,
-        "y": 368
+        "isTreasureCaptured": false,
+        "gun": 0,
+        "y": 672,
+        "x": 960,
+        "direction": "w"
+    },
+    "object": {
+        "y": 80,
+        "isCaptured": false,
+        "x": 496
     }
 }

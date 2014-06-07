@@ -1,7 +1,7 @@
 import pygame
 import sys
 from models import Lever, Treasure
-
+from gameoptions import GameOption
 
 class Interaction:
     """
@@ -49,8 +49,7 @@ class Interaction:
         for event in pygame.event.get():
 
             if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
+                GameOption.exitGame()
 
         # Key events
         keys = pygame.key.get_pressed()

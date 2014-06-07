@@ -85,17 +85,17 @@ class GameOption:
             json.dump(saveStructure, f, indent=4)
 
     @staticmethod
-    def loadGame(currentLevelList, currentLevel):
+    def loadGame(currentLevelList):
         """
         loadGame() -> loads the game state that is present in the game.json
         and sets up the game board, as stated in the file
         """
 
         game_state = {}
-        taken = False
         with open("game.json", "r") as f:
             game_state = json.load(f)
 
+        currentLevel = currentLevelList.levels[game_state['level']]
         current = currentLevelList.buildLevelObject(currentLevel)
         for key in game_state:
             if key == "robot":
