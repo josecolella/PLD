@@ -20,7 +20,8 @@ class Game:
     """
     music = {
         'main_theme': 'audio/laberynth.ogg',
-        'object_taken': 'audio/laberynth2.ogg'
+        'object_taken': 'audio/object_found.ogg',
+        'player_wins': 'audio/player_wins.ogg'
     }
 
     def __init__(self, FPS, soundOptions, loadgame):
@@ -28,7 +29,6 @@ class Game:
         Constructs the class with a Frame-Per-Second, and if the game
         is to be loaded
         """
-        print(soundOptions)
         self.width = 1024
         self.height = 768
         self.screen = pygame.Surface((self.width, self.height))
@@ -49,6 +49,10 @@ class Game:
         pygame.mixer.music.load(Game.music['object_taken'])
         pygame.mixer.music.set_volume(1.0)
         pygame.mixer.music.play(-1)
+
+    def playWinMusic(self):
+        pygame.mixer.music.load(Game.music['player_wins'])
+        pygame.mixer.music.play(0)  # Only played once
 
     def pauseMainThemeMusic(self):
         """
@@ -154,7 +158,8 @@ class Game:
 
                 background = currentLevel['level'].build_static_background(currentLevel['tile_map'], default='.')
                 interaction = Interaction(self.screen, self.FPS, currentLevel)
-                AI_server = AgentServer.get()  # The server must be configured at this point
+                # The server must be configured at this point
+                AI_server = AgentServer.get()  
                 AI_server.startAll()
                 levelContinue = False
 
@@ -163,7 +168,6 @@ class Game:
                     if not menuShow:
                         # blit the background
                         self.screen.blit(background, (0, 0))
-                        Treasure.draw(self.screen)
                         Laser.charactersShotDamageHandler(self.screen)
 
                         mainCharacter.movement(self.screen)
@@ -192,7 +196,7 @@ class Game:
 
                         Door.draw(self.screen)
                         mainCharacter.draw(self.screen)
-
+                        Treasure.draw(self.screen)
                         enemy.draw(self.screen)
                         Robot.draw_robots(self.screen)
                         Lever.allLevers.draw(self.screen)
@@ -214,17 +218,16 @@ class Game:
                     clock.tick(self.FPS)
                     total_frames += 1
             except KeyError:  # Max Levels reached
+                self.restartMainThemeMusic()
+                self.playWinMusic()
                 currentLevelList.clearCurrentLevel()
                 gameNotEnd = False
-        print('Here')
-        self.screen.blit(pygame.image.load("img/gamewon.png"), (0, 0))
-        #pygame.time.delay(3000)
-        screen2.blit(pygame.transform.scale(
-            self.screen, screen2.get_rect().size), (0, 0))
-        pygame.display.flip()
-        pygame.time.delay(3500)
-        clock.tick(self.FPS)
-        total_frames += 1
-
-
+                self.screen.blit(pygame.image.load("img/gamewon.png"), (0, 0))
+                screen2.blit(pygame.transform.scale(
+                    self.screen, screen2.get_rect().size), (0, 0))
+                pygame.display.flip()
+                pygame.time.delay(3500)
+                clock.tick(self.FPS)
+                total_frames += 1
+        
         GameOption.exitGame()

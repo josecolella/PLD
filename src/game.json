@@ -1,62 +1,62 @@
 {
-    "lever": [
-        {
-            "off": true,
-            "id": "m"
-        },
-        {
-            "off": false,
-            "id": "l"
-        }
-    ],
-    "level": 2,
-    "player": {
-        "gun": 0,
-        "isTreasureCaptured": true,
-        "y": 512,
-        "x": 208,
-        "health": 100,
-        "direction": "w"
-    },
-    "robot": [
-        {
-            "gun": 0,
-            "isTreasureCaptured": false,
-            "y": 240,
-            "x": 464,
-            "health": 46.999999999999986,
-            "direction": "s"
-        },
-        {
-            "gun": 0,
-            "isTreasureCaptured": false,
-            "y": 240,
-            "x": 528,
-            "health": 100,
-            "direction": "s"
-        }
-    ],
-    "door": [
-        {
-            "toggled": true,
-            "id": "p"
-        },
-        {
-            "toggled": false,
-            "id": "q"
-        }
-    ],
-    "enemy": {
-        "gun": 0,
-        "isTreasureCaptured": false,
-        "y": 672,
-        "x": 960,
-        "health": 100,
-        "direction": "w"
-    },
     "object": {
         "x": 496,
         "isCaptured": true,
         "y": 80
-    }
+    },
+    "robot": [
+        {
+            "isTreasureCaptured": false,
+            "gun": 0,
+            "x": 464,
+            "y": 240,
+            "direction": "s",
+            "health": 46.999999999999986
+        },
+        {
+            "isTreasureCaptured": false,
+            "gun": 0,
+            "x": 528,
+            "y": 240,
+            "direction": "s",
+            "health": 11.66666666666665
+        }
+    ],
+    "player": {
+        "isTreasureCaptured": true,
+        "gun": 0,
+        "x": 240,
+        "y": 608,
+        "direction": "w",
+        "health": 100
+    },
+    "enemy": {
+        "isTreasureCaptured": false,
+        "gun": 0,
+        "x": 960,
+        "y": 672,
+        "direction": "w",
+        "health": 100
+    },
+    "lever": [
+        {
+            "id": "l",
+            "off": false
+        },
+        {
+            "id": "m",
+            "off": true
+        }
+    ],
+    "door": [
+        {
+            "id": "q",
+            "toggled": false
+        },
+        {
+            "id": "p",
+            "toggled": true
+        }
+    ],
+    "level": 1
 }
