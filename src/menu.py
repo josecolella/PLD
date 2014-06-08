@@ -30,6 +30,12 @@ class Message:
                 initialY += 20
 
     @staticmethod
+    def showCredits(screen):
+        screen.blit(pygame.image.load("img/credits.png"), (0, 0))
+        pygame.display.update()
+
+
+    @staticmethod
     def showGameOverMessage(screen):
         pass
 
@@ -92,10 +98,7 @@ class Menu:
             'pauseMenu': self.pauseMenuButtons
         }
 
-    def show_menu(self, screen, FPS, menuString="initialMenu"):
-        ''' This function shows a menu and returns the user selections '''
-        menu = True
-        selections = {}
+    def _initializeMenu(self, screen, menuString):
         # Clear screen and create menu title text surface
         screen.fill((42, 54, 64))
         menu_title = Message.write(
@@ -104,15 +107,24 @@ class Menu:
         srect = screen.get_rect()
         mtrect = menu_title.get_rect()
         screen.blit(menu_title, ((srect.width - mtrect.width) / 2, 50))
+
         # Create Button objects and assign its meaning
-        button_list = [i[1] for i in self.identifiers[menuString]]
-        button_keys = [i[0] for i in self.identifiers[menuString]]
+        buttonList = [i[1] for i in self.identifiers[menuString]]
+        buttonKeys = [i[0] for i in self.identifiers[menuString]]
+
+        return buttonKeys, buttonList
+
+    def show_menu(self, screen, FPS, menuString="initialMenu"):
+        ''' This function shows a menu and returns the user selections '''
+        menu = True
+        selections = {}
+
+        button_keys, button_list = self._initializeMenu(screen, menuString)
+
         # Create selections dictionary
         selections = dict([(key, False) for key in button_keys])
         if menuString == "initialMenu":
             selections['game_music'] = True
-            selections['game_sounds'] = True
-
         # First button will be selected at beginning (unselected by default)
         button_list[0].toggle()
         # Control selected button
@@ -122,7 +134,7 @@ class Menu:
             b.draw_centered(screen, 200 + i * 50)
 
         clock = pygame.time.Clock()
-
+        showCredits = False
         while menu:
             clock.tick(FPS)
 
@@ -157,6 +169,8 @@ class Menu:
                                     else:
                                         button_list[selected].set_label(
                                             "Game Music: Off")
+                                if button_keys[selected] == "show_credits":
+                                    showCredits = True
 
                         else:
                             selections[button_keys[selected]] = True
@@ -168,8 +182,15 @@ class Menu:
             buttons_area = pygame.Surface((width, height))
             buttons_area.fill((58, 78, 94))
             buttons_area = buttons_area.convert()
-            screen.blit(
-                buttons_area, (min([button.pos[0] for button in button_list]) - 50, button_list[0].pos[1] - 50))
+
+            if showCredits and menuString == "initialMenu":
+                screen.blit(pygame.image.load("img/credits.png"), (0, 0))
+                pygame.display.flip()
+                pygame.time.wait(3500)
+                self._initializeMenu(screen, menuString)
+                showCredits = False
+
+            screen.blit(buttons_area, (min([button.pos[0] for button in button_list]) - 50, button_list[0].pos[1] - 50))
             # Draw buttons on screen
             for i, b in enumerate(button_list):
                 b.draw_centered(screen, 200 + i * 50)

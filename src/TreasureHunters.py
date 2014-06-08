@@ -58,5 +58,7 @@ class TreasureHunters(object):
             menu_sound.fadeout(1000)
             loadedGame = Game(FPS, musicOption, loadgame=True)
             loadedGame.start(screen)
+        elif selections['show_credits'] is True:
+            print('Hello')
         elif selections['exit_game'] is True:
             GameOption.exitGame()
