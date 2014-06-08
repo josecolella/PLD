@@ -968,7 +968,8 @@ class LevelList:
         """
         AI_server = AgentServer.get()
         values['e']['agent'] = AI_server.newAgent(2)
-        values['r']['agent'] = AI_server.newAgent(2)
+        #values['r']['agent'] = AI_server.newAgent(2)
+        values['r']['agent'] = AI_server.newFakeAgent()
         values['j']['agent'] = AI_server.newFakeAgent()
 
     def level1Representation(self):
@@ -1139,8 +1140,8 @@ class LevelList:
         level = levelRepresentation['level']
         class_map = levelRepresentation['class_map']
         values = levelRepresentation['values']
-        AgentServer.get().configure()  # TODO: levelRepresentation -> AgentServer (worldview ...)
         levelRepresentation['config_ai'](values)  # this is a callable object
-        print(values)
+        #print(levelRepresentation['level'].zone_coordinates())
         levelRepresentation['built_objects'] = level.build_objects(class_map, values)
+        AgentServer.get().configure(level.conn_map())
         return levelRepresentation

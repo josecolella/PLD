@@ -136,6 +136,7 @@ class Game:
                     Laser.super_massive_jumbo_loop(self.screen)
 
                     mainCharacter.movement(self.screen)
+                    enemy.movement(self.screen)
 
                     interaction.interactionHandler()
                     menuShow = interaction.isUserCallingGameMenu()

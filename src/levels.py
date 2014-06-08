@@ -126,6 +126,7 @@ class Level:
         self.height = height
         self.min_tile_w = min_tile_w
         self.min_tile_h = min_tile_h
+        self.built_models = None
 
     def build_static_background(self, bg_tile_map, default='default'):
         """
@@ -219,6 +220,7 @@ class Level:
                         except AttributeError:
                             obj.toggle_objects = list(built_models[tog])
 
+        self.built_models = built_models
         return built_models
 
     def coordinates(self, symbols):
@@ -248,7 +250,85 @@ class Level:
         Returns an abstract view of represented map. This includes a
         connection graph whose nodes are zones and a door map.
         """
-        pass
+        world = {}
+        r_objects = {}
+        for k in self.objects:  # create a "reversed" version of self.objects
+            for l in self.objects[k]:
+                r_objects[l] = k
+
+        coords = self.coordinates(set(r_objects.keys()))
+        zone_coords = self.zone_coordinates()
+        
+        for zone in zone_coords:
+            for obj in ('door', 'lever', 'object'):
+                for s in self.objects[obj]:
+                    for pos in coords[s]:
+                        if pos in zone_coords[zone]:
+                            try:
+                                dz = world[zone]
+                            except KeyError:
+                                dz = world[zone] = {}
+                            finally:
+                                try:
+                                    do = dz[obj]
+                                except KeyError:
+                                    do = dz[obj] = {}
+                                finally:
+                                    try:
+                                        cs = do[s]
+                                    except KeyError:
+                                        cs = do[s] = set()
+                                    finally:
+                                        print(self.built_models.keys())
+                                        if obj == 'door': # self.built_models
+                                            for door in self.built_models[s]:
+                                                if pos == (door.rect.x, door.rect.y):
+                                                    cs.add((pos, door.toggled))
+                                        elif obj == 'lever':
+                                            for lever in self.built_models[s]:
+                                                if pos == (lever.rect.x, lever.rect.y):                                       
+                                                    cs.add((pos, lever.off, ''.join(self.toggle_objects[s])))
+                                        elif obj == 'object':
+                                            for treasure in self.built_models[s]:
+                                                if pos == (treasure.x, treasure.y):                                         
+                                                    cs.add((pos, treasure.isCaptured))
+        for zone in zone_coords:
+            if zone not in world:
+                world[zone] = {}
+                                                                    
+            for robot in ( c for s in self.objects['robot'] for c in self.built_models[s] ):
+                pos = (robot.x, robot.y)
+                agent_id = robot.agent.agent_id
+                asset_id = robot.asset_id
+                if agent_id not in world[zone]:
+                    world[zone][agent_id] = {}
+                
+                if pos in zone_coords[zone]:
+                    world[zone][agent_id][asset_id] = (pos, robot.get_bullet_type(), robot.health, robot.treasureCaptured)
+                
+            for player in ( c for s in self.objects['player'] for c in self.built_models[s] ):
+                pos = (player.x, player.y)
+                agent_id = player.agent.agent_id
+                asset_id = player.asset_id
+                if agent_id not in world[zone]:
+                    world[zone][agent_id] = {}
+                
+                if pos in zone_coords[zone]:
+                    world[zone][agent_id][asset_id] = (pos, player.get_bullet_type(), player.health, player.treasureCaptured)
+                    
+            for enemy in ( c for s in self.objects['enemy'] for c in self.built_models[s] ):        
+                pos = (robot.x, robot.y)
+                agent_id = enemy.agent.agent_id
+                asset_id = enemy.asset_id
+                if agent_id not in world[zone]:
+                    world[zone][agent_id] = {}
+                
+                if pos in zone_coords[zone]:
+                    world[zone][agent_id][asset_id] = (pos, enemy.get_bullet_type(), enemy.health, enemy.treasureCaptured)
+                    
+        return world
+        
+
 
     def get_agent_server(self):
         """
