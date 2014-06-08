@@ -1071,7 +1071,6 @@ class LevelList:
         }
         return level1Dict
 
-
     def level2AI(self, values):
         """
         Adds AI cores in order to build level objects
@@ -1081,7 +1080,6 @@ class LevelList:
         values['e']['agent'] = AI_server.newAgent(2)
         values['r']['agent'] = AI_server.newAgent(2)
         values['j']['agent'] = AI_server.newFakeAgent()
-
 
     def level2Representation(self):
         rep = Level.load_rep('level/level2.txt')

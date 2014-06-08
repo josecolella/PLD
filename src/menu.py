@@ -30,6 +30,17 @@ class Message:
                 initialY += 20
 
     @staticmethod
+    def showGameOverMessage(screen):
+        pass
+
+    @staticmethod
+    def showGameWonMessage(screen):
+        positionX = screen.get_width() / 2
+        positionY = screen.get_height() / 2
+        Message.text_to_screen(screen, "Game Won", positionX, positionY, 36)
+
+
+    @staticmethod
     def write(msg="pygame is cool", size=15, color=(255, 255, 255), bold = False, font_type = "None"):
         myfont = pygame.font.SysFont(font_type, size, bold)
         mytext = myfont.render(msg, True, color)
