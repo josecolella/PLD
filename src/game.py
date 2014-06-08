@@ -182,6 +182,8 @@ class Game:
 
                         Laser.charactersShotDamageHandler(self.screen)
                         mainCharacter.movement(self.screen)
+                        enemy.movement(self.screen)
+
                         interaction.interactionHandler()
                         menuShow = interaction.isUserCallingGameMenu()
                         if menuShow:
