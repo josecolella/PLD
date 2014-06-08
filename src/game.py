@@ -23,17 +23,19 @@ class Game:
         'object_taken': 'audio/laberynth2.ogg'
     }
 
-    def __init__(self, FPS, loadgame):
+
+    def __init__(self, FPS, soundOptions, loadgame):
         """
         Constructs the class with a Frame-Per-Second, and if the game
         is to be loaded
         """
+        print(soundOptions)
         self.width = 1024
         self.height = 768
         self.screen = pygame.Surface((self.width, self.height))
         self.FPS = FPS
         self.loadgame = loadgame
-        self.music = pygame.mixer.Sound(Game.music['main_theme'])
+        self.soundOptions = soundOptions
 
     def playMainThemeMusic(self):
         """
@@ -98,12 +100,20 @@ class Game:
                 lever.toggle()
                 lever.turnOnAnimation()
 
+    def nextLevel(self, currentLevelList, levelContinue, level):
+        currentLevelList.clearCurrentLevel()
+        levelContinue = True
+        level += 1
+        self.loadgame = False
+        if self.soundOptions['game_music']:
+            self.restartMainThemeMusic()
+        return levelContinue, level
+
     def start(self, screen2):
         """
         Method that initializes the game and the corresponding pieces
         of the game
         """
-        objectTaken = False
         # Whether to show the pause Menu
         menuShow = False
         # Whether to continue the level
@@ -119,7 +129,8 @@ class Game:
 
         # Game Start
         while gameNotEnd:
-            self.playMainThemeMusic() if objectTaken else self.playObjectTakenMusic()
+            if self.soundOptions['game_music']:
+                self.playMainThemeMusic()
             # premature tile creation to preserve tile invariant
             # invariant: relation between tile number and tile position
             for y in range(0, self.screen.get_height(), 16):
@@ -182,15 +193,7 @@ class Game:
                             Message.showGeneralGameInformation(self.screen, interaction.helpButton)
 
                         if mainCharacter.satifiesWinConditions(winCoordinates):
-                            currentLevelList.clearCurrentLevel()
-                            levelContinue = True
-                            level += 1
-                            self.loadgame = False
-                            self.restartMainThemeMusic()
-                            # Show message
-                            # Reset del nivel -> If won se mueve al proximo nivel, else se recarga el nivel
-
-                        objectTaken = True if mainCharacter.treasureCaptured or enemy.treasureCaptured else False
+                            level, levelContinue = self.nextLevel(currentLevelList, levelContinue, level)
 
                         Door.draw(self.screen)
                         mainCharacter.draw(self.screen)

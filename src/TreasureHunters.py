@@ -40,18 +40,23 @@ class TreasureHunters(object):
         iconImg = pygame.image.load("img/icon.png")
         pygame.display.set_icon(iconImg)
         # Start game menu and get user selections
-        menu = Menu() # Initialize Game Menu
-        selections = menu.show_menu(screen, FPS) # Show InitialGameMenu
-
+        # Initialize Game Menu
+        menu = Menu()
+        # Show InitialGameMenu
+        selections = menu.show_menu(screen, FPS)
+        print(selections)
+        musicOption = {
+            'game_music': selections['game_music']
+        }
         # Process user selections
-        if selections['exit_game'] is True:
-            GameOption.exitGame()
-        elif selections['play_game'] is True:
+        if selections['play_game'] is True:
             menu_sound.fadeout(1000)
-            newGame = Game(FPS, loadgame=False)
+            newGame = Game(FPS, musicOption, loadgame=False)
             newGame.start(screen)
             # Game.start(screen)
         elif selections['load_game'] is True:
             menu_sound.fadeout(1000)
-            loadedGame = Game(FPS, loadgame=True)
+            loadedGame = Game(FPS, musicOption, loadgame=True)
             loadedGame.start(screen)
+        elif selections['exit_game'] is True:
+            GameOption.exitGame()

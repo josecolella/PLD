@@ -78,8 +78,7 @@ class Menu:
             ('load_game', Button("Load Saved Game")),
             ('exit_game', Button("Exit Game")),
             ('show_credits', Button("Show Credits")),
-            ('game_sounds', Button("Game Sounds: Off")),
-            ('game_music', Button("Game Music: Off"))
+            ('game_music', Button("Game Music: On"))
         )
         # Configuration for the pause menu
         self.pauseMenuButtons = (
@@ -110,6 +109,10 @@ class Menu:
         button_keys = [i[0] for i in self.identifiers[menuString]]
         # Create selections dictionary
         selections = dict([(key, False) for key in button_keys])
+        if menuString == "initialMenu":
+            selections['game_music'] = True
+            selections['game_sounds'] = True
+
         # First button will be selected at beginning (unselected by default)
         button_list[0].toggle()
         # Control selected button
@@ -145,26 +148,19 @@ class Menu:
                         if selected > 2:
                             selections[button_keys[selected]] = not selections[
                                 button_keys[selected]]
+                            if menuString == "initialMenu":
+                                # Change button label (on/off buttons)
+                                if button_keys[selected] == 'game_music':
+                                    if selections[button_keys[selected]]:
+                                        button_list[selected].set_label(
+                                            "Game Music: On")
+                                    else:
+                                        button_list[selected].set_label(
+                                            "Game Music: Off")
 
-                            # Change button label (on/off buttons)
-                            if button_keys[selected] == 'game_sounds':
-                                if selections[button_keys[selected]]:
-                                    button_list[selected].set_label(
-                                        "Game Sounds: On")
-                                else:
-                                    button_list[selected].set_label(
-                                        "Game Sounds: Off")
-                            elif button_keys[selected] == 'game_music':
-                                if selections[button_keys[selected]]:
-                                    button_list[selected].set_label(
-                                        "Game Music: On")
-                                else:
-                                    button_list[selected].set_label(
-                                        "Game Music: Off")
                         else:
                             selections[button_keys[selected]] = True
                             menu = False
-
             # Calculate buttons area on screen and clear it
             width = max([button.width for button in button_list]) + 100
             height = button_list[len(button_list) - 1].pos[1] - button_list[
