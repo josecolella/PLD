@@ -182,7 +182,6 @@ class Game:
                             Message.showGeneralGameInformation(self.screen, interaction.helpButton)
 
                         Laser.charactersShotDamageHandler(self.screen)
-
                         mainCharacter.movement(self.screen)
 
                         interaction.interactionHandler()
@@ -208,15 +207,9 @@ class Game:
                             if self.soundOptions['game_music']:
                                 self.restartMainThemeMusic()
 
-
-                        # for gameObject in levelObjects:
-                            # Drawing of the Characters in the currentLevel
-                        Door.draw(self.screen)
-                        mainCharacter.draw(self.screen)
-                        Treasure.draw(self.screen)
-                        enemy.draw(self.screen)
-                        Robot.draw_robots(self.screen)
-                        Lever.draw(self.screen)
+                        # Drawing of the Characters in the currentLevel
+                        for gameObject in currentLevel['class_map'].values():
+                            gameObject.draw(self.screen)
                     else:
                         selections = pauseMenu.show_menu(screen2, self.FPS, "pauseMenu")
                         if selections['exit_game'] is True:

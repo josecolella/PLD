@@ -335,7 +335,7 @@ class Character(pygame.Rect):
         """
         self._move('s', Tile.VerticalDifference)
 
-    def draw(self, screen):
+    def _draw(self, screen):
         """
         draw(screen) -> Displays the Character in the screen with it's healthbar
         """
@@ -404,11 +404,10 @@ class MainCharacter(Character):
         Character.__init__(self, x, y, agent)
         MainCharacter.List.append(self)
 
-    # @staticmethod
-    # def draw(screen):
-    #     for mainCharacter in MainCharacter.List:
-    #         mainCharacter.draw(screen)
-
+    @staticmethod
+    def draw(screen):
+        for mainCharacter in MainCharacter.List:
+            mainCharacter._draw(screen)
 
     @staticmethod
     def clear():
@@ -445,9 +444,9 @@ class Robot(Character):
         Robot.List.append(self)
 
     @staticmethod
-    def draw_robots(screen):
+    def draw(screen):
         for robot in Robot.List:
-            robot.draw(screen)
+            robot._draw(screen)
 
     @staticmethod
     def movement(screen):
@@ -497,10 +496,10 @@ class Enemy(Character):
         Enemy.List.append(self)
         Character.__init__(self, x, y, agent)
 
-    # @staticmethod
-    # def draw(screen):
-    #     for enemy in Enemy.List:
-    #         enemy.draw(screen)
+    @staticmethod
+    def draw(screen):
+        for enemy in Enemy.List:
+            enemy._draw(screen)
 
     @staticmethod
     def clear():
