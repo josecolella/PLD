@@ -1,62 +1,62 @@
 {
-    "enemy": {
-        "y": 672,
-        "isTreasureCaptured": false,
-        "gun": 0,
-        "x": 960,
-        "health": 100,
-        "direction": "w"
-    },
-    "level": 2,
     "robot": [
         {
+            "x": 464,
+            "gun": 0,
             "y": 240,
             "isTreasureCaptured": false,
-            "gun": 0,
-            "x": 464,
-            "health": 29.333333333333318,
+            "health": 100,
             "direction": "s"
         },
         {
+            "x": 528,
+            "gun": 0,
             "y": 240,
             "isTreasureCaptured": false,
-            "gun": 0,
-            "x": 528,
             "health": 100,
             "direction": "s"
         }
     ],
-    "object": {
-        "y": 80,
-        "isCaptured": true,
-        "x": 496
+    "player": {
+        "x": 384,
+        "gun": 0,
+        "y": 400,
+        "isTreasureCaptured": false,
+        "health": 100,
+        "direction": "n"
     },
-    "door": [
-        {
-            "id": "p",
-            "toggled": true
-        },
-        {
-            "id": "q",
-            "toggled": false
-        }
-    ],
+    "enemy": {
+        "x": 960,
+        "gun": 0,
+        "y": 672,
+        "isTreasureCaptured": false,
+        "health": 100,
+        "direction": "w"
+    },
+    "object": {
+        "x": 496,
+        "y": 80,
+        "isCaptured": false
+    },
+    "level": 1,
     "lever": [
-        {
-            "id": "l",
-            "off": false
-        },
         {
             "id": "m",
             "off": true
+        },
+        {
+            "id": "l",
+            "off": false
         }
     ],
-    "player": {
-        "y": 560,
-        "isTreasureCaptured": true,
-        "gun": 0,
-        "x": 272,
-        "health": 100,
-        "direction": "s"
-    }
+    "door": [
+        {
+            "toggled": false,
+            "id": "q"
+        },
+        {
+            "toggled": true,
+            "id": "p"
+        }
+    ]
 }

@@ -65,9 +65,9 @@ class Interaction:
             self.showHelpMenu = not self.showHelpMenu
 
         if keys[pygame.K_f]:
-            Treasure.pickUpObject(self.player)
+            self.player.pickUpObject(Treasure.List)
         elif keys[pygame.K_g]:
-            Treasure.dropObject(self.player)
+            self.player.dropObject()
 
         # Movement and shooting keys
         # West
@@ -84,7 +84,7 @@ class Interaction:
             self.player.moveEast()
         # Toggle lever
         elif keys[pygame.K_e]:
-            Lever.interactionToggleHandler(self.player)
+            self.player.toggleObject(Lever.allLevers)
         # Fire Left
         if keys[pygame.K_LEFT]:
             self.player.fireWest()

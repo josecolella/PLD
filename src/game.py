@@ -9,7 +9,6 @@ from gameoptions import *
 from Interactions import *
 from menu import *
 from AI import AgentServer
-from time import sleep
 
 
 class Game:
@@ -183,7 +182,6 @@ class Game:
 
                         Laser.charactersShotDamageHandler(self.screen)
                         mainCharacter.movement(self.screen)
-
                         interaction.interactionHandler()
                         menuShow = interaction.isUserCallingGameMenu()
                         if menuShow:

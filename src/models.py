@@ -130,6 +130,8 @@ class Character(pygame.Rect):
         self.treasureCaptured = False
         self.currentGun = 0  # 0 -> shotgun, 1 -> automatic
         self.healthbar = Livebar(self)
+        self.spawnPosition = (x, y)
+        self.pickedUpObject = None
         self.agent = agent
         self.asset_id = self.agent.addAsset(self)
         # Use cycle so that it iterates forever
@@ -335,6 +337,47 @@ class Character(pygame.Rect):
         """
         self._move('s', Tile.VerticalDifference)
 
+    def pickUpObject(self, pickableObjects):
+        """
+        """
+        for pickableObject in pickableObjects:
+            distance2 = (pickableObject.x-self.x)*(pickableObject.x-self.x)+(pickableObject.y-self.y)*(pickableObject.y-self.y)
+            if distance2 < 4 * (pickableObject.width * pickableObject.width+ pickableObject.height*pickableObject.height):
+                if not self.treasureCaptured:
+                    self.treasureCaptured = True
+                    self.pickedUpObject = pickableObject
+                    pickableObject.isCaptured = True
+                    pickableObject.showCaptured()
+
+    def dropObject(self):
+        """
+        """
+        if self.treasureCaptured:
+            self.treasureCaptured = False
+            self.pickedUpObject.x = self.x
+            self.pickedUpObject.y = self.y
+            self.pickedUpObject.img = pygame.image.load(Treasure.treasure_img[0])
+
+    def toggleObject(self, toggableObjects):
+        for toggableObject in toggableObjects:
+            distance2 = (toggableObject.rect.x-self.x)*(toggableObject.rect.x-self.x)+(
+                toggableObject.rect.y-self.y)*(toggableObject.rect.y-self.y)
+            if distance2 < 4 * (toggableObject.width * toggableObject.width+ toggableObject.height*toggableObject.height):
+                toggableObject.toggle()
+
+    def spawn(self):
+        """
+        spawn(self) -> Once the Character's health goes to 0
+        the Character respawn in the initial (x, y) location where
+        it was created
+        """
+        # If the character is dead, he is ready to respawn
+        if self.health <= 0:
+            self.health = self.__class__.health
+            self.x = self.spawnPosition[0]
+            self.y = self.spawnPosition[1]
+            self.__class__.List.append(self)
+
     def _draw(self, screen):
         """
         draw(screen) -> Displays the Character in the screen with it's healthbar
@@ -364,6 +407,7 @@ class Character(pygame.Rect):
 
         if self.health <= 0:
             self.__class__.List.remove(self)
+            self.spawn()
 
     def satifiesWinConditions(self, coordinates):
         """
@@ -454,17 +498,6 @@ class Robot(Character):
             # Target is set
             robot.movement(screen)
 
-    '''
-    def spawn(total_frames, FPS):
-        if total_frames % (FPS * 3) == 0:
-
-            sound = pygame.mixer.Sound(next(Robot.robot_sound))
-            sound.play()
-
-            tile_num = next(Robot.spawn_tiles_iter)
-            spawn_node = Tile.get_tile(tile_num)
-            Robot(spawn_node.x, spawn_node.y)
-    '''
     @staticmethod
     def clear():
         del Robot.List[:]
@@ -885,10 +918,11 @@ class Lever(pygame.sprite.Sprite):
            The instance of the player that is interacting with the game
         """
         for lever in Lever.allLevers:
-                distance2 = (lever.rect.x-player.x)*(lever.rect.x-player.x)+(
-                    lever.rect.y-player.y)*(lever.rect.y-player.y)
-                if distance2 < 4 * (lever.width * lever.width+ lever.height*lever.height):
-                    lever.toggle()
+            distance2 = (lever.rect.x-player.x)*(lever.rect.x-player.x)+(
+                lever.rect.y-player.y)*(lever.rect.y-player.y)
+            if distance2 < 4 * (lever.width * lever.width+ lever.height*lever.height):
+                lever.toggle()
+
     @staticmethod
     def draw(screen):
         for lever in Lever.allLevers:
