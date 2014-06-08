@@ -404,6 +404,12 @@ class MainCharacter(Character):
         Character.__init__(self, x, y, agent)
         MainCharacter.List.append(self)
 
+    # @staticmethod
+    # def draw(screen):
+    #     for mainCharacter in MainCharacter.List:
+    #         mainCharacter.draw(screen)
+
+
     @staticmethod
     def clear():
         del MainCharacter.List[:]
@@ -471,7 +477,8 @@ class Enemy(Character):
     This class represents the enemy that the MainCharacter will
     compete against to steal the Treasure
     """
-    List = [] # A List of enemies
+    # A List of enemies
+    List = []
     health = 100
 
     def __init__(self, x, y, agent):
@@ -481,13 +488,19 @@ class Enemy(Character):
         """
         self.health = Enemy.health
         self.description = "enemy"
-        self.velocity = 4 # The enemy velocity
+        # The enemy velocity
+        self.velocity = 4
         self.direction = 'w'
         self.imgPath = 'img/thief_'
         self.img = pygame.image.load(self.imgPath+'w.png')
 
         Enemy.List.append(self)
         Character.__init__(self, x, y, agent)
+
+    # @staticmethod
+    # def draw(screen):
+    #     for enemy in Enemy.List:
+    #         enemy.draw(screen)
 
     @staticmethod
     def clear():
@@ -877,6 +890,10 @@ class Lever(pygame.sprite.Sprite):
                     lever.rect.y-player.y)*(lever.rect.y-player.y)
                 if distance2 < 4 * (lever.width * lever.width+ lever.height*lever.height):
                     lever.toggle()
+    @staticmethod
+    def draw(screen):
+        for lever in Lever.allLevers:
+            screen.blit(lever.image, (lever.rect.x, lever.rect.y))
 
     @staticmethod
     def clear():

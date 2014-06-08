@@ -1,4 +1,46 @@
 {
+    "enemy": {
+        "y": 672,
+        "isTreasureCaptured": false,
+        "gun": 0,
+        "x": 960,
+        "health": 100,
+        "direction": "w"
+    },
+    "level": 2,
+    "robot": [
+        {
+            "y": 240,
+            "isTreasureCaptured": false,
+            "gun": 0,
+            "x": 464,
+            "health": 29.333333333333318,
+            "direction": "s"
+        },
+        {
+            "y": 240,
+            "isTreasureCaptured": false,
+            "gun": 0,
+            "x": 528,
+            "health": 100,
+            "direction": "s"
+        }
+    ],
+    "object": {
+        "y": 80,
+        "isCaptured": true,
+        "x": 496
+    },
+    "door": [
+        {
+            "id": "p",
+            "toggled": true
+        },
+        {
+            "id": "q",
+            "toggled": false
+        }
+    ],
     "lever": [
         {
             "id": "l",
@@ -9,54 +51,12 @@
             "off": true
         }
     ],
-    "object": {
-        "x": 496,
-        "y": 80,
-        "isCaptured": false
-    },
-    "level": 1,
-    "door": [
-        {
-            "id": "q",
-            "toggled": false
-        },
-        {
-            "id": "p",
-            "toggled": true
-        }
-    ],
     "player": {
+        "y": 560,
+        "isTreasureCaptured": true,
         "gun": 0,
-        "x": 48,
-        "direction": "s",
+        "x": 272,
         "health": 100,
-        "y": 160,
-        "isTreasureCaptured": false
-    },
-    "enemy": {
-        "gun": 0,
-        "x": 960,
-        "direction": "w",
-        "health": 100,
-        "y": 672,
-        "isTreasureCaptured": false
-    },
-    "robot": [
-        {
-            "gun": 0,
-            "x": 464,
-            "direction": "s",
-            "health": 100,
-            "y": 240,
-            "isTreasureCaptured": false
-        },
-        {
-            "gun": 0,
-            "x": 528,
-            "direction": "s",
-            "health": 100,
-            "y": 240,
-            "isTreasureCaptured": false
-        }
-    ]
+        "direction": "s"
+    }
 }

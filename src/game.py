@@ -108,8 +108,6 @@ class Game:
         Method that initializes the game and the corresponding pieces
         of the game
         """
-        # Treasure taken
-        taken = False
         # Whether to show the pause Menu
         menuShow = False
         # Whether to continue the level
@@ -125,6 +123,8 @@ class Game:
 
         # Game Start
         while gameNotEnd:
+            # Treasure taken
+            taken = False
             if self.soundOptions['game_music'] and not taken:
                 self.playMainThemeMusic()
 
@@ -133,7 +133,6 @@ class Game:
             for y in range(0, self.screen.get_height(), 16):
                 for x in range(0, self.screen.get_width(), 16):
                     Tile(x, y, 'empty')
-            print('Total Tiles'+str(Tile.total_tiles))
             # Loads the initial level representation
             currentLevelList = LevelList(self.width, self.height, self.screen)
             try:
@@ -168,6 +167,7 @@ class Game:
                 AI_server.startAll()
                 levelContinue = False
 
+                levelObjects = (i for i in currentLevel['class_map'].values())
                 # Game Loop
                 while not levelContinue:
                     if not menuShow:
@@ -192,11 +192,13 @@ class Game:
                         # apply interaction of all AI cores
                         AI_server.next()
 
-                        # if mainCharacter.treasureCaptured or enemy.treasureCaptured:
-                        #     taken = True
-                        #     # self.pauseMainThemeMusic()
-                        # else:
-                        #     taken = False
+                        if mainCharacter.treasureCaptured or enemy.treasureCaptured:
+                            if not taken:
+                                taken = True
+                                self.pauseMainThemeMusic()
+                                self.playObjectTakenMusic()
+                        else:
+                            taken = False
 
                         if mainCharacter.satifiesWinConditions(winCoordinates):
                             currentLevelList.clearCurrentLevel()
@@ -206,12 +208,15 @@ class Game:
                             if self.soundOptions['game_music']:
                                 self.restartMainThemeMusic()
 
+
+                        # for gameObject in levelObjects:
+                            # Drawing of the Characters in the currentLevel
                         Door.draw(self.screen)
                         mainCharacter.draw(self.screen)
                         Treasure.draw(self.screen)
                         enemy.draw(self.screen)
                         Robot.draw_robots(self.screen)
-                        Lever.allLevers.draw(self.screen)
+                        Lever.draw(self.screen)
                     else:
                         selections = pauseMenu.show_menu(screen2, self.FPS, "pauseMenu")
                         if selections['exit_game'] is True:
