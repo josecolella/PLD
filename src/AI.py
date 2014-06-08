@@ -4,6 +4,7 @@ This module represents the Artificial Intelligence for the game
 
 import pygame
 import multiprocessing
+import heapq
 
 
 class MinimaxNode:
@@ -28,17 +29,78 @@ class AB:
         pass
 
 
+class A_starNode:
+    def __init__(self, parent, asset_pos, asset_id, target_points, allowed_area):
+        self.parent = parent
+        self.asset_pos = asset_pos
+        self.asset_id = asset_id
+        self.target_points = target_points
+        self.allowed_area = allowed_area
+        self.g = parent.g+1
+        self.h = min(( abs(t[0]-self.asset_pos[0])+abs(t[1]-self.asset_pos[1]) for t in self.target_points ))
+        
+    def __lt__(self, other):
+        return (self.g+self.h) < (other.g+other.h)
+        
+    def expand(self):
+        exp_nodes = []
+        ldiff = [(0,16),(0,-16),(16,0),(-16,0)]
+        list_fp = [ (self.asset_pos[0]+d[0], self.asset_pos[1]+d[1]) for d in ldiff ]
+        for future_pos in list_fp:
+            if future_pos in self.allowed_area:
+                exp_nodes.append(A_starNode(self, future_pos, self.asset_id, self.target_points, self.allowed_area))
+     
+        return exp_nodes
+           
+    def is_solution(self):
+        return self.asset_pos in self.target_points
+        
+    def get_root_path(self):
+        path = []
+        n = self                            
+        while n is not None:
+            x, y = n.asset_pos - n.parent.asset_pos                                            
+
+            if x == 0:
+                if y > 0:
+                    path.append((self.asset_id, 'moveSouth'))
+                else:
+                    path.append((self.asset_id, 'moveNorth'))
+            else:
+                if x > 0:
+                    path.append((self.asset_id, 'moveEast'))
+                else:
+                    path.append((self.asset_id, 'moveWest'))
+                    
+            n = n.parent
+            
+        return reversed(path)
+        
+
 class A_star:
-    def __init__(self, initial_state):
-        pass
+    def __init__(self, start_node):
+        self.opened = []
+        self.closed = []
+        self.start_node = start_node
 
-
-    def __str__(self):
-        pass
-
-
-    def search(self, target):
-        pass
+    def search(self):
+        plan = []
+        actual = self.start_node
+        solution_found = actual.is_solution()
+        
+        while not solution_found and len(self.opened)>0:
+            actual = heapq.heappop(self.opened)
+            solution_found = actual.is_solution()
+            if not solution_found:
+                exp_nodes = actual.expand()
+                self.closed.append(actual)
+                for n in exp_nodes:
+                    heapq.heappush(self.opened, n)
+                
+        if solution_found:
+            plan = actual.get_root_path()
+            
+        return plan
 
 
 class Think(multiprocessing.Process):
@@ -81,6 +143,9 @@ class Think(multiprocessing.Process):
                         thinking = False
                 elif isinstance(from_conn, tuple):
                     pass
+                    
+            if thinking:
+                pass
             '''        
             while not self.level2.max_depth_reached():
                 new_high_level_action = self.level2.fathom()
