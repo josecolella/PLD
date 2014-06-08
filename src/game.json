@@ -5,58 +5,58 @@
             "id": "m"
         },
         {
-            "off": true,
+            "off": false,
             "id": "l"
-        }
-    ],
-    "enemy": {
-        "y": 672,
-        "gun": 0,
-        "x": 960,
-        "health": 100,
-        "isTreasureCaptured": false,
-        "direction": "w"
-    },
-    "object": {
-        "y": 80,
-        "x": 496,
-        "isCaptured": true
-    },
-    "door": [
-        {
-            "toggled": false,
-            "id": "q"
-        },
-        {
-            "toggled": true,
-            "id": "p"
-        }
-    ],
-    "robot": [
-        {
-            "y": 240,
-            "gun": 0,
-            "x": 464,
-            "health": 100,
-            "isTreasureCaptured": false,
-            "direction": "s"
-        },
-        {
-            "y": 240,
-            "gun": 0,
-            "x": 528,
-            "health": 100,
-            "isTreasureCaptured": false,
-            "direction": "s"
         }
     ],
     "level": 2,
     "player": {
-        "y": 608,
         "gun": 0,
-        "x": 96,
-        "health": 100,
         "isTreasureCaptured": true,
-        "direction": "s"
+        "y": 512,
+        "x": 208,
+        "health": 100,
+        "direction": "w"
+    },
+    "robot": [
+        {
+            "gun": 0,
+            "isTreasureCaptured": false,
+            "y": 240,
+            "x": 464,
+            "health": 46.999999999999986,
+            "direction": "s"
+        },
+        {
+            "gun": 0,
+            "isTreasureCaptured": false,
+            "y": 240,
+            "x": 528,
+            "health": 100,
+            "direction": "s"
+        }
+    ],
+    "door": [
+        {
+            "toggled": true,
+            "id": "p"
+        },
+        {
+            "toggled": false,
+            "id": "q"
+        }
+    ],
+    "enemy": {
+        "gun": 0,
+        "isTreasureCaptured": false,
+        "y": 672,
+        "x": 960,
+        "health": 100,
+        "direction": "w"
+    },
+    "object": {
+        "x": 496,
+        "isCaptured": true,
+        "y": 80
     }
 }

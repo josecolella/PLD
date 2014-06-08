@@ -23,7 +23,6 @@ class Game:
         'object_taken': 'audio/laberynth2.ogg'
     }
 
-
     def __init__(self, FPS, soundOptions, loadgame):
         """
         Constructs the class with a Frame-Per-Second, and if the game
@@ -100,15 +99,6 @@ class Game:
                 lever.toggle()
                 lever.turnOnAnimation()
 
-    def nextLevel(self, currentLevelList, levelContinue, level):
-        currentLevelList.clearCurrentLevel()
-        levelContinue = True
-        level += 1
-        self.loadgame = False
-        if self.soundOptions['game_music']:
-            self.restartMainThemeMusic()
-        return levelContinue, level
-
     def start(self, screen2):
         """
         Method that initializes the game and the corresponding pieces
@@ -147,7 +137,7 @@ class Game:
                     currentLevel = GameOption.loadGame(currentLevelList)
                     level = currentLevel['levelIndex']
                     self.initializeLoadedGame(currentLevel)
-
+                print(level)
                 winCoordinates = currentLevel['level'].coordinates(('-',))['-']
                 # make unbuildable and unwalkable objects unwalkable (walls)
                 for y in range(0, self.screen.get_height(), 16):
@@ -193,7 +183,12 @@ class Game:
                             Message.showGeneralGameInformation(self.screen, interaction.helpButton)
 
                         if mainCharacter.satifiesWinConditions(winCoordinates):
-                            level, levelContinue = self.nextLevel(currentLevelList, levelContinue, level)
+                            currentLevelList.clearCurrentLevel()
+                            levelContinue = True
+                            level += 1
+                            self.loadgame = False
+                            if self.soundOptions['game_music']:
+                                self.restartMainThemeMusic()
 
                         Door.draw(self.screen)
                         mainCharacter.draw(self.screen)
@@ -219,11 +214,17 @@ class Game:
                     clock.tick(self.FPS)
                     total_frames += 1
             except KeyError:  # Max Levels reached
-                print('Here')
                 currentLevelList.clearCurrentLevel()
-                self.screen.blit(pygame.image.load("img/dead.jpg"), (0, 0))
-                pygame.display.update()
-                sleep(4.0)
-                GameOption.exitGame()
+                gameNotEnd = False
+        print('Here')
+        self.screen.blit(pygame.image.load("img/gamewon.png"), (0, 0))
+        #pygame.time.delay(3000)
+        screen2.blit(pygame.transform.scale(
+            self.screen, screen2.get_rect().size), (0, 0))
+        pygame.display.flip()
+        pygame.time.delay(3500)
+        clock.tick(self.FPS)
+        total_frames += 1
+
 
         GameOption.exitGame()

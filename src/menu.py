@@ -99,10 +99,14 @@ class Menu:
         }
 
     def _initializeMenu(self, screen, menuString):
+        """
+        _initializeMenu(screen, menuString) -> Initializes the button as
+        well as the menu title
+        """
         # Clear screen and create menu title text surface
         screen.fill((42, 54, 64))
         menu_title = Message.write(
-            "Treasure Hunters Menu", 40, (84, 183, 215), True, "couriernew")
+            "Treasure Hunters", 40, (84, 183, 215), True, "couriernew")
         # Put menu title centered
         srect = screen.get_rect()
         mtrect = menu_title.get_rect()
