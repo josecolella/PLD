@@ -657,7 +657,6 @@ class Treasure(pygame.Rect):
         self.isCaptured = False
         Treasure.List.append(self)
 
-
     @staticmethod
     def pickUpObject(player):
         """
@@ -769,7 +768,7 @@ class Tile(pygame.Rect):
 
     @staticmethod
     def clear():
-        Tile.List = []
+        del Tile.List[:]
         Tile.total_tiles = 1
 
 
@@ -1151,6 +1150,10 @@ class LevelList:
         AI_server = AgentServer.get()
         AI_server.stopAll()
         AI_server.clear()
+        # Include Tile class to the objects in the game so that it is clered
+        # when new level is loaded
+        self.levels[self.currentLevel]['class_map'].update({'tile': Tile})
+
         for key, value in self.levels[self.currentLevel]['class_map'].items():
             value.clear()
 

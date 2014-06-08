@@ -108,6 +108,8 @@ class Game:
         Method that initializes the game and the corresponding pieces
         of the game
         """
+        # Treasure taken
+        taken = False
         # Whether to show the pause Menu
         menuShow = False
         # Whether to continue the level
@@ -123,14 +125,15 @@ class Game:
 
         # Game Start
         while gameNotEnd:
-            if self.soundOptions['game_music']:
+            if self.soundOptions['game_music'] and not taken:
                 self.playMainThemeMusic()
+
             # premature tile creation to preserve tile invariant
             # invariant: relation between tile number and tile position
             for y in range(0, self.screen.get_height(), 16):
                 for x in range(0, self.screen.get_width(), 16):
                     Tile(x, y, 'empty')
-
+            print('Total Tiles'+str(Tile.total_tiles))
             # Loads the initial level representation
             currentLevelList = LevelList(self.width, self.height, self.screen)
             try:
@@ -141,7 +144,6 @@ class Game:
                     currentLevel = GameOption.loadGame(currentLevelList)
                     level = currentLevel['levelIndex']
                     self.initializeLoadedGame(currentLevel)
-                print(level)
                 winCoordinates = currentLevel['level'].coordinates(('-',))['-']
                 # make unbuildable and unwalkable objects unwalkable (walls)
                 for y in range(0, self.screen.get_height(), 16):
@@ -155,11 +157,14 @@ class Game:
 
                 mainCharacter = currentLevel['built_objects']['j'][0]
                 enemy = currentLevel['built_objects']['e'][0]
+                if mainCharacter.treasureCaptured or enemy.treasureCaptured:
+                    self.pauseMainThemeMusic()
+                    self.playObjectTakenMusic()
 
                 background = currentLevel['level'].build_static_background(currentLevel['tile_map'], default='.')
                 interaction = Interaction(self.screen, self.FPS, currentLevel)
                 # The server must be configured at this point
-                AI_server = AgentServer.get()  
+                AI_server = AgentServer.get()
                 AI_server.startAll()
                 levelContinue = False
 
@@ -168,6 +173,14 @@ class Game:
                     if not menuShow:
                         # blit the background
                         self.screen.blit(background, (0, 0))
+
+                        Message.text_to_screen(self.screen, 'Health: {0}'.format(mainCharacter.health),0, -1)
+                        # show general game information
+                        if interaction.isUserCallingHelpScreen():
+                            Message.showGeneralGameInformation(self.screen, interaction.controlDefinition)
+                        else:
+                            Message.showGeneralGameInformation(self.screen, interaction.helpButton)
+
                         Laser.charactersShotDamageHandler(self.screen)
 
                         mainCharacter.movement(self.screen)
@@ -179,12 +192,11 @@ class Game:
                         # apply interaction of all AI cores
                         AI_server.next()
 
-                        Message.text_to_screen(self.screen, 'Health: {0}'.format(mainCharacter.health),0, -1)
-                        # show general game information
-                        if interaction.isUserCallingHelpScreen():
-                            Message.showGeneralGameInformation(self.screen, interaction.controlDefinition)
-                        else:
-                            Message.showGeneralGameInformation(self.screen, interaction.helpButton)
+                        # if mainCharacter.treasureCaptured or enemy.treasureCaptured:
+                        #     taken = True
+                        #     # self.pauseMainThemeMusic()
+                        # else:
+                        #     taken = False
 
                         if mainCharacter.satifiesWinConditions(winCoordinates):
                             currentLevelList.clearCurrentLevel()
@@ -229,5 +241,5 @@ class Game:
                 pygame.time.delay(3500)
                 clock.tick(self.FPS)
                 total_frames += 1
-        
+
         GameOption.exitGame()
