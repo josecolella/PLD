@@ -250,83 +250,117 @@ class Level:
         Returns an abstract view of represented map. This includes a
         connection graph whose nodes are zones and a door map.
         """
-        world = {}
         r_objects = {}
         for k in self.objects:  # create a "reversed" version of self.objects
             for l in self.objects[k]:
                 r_objects[l] = k
 
         coords = self.coordinates(set(r_objects.keys()))
-        zone_coords = self.zone_coordinates()
+        zone_coord = self.zone_coordinates()         # zone_coord
+        coord_zone = {}                              # coord_zone
+        for k in zone_coord:
+            for v in zone_coord[k]:
+                coord_zone[v] = k
         
-        for zone in zone_coords:
-            for obj in ('door', 'lever', 'object'):
-                for s in self.objects[obj]:
-                    for pos in coords[s]:
-                        if pos in zone_coords[zone]:
+        door_map = {}
+        door_name = {}
+        world = []
+        for s in self.objects['door']:               # door_map
+            for pos in coords[s]:                    # door_name
+                for door in self.built_models[s]:
+                    if pos == (door.rect.x, door.rect.y):
+                        d = {'pos' : pos,
+                            'opened' : door.toggled
+                        }
+                        try:
+                            door_name[s].add(len(world))
+                        except KeyError:
+                            door_name[s] = {len(world)}
+                                                    
+                        north_pos = (door.rect.x, door.rect.y-self.min_tile_h)
+                        try:
+                            zone = coord_zone[north_pos]
+                        except KeyError:
+                            west_pos = (door.rect.x-self.min_tile_w, door.rect.y)
+                            east_pos = (door.rect.x+self.min_tile_w, door.rect.y)
+                            pair = (coord_zone[west_pos], coord_zone[east_pos])
+                        else:
+                            south_pos = (door.rect.x, door.rect.y+self.min_tile_h)
+                            pair = (zone, coord_zone[south_pos])
+                        finally:
                             try:
-                                dz = world[zone]
+                                door_map[pair].add(len(world))
                             except KeyError:
-                                dz = world[zone] = {}
-                            finally:
-                                try:
-                                    do = dz[obj]
-                                except KeyError:
-                                    do = dz[obj] = {}
-                                finally:
-                                    try:
-                                        cs = do[s]
-                                    except KeyError:
-                                        cs = do[s] = set()
-                                    finally:
-                                        print(self.built_models.keys())
-                                        if obj == 'door': # self.built_models
-                                            for door in self.built_models[s]:
-                                                if pos == (door.rect.x, door.rect.y):
-                                                    cs.add((pos, door.toggled))
-                                        elif obj == 'lever':
-                                            for lever in self.built_models[s]:
-                                                if pos == (lever.rect.x, lever.rect.y):                                       
-                                                    cs.add((pos, lever.off, ''.join(self.toggle_objects[s])))
-                                        elif obj == 'object':
-                                            for treasure in self.built_models[s]:
-                                                if pos == (treasure.x, treasure.y):                                         
-                                                    cs.add((pos, treasure.isCaptured))
-        for zone in zone_coords:
-            if zone not in world:
-                world[zone] = {}
-                                                                    
-            for robot in ( c for s in self.objects['robot'] for c in self.built_models[s] ):
-                pos = (robot.x, robot.y)
-                agent_id = robot.agent.agent_id
-                asset_id = robot.asset_id
-                if agent_id not in world[zone]:
-                    world[zone][agent_id] = {}
+                                if pair[::-1] in door_map:
+                                    door_map[pair[::-1]].add(len(world))
+                                else:
+                                    door_map[pair] = {len(world)}
+                            
+                        world.append(d)
+                        
+        zone_ady = {}                  # zone_ady
+        inverse = []
+        for a, b in door_map.keys():
+            try:
+                zone_ady[a].add(b)         
+            except KeyError:
+                zone_ady[a] = {b}
                 
-                if pos in zone_coords[zone]:
-                    world[zone][agent_id][asset_id] = (pos, robot.get_bullet_type(), robot.health, robot.treasureCaptured)
+            inverse.append((b,a))
+            
+        for b, a in inverse:
+            try:
+                zone_ady[b].add(a)         
+            except KeyError:
+                zone_ady[b] = {a}
                 
-            for player in ( c for s in self.objects['player'] for c in self.built_models[s] ):
-                pos = (player.x, player.y)
-                agent_id = player.agent.agent_id
-                asset_id = player.asset_id
-                if agent_id not in world[zone]:
-                    world[zone][agent_id] = {}
+            door_map[(b,a)] = door_map[(a,b)]
+        
+        owner = (0,0)
+        agent_map = {}                  # agent_map
+        for model_name in ('robot', 'player', 'enemy'):
+            for model in ( c for s in self.objects[model_name] for c in self.built_models[s] ):
+                try:
+                    ail = agent_map[model.agent.agent_id]
+                except KeyError:
+                    ail = agent_map[model.agent.agent_id] = {}
+                finally:
+                    ail[model.asset_id] = len(world)
+
+                d = { 'pos' : (model.x, model.y),
+                    'bullet_type' : model.get_bullet_type(),
+                    'health' : model.health,
+                    'max_health' : model.__class__.health
+                }
+
+                world.append(d)
                 
-                if pos in zone_coords[zone]:
-                    world[zone][agent_id][asset_id] = (pos, player.get_bullet_type(), player.health, player.treasureCaptured)
-                    
-            for enemy in ( c for s in self.objects['enemy'] for c in self.built_models[s] ):        
-                pos = (robot.x, robot.y)
-                agent_id = enemy.agent.agent_id
-                asset_id = enemy.asset_id
-                if agent_id not in world[zone]:
-                    world[zone][agent_id] = {}
+                if model.treasureCaptured:
+                    owner = (model.agent.agent_id, model.asset_id)
+        
+        objeto = len(world)             # objeto
+        treasure = self.built_models[list(self.objects['object'])[0]][0]
+        d = {'pos' : (treasure.x, treasure.y),
+            'captured' : treasure.isCaptured,
+            'owner' : owner
+        }
+        world.append(d)
+        
+        lever_name = {}                 # lever_name
+        for lever, symbol in ( (c, s) for s in self.objects['lever'] for c in self.built_models[s] ):
+            d = {'pos' : (lever.rect.x, lever.rect.y),
+                'opened' : lever.off
+            }
+            
+            try:
+                lever_name[symbol].add(len(world))
+            except KeyError:
+                lever_name[symbol] = {len(world)}
                 
-                if pos in zone_coords[zone]:
-                    world[zone][agent_id][asset_id] = (pos, enemy.get_bullet_type(), enemy.health, enemy.treasureCaptured)
-                    
-        return world
+            world.append(d)
+            
+        toggle = self.toggle_objects    # toggle    
+        return {'zone_coord':zone_coord, 'coord_zone':coord_zone, 'zone_ady':zone_ady, 'door_map':door_map, 'door_name':door_name, 'agent_map':agent_map, 'objeto':objeto, 'lever_name':lever_name, 'toggle':toggle, 'world':world}
         
 
 

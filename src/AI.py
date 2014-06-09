@@ -20,10 +20,31 @@ class MinimaxNode:
         
     def is_leaf(self):
         pass
-        
+    
+
     def applicable_actions(self):
+        l = []
+        for asset in self.assets_not_engaged:
+            zone = self.get_zone(asset, self.agent_id)   # (asset, agent) -> zone
+            if world[zone]['door']:
+                ('change_zone', asset, new_zone)
+        if precondition:
+            pass
+            #'change_gun'
+        if precondition:
+            pass
+            #'pick_up'
+        if precondition:
+            pass
+            #'drop'
+        if precondition:
+            pass
+            #'hurt'
+        if precondition:
+            pass
+            #'switch'
         pass
-        
+
     def generate_descendants(self, actions):
         pass    
     
@@ -126,7 +147,7 @@ class A_star:
 
 class Think(multiprocessing.Process):
     #The following class code is deprecated (thread oriented ...)
-    def __init__(self, agent_conn, child_conn, depth):
+    def __init__(self, agent_conn, child_conn, depth, agent_id):
         multiprocessing.Process.__init__(self)
         #self.level1 = A_star()
         #self.level2 = AB(initial_state, depth)
@@ -134,6 +155,7 @@ class Think(multiprocessing.Process):
         self.child_conn = child_conn
         self.depth = depth
         self.plan_cc = 0
+        self.agent_id = agent_id
         #self.ready = threading.Event()
         #self.access_lock = threading.Lock()
 
@@ -380,7 +402,7 @@ class AgentServer:
         think_conn, agent_conn = multiprocessing.Pipe()
         parent_conn, child_conn = multiprocessing.Pipe()
         agent = Agent(think_conn, len(self.core_list), self)
-        think = Think(agent_conn, child_conn, depth)
+        think = Think(agent_conn, child_conn, depth, len(self.core_list))
         self.core_list.append((agent, think, parent_conn))
         return agent
 
@@ -419,7 +441,8 @@ class AgentServer:
                 pass
 
     def configure(self, config):
-        print(config)
+        #print(config)
+        pass
 
     def clear(self):
         self.core_list = []
