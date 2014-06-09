@@ -255,7 +255,7 @@ class Level:
             for l in self.objects[k]:
                 r_objects[l] = k
 
-        coords = self.coordinates(set(r_objects.keys()))
+        coords = self.coordinates(set(r_objects.keys()).union({'-'}))
         zone_coord = self.zone_coordinates()         # zone_coord
         coord_zone = {}                              # coord_zone
         for k in zone_coord:
@@ -365,8 +365,11 @@ class Level:
                 
             world.append(d)
             
-        toggle = self.toggle_objects    # toggle    
-        return {'zone_coord':zone_coord, 'coord_zone':coord_zone, 'zone_ady':zone_ady, 'door_map':door_map, 'door_name':door_name, 'agent_map':agent_map, 'objeto':objeto, 'lever_name':lever_name, 'toggle':toggle, 'world':world}
+        toggle = self.toggle_objects    # toggle
+        
+        exit_zone = { coord_zone[x] for x in coords['-'] }                  # exit_zone
+                                        
+        return {'zone_coord':zone_coord, 'coord_zone':coord_zone, 'zone_ady':zone_ady, 'door_map':door_map, 'door_name':door_name, 'agent_map':agent_map, 'objeto':objeto, 'lever_name':lever_name, 'toggle':toggle, 'exit_zone':exit_zone, 'world':world}
         
 
 

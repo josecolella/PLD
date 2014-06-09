@@ -955,8 +955,11 @@ class Door(pygame.sprite.Sprite):
 
     def __init__(self, x, y, toggled):
         pygame.sprite.Sprite.__init__(self)
+        if toggled:
+            self.image = Door.open_door_image
+        else:
+            self.image = Door.closed_door_image
 
-        self.image = Door.closed_door_image
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
@@ -1059,7 +1062,7 @@ class LevelList:
         rep = Level.load_rep('level/level1.txt')
         objects = {
             'lever': {'l', 'm'},
-            'door': {'p', 'q'},
+            'door': {'p', 'q', 'o'},
             'player': {'j'},
             'enemy': {'e'},
             'object': {'a'},
@@ -1097,6 +1100,7 @@ class LevelList:
             'm': {'image': 'img/lever_b_0.png', 'screen': self.screen},
             'p':{'toggled':False},
             'q': {'toggled': False},
+            'o': {'toggled': True},
             'j': {},
             'e': {},
             'a': {},
@@ -1213,7 +1217,8 @@ class LevelList:
         class_map = levelRepresentation['class_map']
         values = levelRepresentation['values']
         levelRepresentation['config_ai'](values)  # this is a callable object
-        #print(levelRepresentation['level'].zone_coordinates())
+        #print(level.zone_coordinates())
         levelRepresentation['built_objects'] = level.build_objects(class_map, values)
+        #print(level.conn_map())
         AgentServer.get().configure(level.conn_map())
         return levelRepresentation

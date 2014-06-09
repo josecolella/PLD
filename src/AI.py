@@ -83,8 +83,8 @@ class MinimaxNode:
     def generate_descendants(self, action_list):
         l = []
         for action in action_list:
-            node = MinimaxNode()
-            if action[0] == 'change_zone':   # TODO
+            node = MinimaxNode(zone_coord, coord_zone, zone_ady, door_map, door_name, agent_map, objeto, lever_name, toggle, world, alfa, beta, minmax_layout, depth, horizont)
+            if action[0] == 'change_zone':
                 zone = self.coord_zone[node.world[self.agent_map[action[1]][action[2]]]['pos']]
                 arbitrary_door_index = iter(self.door_map[(zone, action[3])]).next()
                 side1 = node.world[arbitrary_door_index]['side1']
@@ -238,6 +238,7 @@ class Think(multiprocessing.Process):
         self.depth = depth
         self.plan_cc = 0
         self.agent_id = agent_id
+        self.high_level_plan = [('switch', 0, 0, 'm'), ('change_zone', 0, 0, 3), ('pick_up', 0, 0), ('change_zone', 0, 0, 4)]
         #self.ready = threading.Event()
         #self.access_lock = threading.Lock()
 
@@ -271,6 +272,11 @@ class Think(multiprocessing.Process):
                             self.agent_conn.send((1, self.plan))
       
             if thinking and self.plan_cc==0:
+                # there is a high level inmediate action
+                if len(self.high_level_plan) > 0:
+                    action = self.high_level_plan.pop(0)
+                    
+                
                 asset_id = 0
                 asset_pos = (960, 672)
                 target_points = {(720,64),(736,64)}
