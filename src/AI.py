@@ -5,49 +5,131 @@ This module represents the Artificial Intelligence for the game
 import pygame
 import multiprocessing
 import heapq
+import copy
 import time
 
 
 class MinimaxNode:
-    def __init__(self):
-        self.is_max_node = True
-        self.agent_playing = 2
-        self.assets_not_engaged = [3,4,5]
-        self.agents_not_engaged = [3,4]
-        self.h_value = 235
-        self.alfa = 0
-        self.beta = 0
+    def __init__(self, zone_coord, coord_zone, zone_ady, door_map, door_name, agent_map, objeto, lever_name, toggle, world, alfa, beta, minmax_layout, depth, horizont):
+        self.agent_map = agent_map
+        self.zone_coord = zone_coord
+        self.coord_zone = coord_zone
+        self.zone_ady = zone_ady
+        self.door_map = door_map
+        self.door_name = door_name
+        self.agent_map = agent_map
+        self.objeto = objeto
+        self.lever_name = lever_name
+        self.toggle = toggle
+        self.world = copy.deepcopy(world)
+        self.depth = depth
+        self.horizont = horizont
+
+        try:
+            self.assets_not_engaged.pop()
+        except IndexError:
+            try:
+                self.agent_playing = self.agents_not_engaged.pop()
+            except IndexError:
+                self.depth += 1
+                self.agents_not_engaged = list(self.agent_map.keys())
+                self.agent_playing = self.agents_not_engaged.pop()
+                
+            self.assets_not_engaged = list(self.agent_map[self.agent_playing].keys())
+            self.assets_not_engaged.pop()
+                
+        self.minmax_layout = minmax_layout
+        self.is_max_node = self.minmax_layout[self.agent_playing]
+        self.h_value = 0
+        self.alfa = alfa
+        self.beta = beta
         
     def is_leaf(self):
-        pass
+        return self.depth == self.horizont
     
 
     def applicable_actions(self):
         l = []
         for asset in self.assets_not_engaged:
-            zone = self.get_zone(asset, self.agent_id)   # (asset, agent) -> zone
-            if world[zone]['door']:
-                ('change_zone', asset, new_zone)
-        if precondition:
-            pass
-            #'change_gun'
-        if precondition:
-            pass
-            #'pick_up'
-        if precondition:
-            pass
-            #'drop'
-        if precondition:
-            pass
-            #'hurt'
-        if precondition:
-            pass
-            #'switch'
-        pass
+            zone = self.coord_zone[self.world[self.agent_map[self.agent_playing][asset]]['pos']]
+            adyacent_zones = self.zone_ady[zone]
+            for new_zone in adjacent_zones:
+                for door_index in self.door_map[(zone, new_zone)]:
+                    if self.world[door_index]['opened']:
+                        l.append(('change_zone', self.agent_playing, asset, new_zone))
+                        break
+            
+            l.append(('change_gun', self.agent_playing, asset))
+            
+            if not self.world[self.objeto]['captured'] and zone == self.coord_zone[self.world[self.objeto]['pos']]:
+                l.append(('pick_up', self.agent_playing, asset))
+                
+            if self.world[self.objeto]['owner'] == (self.agent_playing, asset):
+                l.append(('drop', self.agent_playing, asset))
+                
+            for agent_id in self.agent_map:
+                for asset_id in self.agent_map[agent_id]:
+                    if zone == self.coord_zone[self.world[self.agent_map[agent_id][asset_id]]['pos']]:
+                        l.append(('hurt', self.agent_playing, asset, agent_id, asset_id))
+            for lever in self.lever_name:
+                for lever_index in self.lever_name[lever]:
+                    if zone == self.coord_zone[self.world[lever_index]['pos']]:
+                        l.append(('switch', self.agent_playing, asset, lever))
+                        break
+                        
+        return l
+        
 
-    def generate_descendants(self, actions):
-        pass    
-    
+    def generate_descendants(self, action_list):
+        l = []
+        for action in action_list:
+            node = MinimaxNode()
+            if action[0] == 'change_zone':   # TODO
+                zone = self.coord_zone[node.world[self.agent_map[action[1]][action[2]]]['pos']]
+                arbitrary_door_index = iter(self.door_map[(zone, action[3])]).next()
+                side1 = node.world[arbitrary_door_index]['side1']
+                
+                if side1 in zone_coord[zone]:
+                    new_pos = node.world[arbitrary_door_index]['side2']
+                else:
+                    new_pos = side1
+                    
+                node.world[self.agent_map[action[1]][action[2]]]['pos'] = new_pos
+            elif action[0] == 'change_gun':
+                bullet_t = node.world[self.agent_map[action[1]][action[2]]]['bullet_type']
+                if bullet_t == 'automatic':
+                    node.world[self.agent_map[action[1]][action[2]]]['bullet_type'] = 'shotgun'
+                else:
+                    node.world[self.agent_map[action[1]][action[2]]]['bullet_type'] = 'automatic'
+            elif action[0] == 'pick_up':
+                node.world[self.objeto]['captured'] = True
+                node.world[self.objeto]['owner'] = (action[1], action[2])
+            elif action[0] == 'drop':
+                node.world[self.objeto]['captured'] = False
+                node.world[self.objeto]['pos'] = node.world[self.agent_map[action[1]][action[2]]]['pos']
+            elif action[0] == 'hurt':
+                bullet_t = node.world[self.agent_map[action[1]][action[2]]]['bullet_type']
+                victim_health = node.world[self.agent_map[action[3]][action[4]]]['health']
+                victim_max_health = node.world[self.agent_map[action[3]][action[4]]]['max_health']
+                
+                if bullet_t == 'shotgun':
+                    victim_health -= victim_max_health / 2
+                else:
+                    victim_health -= victim_max_health / 6 + 1
+                    
+                if victim_health <= 0.0:
+                    node.world[self.agent_map[action[3]][action[4]]]['health'] = victim_max_health
+                    node.world[self.agent_map[action[3]][action[4]]]['pos'] = node.world[self.agent_map[action[3]][action[4]]]['spawn_pos']
+                else:
+                    node.world[self.agent_map[action[3]][action[4]]]['health'] = victim_health
+            elif action[0] == 'switch':
+                for tog in self.toggle[action[3]]:
+                    for door_index in self.door_name[tog]:
+                        node.world[door_index]['opened'] = not node.world[door_index]['opened']
+                        
+            l.append(node)
+
+        return l 
 
 
 class AB:

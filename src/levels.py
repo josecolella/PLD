@@ -284,17 +284,22 @@ class Level:
                             west_pos = (door.rect.x-self.min_tile_w, door.rect.y)
                             east_pos = (door.rect.x+self.min_tile_w, door.rect.y)
                             pair = (coord_zone[west_pos], coord_zone[east_pos])
+                            d['side1'] = west_pos
+                            d['side2'] = east_pos
                         else:
                             south_pos = (door.rect.x, door.rect.y+self.min_tile_h)
                             pair = (zone, coord_zone[south_pos])
+                            d['side1'] = north_pos
+                            d['side2'] = south_pos                            
                         finally:
-                            try:
-                                door_map[pair].add(len(world))
-                            except KeyError:
-                                if pair[::-1] in door_map:
-                                    door_map[pair[::-1]].add(len(world))
-                                else:
-                                    door_map[pair] = {len(world)}
+                            if pair[0] != pair[1]:
+                                try:
+                                    door_map[pair].add(len(world))
+                                except KeyError:
+                                    if pair[::-1] in door_map:
+                                        door_map[pair[::-1]].add(len(world))
+                                    else:
+                                        door_map[pair] = {len(world)}
                             
                         world.append(d)
                         
@@ -330,7 +335,8 @@ class Level:
                 d = { 'pos' : (model.x, model.y),
                     'bullet_type' : model.get_bullet_type(),
                     'health' : model.health,
-                    'max_health' : model.__class__.health
+                    'max_health' : model.__class__.health,
+                    'spawn_pos' : model.spawnPosition
                 }
 
                 world.append(d)
@@ -349,7 +355,7 @@ class Level:
         lever_name = {}                 # lever_name
         for lever, symbol in ( (c, s) for s in self.objects['lever'] for c in self.built_models[s] ):
             d = {'pos' : (lever.rect.x, lever.rect.y),
-                'opened' : lever.off
+                'toggled' : lever.off
             }
             
             try:
