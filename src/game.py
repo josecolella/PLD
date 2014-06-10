@@ -141,6 +141,7 @@ class Game:
                 else:
                     currentLevel = GameOption.loadGame(currentLevelList)
                     level = currentLevel['levelIndex']
+                    currentLevelList.currentLevel = level
                     self.initializeLoadedGame(currentLevel)
                 winCoordinates = currentLevel['level'].coordinates(('-',))['-']
                 # make unbuildable and unwalkable objects unwalkable (walls)
@@ -166,7 +167,6 @@ class Game:
                 AI_server.startAll()
                 levelContinue = False
 
-                levelObjects = (i for i in currentLevel['class_map'].values())
                 # Game Loop
                 while not levelContinue:
                     if not menuShow:
@@ -204,13 +204,16 @@ class Game:
                             currentLevelList.clearCurrentLevel()
                             levelContinue = True
                             level += 1
+                            currentLevelList.currentLevel += 1
                             self.loadgame = False
                             if self.soundOptions['game_music']:
                                 self.restartMainThemeMusic()
 
                         # Drawing of the Characters in the currentLevel
+
                         for gameObject in currentLevel['class_map'].values():
                             gameObject.draw(self.screen)
+
                     else:
                         selections = pauseMenu.show_menu(screen2, self.FPS, "pauseMenu")
                         if selections['exit_game'] is True:
