@@ -788,7 +788,7 @@ class Tile(pygame.Rect):
                 return tile
 
     @staticmethod
-    def draw_tiles(screen):
+    def draw(screen):
         pass
 
     @staticmethod
@@ -1093,9 +1093,9 @@ class LevelList:
             'object': Treasure
         }
         values = {
-            'l':{'image':'img/lever_a_0.png', 'screen': self.screen},
+            'l': {'image': 'img/lever_a_0.png', 'screen': self.screen},
             'm': {'image': 'img/lever_b_0.png', 'screen': self.screen},
-            'p':{'toggled':False},
+            'p': {'toggled': False},
             'q': {'toggled': False},
             'j': {},
             'e': {},
@@ -1203,9 +1203,11 @@ class LevelList:
         AI_server.clear()
         # Include Tile class to the objects in the game so that it is clered
         # when new level is loaded
-        self.levels[self.currentLevel]['class_map'].update({'tile': Tile})
+        tiles = {'tile': Tile}
+        allLevelObjects = self.levels[self.currentLevel]['class_map']
+        allObjects = {k: v for k, v in itertools.chain(allLevelObjects.items(), tiles.items())}
 
-        for key, value in self.levels[self.currentLevel]['class_map'].items():
+        for key, value in allObjects.items():
             value.clear()
 
     def buildLevelObject(self, levelRepresentation):
