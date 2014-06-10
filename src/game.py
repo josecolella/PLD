@@ -208,8 +208,11 @@ class Game:
                                 self.restartMainThemeMusic()
 
                         # Drawing of the Characters in the currentLevel
-                        for gameObject in currentLevel['class_map'].values():
-                            gameObject.draw(self.screen)
+                        try:
+                            for gameObject in currentLevel['class_map'].values():
+                                gameObject.draw(self.screen)
+                        except Exception:
+                            pass
                     else:
                         selections = pauseMenu.show_menu(screen2, self.FPS, "pauseMenu")
                         if selections['exit_game'] is True:
