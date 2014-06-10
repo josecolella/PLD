@@ -591,7 +591,7 @@ class AgentServer:
     def broadcast(self):
         '''
         '''
-        if self.running:
+        if self.running and len(self.pending_changes)>0:
             for core in self.core_list:
                 try:
                     core[2].send(self.pending_changes)
