@@ -224,6 +224,8 @@ class A_star(threading.Thread):
     
     def stop(self):
         self.stop_event.set()
+        self.load_event.set()
+        self.join()
 
     def run(self):
         solution_found = False
@@ -259,11 +261,8 @@ class A_star(threading.Thread):
 
 
 class Think(multiprocessing.Process):
-    #The following class code is deprecated (thread oriented ...)
     def __init__(self, agent_conn, child_conn, depth, agent_id):
         multiprocessing.Process.__init__(self)
-        #self.level1 = A_star()
-        #self.level2 = AB(initial_state, depth)
         self.agent_conn = agent_conn
         self.child_conn = child_conn
         self.depth = depth
@@ -271,18 +270,15 @@ class Think(multiprocessing.Process):
         self.agent_id = agent_id
         self.high_level_plan = [('switch', 0, 0, 'm'), ('change_zone', 0, 0, 3), ('pick_up', 0, 0), ('change_zone', 0, 0, 4), ('change_zone', 0, 0, 19)]
         self.a_star = A_star()
-        #self.ready = threading.Event()
-        #self.access_lock = threading.Lock()
 
 
     def send_plan(self):
-        #self.access_lock.acquire()
         self.agent_conn.send(self.plan)
-        #self.access_lock.release()
 
 
     def run(self):
         thinking = True
+        self.world = self.child_conn.recv()
         self.a_star.start()
         while thinking:
             if self.child_conn.poll():
@@ -293,8 +289,8 @@ class Think(multiprocessing.Process):
                         print("Shutting down AI core ...")
                         thinking = False
                         self.a_star.stop()
-                elif isinstance(from_conn, tuple):
-                    pass           
+                elif isinstance(from_server, list):
+                    pending_changes = from_server
             elif self.agent_conn.poll():
                 from_agent = self.agent_conn.recv()
                 
@@ -324,29 +320,7 @@ class Think(multiprocessing.Process):
                 self.agent_conn.send((1, self.plan))
             else:
                 time.sleep(0.2)
-                
-            '''        
-            while not self.level2.max_depth_reached():
-                new_high_level_action = self.level2.fathom()
-                new_plan = self.level1.search(new_high_level_action)
-                self._reveal_plan(new_plan)
 
-                if not self.ready.is_set():
-                    self.ready.set()
-            '''
-
-    '''
-    def partial_plan(self):
-        self.ready.wait()
-        self.access_lock.acquire()
-        plan = self.plan[:]
-        self.access_lock.release()
-        return plan
-
-
-    def ready(self):
-        return self.ready.is_set()
-    '''
 
 class FakeAgent:
     """
@@ -390,8 +364,12 @@ class FakeAgent:
         """
         This method does nothing.
         """
-        pass                                                           
-
+        pass
+                                                                   
+    def inform(self, action):
+        pass
+    
+    
     def actionCompleted(self):
         """
         The current action has been completed.
@@ -411,15 +389,15 @@ class Agent:
     execute their AI core commands.
     """
     def __init__(self, think_conn, agent_id, server):
-        self.think_conn = think_conn
         self.agent_id = agent_id
         self.server = server
+        self.List = []
+        self.think_conn = think_conn                
         self.engaged = True
         self.action_done = True
         self.pos = 0
         self.plan = []
         self.plan_cc = 0
-        self.List = []
 
     def addAsset(self, asset):
         """
@@ -486,13 +464,27 @@ class Agent:
                 elif action[1] == 'fireEast':
                     asset.fireEast()
                 elif action[1] == 'fireSouth':
-                    asset.fireSouth()                                                            
-
+                    asset.fireSouth()
+                elif action[1] == 'pickUp':
+                    asset.pickUpObject()
+                elif action[1] == 'drop':
+                    asset.dropObject()
+                elif action[1] == 'toggle':
+                    asset.toggleObject()
+                
+                                                                         
+    def inform(self, action):
+        """
+        This method does nothing.
+        """
+        pass    
+    
     def actionCompleted(self):
         """
         The current action has been completed.
         """
         self.action_done = True
+        self.server.update((self.agent_id, self.plan[self.pos][0], self.plan[self.pos][1]))
         self.pos += 1
         
     def updateHealth(self, asset_id, health):
@@ -516,6 +508,9 @@ class AgentServer:
     
     def __init__(self):
         self.core_list = []
+        self.pending_changes = []
+        self.configured = False
+        self.running = False
       
 
     def newAgent(self, depth):
@@ -541,95 +536,67 @@ class AgentServer:
         """
         Order the execution of all AI cores registered in the server.
         """
-        for core in self.core_list:
-            try:
-                core[1].start()
-            except AttributeError:
-                pass 
+        if self.configured and not self.running:
+            for core in self.core_list:
+                try:
+                    core[1].start()
+                except AttributeError:
+                    pass 
+                    
+            for core in self.core_list:
+                try:
+                    core[2].send(self.config)
+                except AttributeError:
+                    pass
+                    
+            self.running = True
 
     def stopAll(self):
         """
         Order the shutdown of all AI cores running in the server.
         """
-        for core in self.core_list:
-            try:
-                core[2].send('shutdown')
-            except AttributeError:
-                pass
-                
-        for core in self.core_list:
-            try:
-                core[1].join()
-            except AttributeError:
-                pass
+        if self.running:
+            for core in self.core_list:
+                try:
+                    core[2].send('shutdown')
+                except AttributeError:
+                    pass
+                    
+            for core in self.core_list:
+                try:
+                    core[1].join()
+                except AttributeError:
+                    pass
+                    
+            self.running = False
 
     def configure(self, config):
-        #print(config)
-        pass
+        self.config = config
+        self.configured = True
 
     def clear(self):
         self.core_list = []
+        self.configured = False
+        self.running = False
 
     def next(self):
         for agent, think, conn in self.core_list:
             agent.next()
 
-    def moveEast(self):
-        """
-        moveEast() -> Notifies asset has moved east one tile
-        """
-        pass
-
-    def moveWest(self):
-        """
-        moveWest() -> Notifies asset has moved west one tile
-        """
-        pass
-
-    def moveNorth(self):
-        """
-        moveNorth() -> Notifies asset has moved north one tile
-        """
-        pass
-
-    def moveSouth(self):
-        """
-        moveSouth() -> Notifies asset has moved south one tile
-        """
-        pass
+    def update(self, action):
+        '''
+        '''
+        self.pending_changes.append(action)
         
-
-    def changeGun(self):
-        """
-        Method that notifies that asset has changed guns
-        changeGun() -> switches to the next gun, so if the automatic gun
-        was the current gun, then the shotgun is now the current gun and
-        vice-versa
-        """
-        pass
-
-    def fireWest(self):
-        """
-        Method that notifies that asset has fired the current gun to the left
-        """
-        pass
-
-    def fireNorth(self):
-        """
-        Method that notifies that asset has fired the current gun up
-        """
-        pass
-
-    def fireEast(self):
-        """
-        Method that notifies that asset has fired the current gun east
-        """
-        pass
-
-    def fireSouth(self):
-        """
-        Method that notifies that asset has fired the current gun down
-        """
-        pass       
-        
+    def broadcast(self):
+        '''
+        '''
+        if self.running:
+            for core in self.core_list:
+                try:
+                    core[2].send(self.pending_changes)
+                except AttributeError:
+                    pass
+                                
+            del self.pending_changes[:]
 

@@ -190,6 +190,7 @@ class Game:
                             self.pauseMainThemeMusic()
                         # apply interaction of all AI cores
                         AI_server.next()
+                        AI_server.broadcast()
 
                         if mainCharacter.treasureCaptured or enemy.treasureCaptured:
                             if not taken:
