@@ -369,7 +369,7 @@ class Level:
         
         exit_zone = { coord_zone[x] for x in coords['-'] }                  # exit_zone
                                         
-        return {'zone_coord':zone_coord, 'coord_zone':coord_zone, 'zone_ady':zone_ady, 'door_map':door_map, 'door_name':door_name, 'agent_map':agent_map, 'objeto':objeto, 'lever_name':lever_name, 'toggle':toggle, 'exit_zone':exit_zone, 'world':world}
+        return {'zone_coord':zone_coord, 'coord_zone':coord_zone, 'zone_ady':zone_ady, 'door_map':door_map, 'door_name':door_name, 'agent_map':agent_map, 'objeto':objeto, 'lever_name':lever_name, 'toggle':toggle, 'exit_zone':exit_zone, 'min_tile_h':self.min_tile_h, 'min_tile_w':self.min_tile_w, 'world':world}
         
 
 
