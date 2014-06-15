@@ -270,7 +270,6 @@ class Character(pygame.Rect):
         self.rotate('w')
         gun = Laser(self)
         gun.shoot('w')
-        self.agent.actionCompleted()
 
     def fireNorth(self):
         """
@@ -281,7 +280,6 @@ class Character(pygame.Rect):
         self.rotate('n')
         gun = Laser(self)
         gun.shoot('n')
-        self.agent.actionCompleted()
 
     def fireEast(self):
         """
@@ -292,7 +290,6 @@ class Character(pygame.Rect):
         self.rotate('e')
         gun = Laser(self)
         gun.shoot('e')
-        self.agent.actionCompleted()
 
     def fireSouth(self):
         """
@@ -303,7 +300,6 @@ class Character(pygame.Rect):
         self.rotate('s')
         gun = Laser(self)
         gun.shoot('s')
-        self.agent.actionCompleted()
 
     def _move(self, direction, difference):
         """
@@ -609,8 +605,12 @@ class Laser(pygame.Rect):
                 dy = abs(Laser.List[-1].y - self.y)
                 if dx < 50 and dy < 50 and self.type == 'shotgun':
                     return
+                else:
+                    self.boss.agent.actionCompleted()
             except Exception:
                 pass
+        else:
+            self.boss.agent.actionCompleted()
 
         if(self.type == 'shotgun'):
             sound = pygame.mixer.Sound(Laser.sounds['shotgun'])
