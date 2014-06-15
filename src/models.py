@@ -256,7 +256,7 @@ class Character(pygame.Rect):
         was the current gun, then the shotgun is now the current gun and
         vice-versa
         """
-        self.agent.inform('changeGun')
+        self.agent.inform((self.asset_id, 'changeGun'))
         self.currentGun += 1
         self.currentGun %= len(Laser.imgs)
         self.agent.actionCompleted()
@@ -266,7 +266,7 @@ class Character(pygame.Rect):
         Method that allows the Character to fire the current gun to the left
         fireWest() -> Character will rotate west and fire
         """
-        self.agent.inform('fireWest')        
+        self.agent.inform((self.asset_id, 'fireWest'))        
         self.rotate('w')
         gun = Laser(self)
         gun.shoot('w')
@@ -277,7 +277,7 @@ class Character(pygame.Rect):
         Method that allows the Character to fire the current gun up
         fireWest() -> Character will rotate north and fire
         """
-        self.agent.inform('fireNorth')        
+        self.agent.inform((self.asset_id, 'fireNorth'))        
         self.rotate('n')
         gun = Laser(self)
         gun.shoot('n')
@@ -288,7 +288,7 @@ class Character(pygame.Rect):
         Method that allows the Character to fire the current gun east
         fireWest() -> Character will rotate east and fire
         """
-        self.agent.inform('fireEast')        
+        self.agent.inform((self.asset_id, 'fireEast'))        
         self.rotate('e')
         gun = Laser(self)
         gun.shoot('e')
@@ -299,7 +299,7 @@ class Character(pygame.Rect):
         Method that allows the Character to fire the current gun down
         fireWest() -> Character will rotate down and fire
         """
-        self.agent.inform('fireSouth')            
+        self.agent.inform((self.asset_id, 'fireSouth'))            
         self.rotate('s')
         gun = Laser(self)
         gun.shoot('s')
@@ -322,35 +322,35 @@ class Character(pygame.Rect):
         """
         moveEast() -> The Character will move east one tile
         """
-        self.agent.inform('moveEast')        
+        self.agent.inform((self.asset_id, 'moveEast'))        
         self._move('e', Tile.HorizontalDifference)
 
     def moveWest(self):
         """
         moveWest() -> The Character will move west one tile
         """
-        self.agent.inform('moveWest')        
+        self.agent.inform((self.asset_id, 'moveWest'))        
         self._move('w', - Tile.HorizontalDifference)
 
     def moveNorth(self):
         """
         moveNorth() -> The Character will move north one tile
         """
-        self.agent.inform('moveNorth')        
+        self.agent.inform((self.asset_id, 'moveNorth'))        
         self._move('n', - Tile.VerticalDifference)
 
     def moveSouth(self):
         """
         moveSouth() -> The Character will move south one tile
         """
-        self.agent.inform('moveSouth')        
+        self.agent.inform((self.asset_id, 'moveSouth'))        
         self._move('s', Tile.VerticalDifference)
 
     def pickUpObject(self):
         """
         """
         pickableObjects = Treasure.List
-        self.agent.inform('pickUp')
+        self.agent.inform((self.asset_id, 'pickUp'))
         for pickableObject in pickableObjects:
             distance2 = (pickableObject.x-self.x)*(pickableObject.x-self.x)+(pickableObject.y-self.y)*(pickableObject.y-self.y)
             if distance2 < 4 * (pickableObject.width * pickableObject.width+ pickableObject.height*pickableObject.height):
@@ -364,7 +364,7 @@ class Character(pygame.Rect):
     def dropObject(self):
         """
         """
-        self.agent.inform('drop')       
+        self.agent.inform((self.asset_id, 'drop'))       
         if self.treasureCaptured:
             self.treasureCaptured = False
             self.pickedUpObject.x = self.x
@@ -374,7 +374,7 @@ class Character(pygame.Rect):
 
     def toggleObject(self):
         toggableObjects = Lever.allLevers
-        self.agent.inform('toggle')    
+        self.agent.inform((self.asset_id, 'toggle'))    
         for toggableObject in toggableObjects:
             distance2 = (toggableObject.rect.x-self.x)*(toggableObject.rect.x-self.x)+(
                 toggableObject.rect.y-self.y)*(toggableObject.rect.y-self.y)
@@ -1149,7 +1149,7 @@ class LevelList:
         """
         AI_server = AgentServer.get()
         values['e']['agent'] = AI_server.newAgent(2)
-        values['r']['agent'] = AI_server.newAgent(2)
+        values['r']['agent'] = AI_server.newFakeAgent()
         values['j']['agent'] = AI_server.newFakeAgent()
 
     def level2Representation(self):
