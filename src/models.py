@@ -454,7 +454,7 @@ class MainCharacter(Character):
         self.health = MainCharacter.health
         self.description = "maincharacter"
         self.direction = 'w'
-        self.velocity = 16
+        self.velocity = 4
         self.imgPath = 'img/player_'
         self.img = pygame.image.load(self.imgPath+'w.png')
 
