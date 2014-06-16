@@ -8,6 +8,7 @@ import threading
 import heapq
 import copy
 import time
+import traceback
 
 
 class MinimaxNode:
@@ -52,7 +53,7 @@ class MinimaxNode:
         l = []
         for asset in self.assets_not_engaged:
             zone = self.coord_zone[self.world[self.agent_map[self.agent_playing][asset]]['pos']]
-            adyacent_zones = self.zone_ady[zone]
+            adjacent_zones = self.zone_ady[zone]
             for new_zone in adjacent_zones:
                 for door_index in self.door_map[(zone, new_zone)]:
                     if self.world[door_index]['opened']:
@@ -273,20 +274,197 @@ class Think(multiprocessing.Process):
         self.high_level_plan = [('switch', 0, 0, 'm'), ('change_zone', 0, 0, 3), ('pick_up', 0, 0), ('change_zone', 0, 0, 4), ('change_zone', 0, 0, 19)]
         self.a_star = A_star()
         self.required_star = False
+        self.sended = True
+        self.bored = False     
+        self.reactive_mode = False   
+        self.high_level_action_completed = True             
+        self.pending_reactions = set()          
 
+    def check_react(self, datafw, agent_id, fireEvent, threat_agent_id, threat_asset_id):
+        print(" ** in check_react")
+        threat_pos = datafw['world'][datafw['agent_map'][threat_agent_id][threat_asset_id]]['pos']
+        threat_line = self.shooting_line(datafw, threat_agent_id, threat_asset_id)        
+        l = []
+        
+        if fireEvent == "fireNorth":
+            for asset_id in datafw['agent_map'][self.agent_id].keys():
+                asset_line = self.shooting_line(datafw, self.agent_id, asset_id)
+                safe = threat_line['north'].isdisjoint(asset_line['south'])
+                asset_pos = datafw['world'][datafw['agent_map'][self.agent_id][asset_id]]['pos']
+                evasion_pos = ((asset_pos[0]+16, asset_pos[1]), (asset_pos[0]-16, asset_pos[1]))
+                distance = threat_pos[1] - asset_pos[1]
+                l.append((safe, distance, evasion_pos))
+            l.sort()
+            safe, distance, evasion_pos = l[0]    
+            threat_direction = 'north'                    
+            evasion_movement = ('moveEast', 'moveWest')
+            fire_response = 'fireSouth'
+        elif fireEvent == "fireWest":
+            for asset_id in datafw['agent_map'][self.agent_id].keys():
+                asset_line = self.shooting_line(datafw, self.agent_id, asset_id)
+                safe = threat_line['west'].isdisjoint(asset_line['east'])
+                asset_pos = datafw['world'][datafw['agent_map'][self.agent_id][asset_id]]['pos']
+                evasion_pos = ((asset_pos[0], asset_pos[1]+16), (asset_pos[0], asset_pos[1]-16))
+                distance = threat_pos[0] - asset_pos[0]
+                l.append((safe, distance, evasion_pos))
+            l.sort()
+            safe, distance, evasion_pos = l[0]
+            threat_direction = 'west'
+            evasion_movement = ('moveSouth', 'moveNorth')
+            fire_response = 'fireEast'
+        elif fireEvent == "fireSouth":
+            for asset_id in datafw['agent_map'][self.agent_id].keys():
+                asset_line = self.shooting_line(datafw, self.agent_id, asset_id)
+                safe = threat_line['south'].isdisjoint(asset_line['north'])
+                asset_pos = datafw['world'][datafw['agent_map'][self.agent_id][asset_id]]['pos']
+                evasion_pos = ((asset_pos[0]+16, asset_pos[1]), (asset_pos[0]-16, asset_pos[1]))
+                distance =  asset_pos[1] - threat_pos[1]
+                l.append((safe, distance, evasion_pos))
+            l.sort()
+            safe, distance, evasion_pos = l[0]
+            threat_direction = 'south'
+            evasion_movement = ('moveEast', 'moveWest')
+            fire_response = 'fireNorth'
+        elif fireEvent == "fireEast":
+            for asset_id in datafw['agent_map'][self.agent_id].keys():
+                asset_line = self.shooting_line(datafw, self.agent_id, asset_id)
+                safe = threat_line['east'].isdisjoint(asset_line['west'])
+                asset_pos = datafw['world'][datafw['agent_map'][self.agent_id][asset_id]]['pos']
+                evasion_pos = ((asset_pos[0], asset_pos[1]+16), (asset_pos[0], asset_pos[1]-16))
+                distance = asset_pos[0] - threat_pos[0]
+                l.append((safe, distance, evasion_pos))
+            l.sort()
+            safe, distance, evasion_pos = l[0]
+            threat_direction = 'east'
+            evasion_movement = ('moveSouth', 'moveNorth')
+            fire_response = 'fireWest'
+        print(" ** out check_react")
+        return not safe, {'distance': distance, 'asset_id': asset_id, 'fire_response': fire_response, 'evasion_pos': evasion_pos, 'evasion_movement': evasion_movement, 'threat_line': threat_line, 'threat_direction': threat_direction}
+                
+    def react(self, datafw, distance, asset_id, fire_response, evasion_pos, evasion_movement, threat_line, threat_direction):
+        plan = []
+        asset_pos = datafw['world'][datafw['agent_map'][self.agent_id][asset_id]]['pos']
+        asset_zone = datafw['coord_zone'][asset_pos]        
+
+        if distance < 8*16:
+            if datafw['world'][datafw['agent_map'][self.agent_id][asset_id]]['bullet_type'] == 'automatic':
+                plan.append((asset_id, 'changeGun'))
+                
+            plan.append((asset_id, fire_response))
+        else:
+            if evasion_pos[0] not in threat_line[threat_direction] and evasion_pos[0] in datafw['zone_coord'][asset_zone]:
+                plan.append((asset_id, evasion_movement[0]))
+            elif evasion_pos[1] not in threat_line[threat_direction] and evasion_pos[1] in datafw['zone_coord'][asset_zone]:
+                plan.append((asset_id, evasion_movement[1]))
+
+        return plan
+
+    def surrounding_coords(self, datafw, pos, diagonal=False):
+        diffs = [(0,-16),(-16,0),(0,16),(16,0)]
+        diags = ((16,-16),(-16,-16),(-16,16),(16,16))
+        
+        sc = set()
+        if diagonal:
+            diffs.extend(diags)
+        
+        for d in diffs:
+            sc.add((pos[0]+d[0], pos[1]+d[1]))
+            
+        return sc.intersection(datafw['zone_coord'][datafw['coord_zone'][pos]])
+
+    def accessible_coords(self, datafw, pos):
+        zone = datafw['coord_zone'][pos]
+        h = [ (zone, new_zone) for new_zone in datafw['zone_ady'][zone] ]
+
+        nh = [None]
+        while len(nh) > 0:
+            nh = []
+            for p in h:
+                for q in h:
+                    np = (p[0], q[1])
+                    if p[1] == q[0] and np not in h and np not in nh:
+                        nh.append(np)
+            h.extend(nh)
+
+        ac =  set()
+        
+        for z1, z2 in h:
+            for door_index in datafw['door_map'][(z1, z2)]:
+                if datafw['world'][door_index]['opened']:
+                    ac.add(datafw['world'][door_index]['pos'])
+                    ac.update(datafw['zone_coord'][z1])
+                    ac.update(datafw['zone_coord'][z2])
+
+        return ac
+             
+    def shooting_line(self, datafw, agent_id, asset_id, door_crossing = True):
+        shooting_coords = {'north':set(), 'west':set(), 'south':set(), 'east':set()}
+        direction_diff = {'north':{'w':0, 'h':-16}, 'west':{'w':-16, 'h':0}, 'south':{'w':0, 'h':16}, 'east':{'w':16, 'h':0}}
+        asset_pos = datafw['world'][datafw['agent_map'][agent_id][asset_id]]['pos']
+
+        if door_crossing:
+            accessible_coords = self.accessible_coords(datafw, asset_pos)
+        else:
+            accessible_coords = datafw['zone_coord'][datafw['coor_zone'][pos]]
+
+        for center in ((asset_pos[0], asset_pos[1]), (asset_pos[0]+16, asset_pos[1]+16)):
+            for direction in ('north', 'west', 'south', 'east'):
+                obstacle_not_reached = True
+                line_pos = center
+                while obstacle_not_reached:
+                    line_pos = (line_pos[0]+direction_diff[direction]['w'], line_pos[1]+direction_diff[direction]['h'])
+                    if line_pos in accessible_coords:
+                        shooting_coords[direction].add(line_pos)
+                    else:
+                        obstacle_not_reached = False
+           
+        return shooting_coords
+
+    def fire_handler(self, datafw, change):
+        try:
+            reaction_info = self.check_react(datafw, self.agent_id, change[2], change[0], change[1])
+        except KeyError:
+            print("Zone identification error. Disabling reaction...")
+            traceback.print_exc()
+        else:    
+            print(" ** need_reaction =", reaction_info[0])
+            if reaction_info[0]:   # do not know yet if world is in sync
+                self.pending_reactions.add(change)   # will check again when world in sync
+                if not self.reactive_mode:   # if there is not a reaction in course
+                    self.plan = []   # cancel Agent operations in course
+                    self.send_plan()   # make Agent send a "bored" request with sync information
+                    self.reactive_mode = True
+                    print("Reactive Mode = ON")
+                    self.high_level_action_completed = False
+
+    def movement_handler(self, datafw, change):
+        direction_diff = {'north':{'w':0, 'h':-16}, 'west':{'w':-16, 'h':0}, 'south':{'w':0, 'h':16}, 'east':{'w':16, 'h':0}}    
+        asset_pos = datafw['world'][datafw['agent_map'][change[0]][change[1]]]['pos']
+        
+        if change[2] == 'moveNorth':
+            asset_pos = (asset_pos[0]+direction_diff['north']['w'], asset_pos[1]+direction_diff['north']['h'])
+        elif change[2] == 'moveWest':
+            asset_pos = (asset_pos[0]+direction_diff['west']['w'], asset_pos[1]+direction_diff['west']['h'])
+        elif change[2] == 'moveSouth':
+            asset_pos = (asset_pos[0]+direction_diff['south']['w'], asset_pos[1]+direction_diff['south']['h'])
+        elif change[2] == 'moveEast':
+            asset_pos = (asset_pos[0]+direction_diff['east']['w'], asset_pos[1]+direction_diff['east']['h'])
+
+        datafw['world'][datafw['agent_map'][change[0]][change[1]]]['pos'] = asset_pos    
 
     def send_plan(self):
         self.plan_cc = (self.plan_cc+1)%2
-        self.agent_conn.send((self.plan_cc, self.plan))        
+        self.agent_conn.send((self.plan_cc, self.plan))
+        print("Sended plan with cc=", self.plan_cc, " len=", len(self.plan))        
         self.bored = False
         self.sended = True
         self.plan = []
 
 
     def run(self):
+        i = 0
         thinking = True
-        self.sended = True
-        self.bored = False
+        world_in_sync = True
         datafw = self.child_conn.recv()
         self.a_star.start()
         while thinking:
@@ -300,24 +478,25 @@ class Think(multiprocessing.Process):
                         self.a_star.stop()
                 elif isinstance(from_server, list):
                     pending_changes = from_server
-                    
+
                     for change in pending_changes:
-                        if change[2] == 'moveEast':
-                            asset_pos = datafw['world'][datafw['agent_map'][change[0]][change[1]]]['pos']
-                            asset_pos = (asset_pos[0]+16, asset_pos[1])
-                            datafw['world'][datafw['agent_map'][change[0]][change[1]]]['pos'] = asset_pos
+                        i += 1
+                        if change[0] == self.agent_id and not world_in_sync:
+                            world_in_sync = True
+                            print("WORLD SYNCED")                 
+                        
+                        if isinstance(change[2], tuple):  # patch to solve incorrect FakeAgent positioning
+                            datafw['world'][datafw['agent_map'][change[0]][change[1]]]['pos'] = change[2]
+                            # the Character subclass instance tends to have a different position
+                            # from the position in AI data structure
+                        elif change[2] == 'moveEast':
+                            self.movement_handler(datafw, change)
                         elif change[2] == 'moveWest':
-                            asset_pos = datafw['world'][datafw['agent_map'][change[0]][change[1]]]['pos']
-                            asset_pos = (asset_pos[0]-16, asset_pos[1])
-                            datafw['world'][datafw['agent_map'][change[0]][change[1]]]['pos'] = asset_pos
+                            self.movement_handler(datafw, change)
                         elif change[2] == 'moveNorth':
-                            asset_pos = datafw['world'][datafw['agent_map'][change[0]][change[1]]]['pos']
-                            asset_pos = (asset_pos[0], asset_pos[1]-16)
-                            datafw['world'][datafw['agent_map'][change[0]][change[1]]]['pos'] = asset_pos
+                            self.movement_handler(datafw, change)
                         elif change[2] == 'moveSouth':
-                            asset_pos = datafw['world'][datafw['agent_map'][change[0]][change[1]]]['pos']
-                            asset_pos = (asset_pos[0], asset_pos[1]+16)
-                            datafw['world'][datafw['agent_map'][change[0]][change[1]]]['pos'] = asset_pos
+                            self.movement_handler(datafw, change)
                         elif change[2] == 'changeGun':
                             bullet_t = datafw['world'][datafw['agent_map'][change[0]][change[1]]]['bullet_type']
                             if bullet_t == 'automatic':
@@ -325,13 +504,17 @@ class Think(multiprocessing.Process):
                             else:
                                 datafw['world'][datafw['agent_map'][change[0]][change[1]]]['bullet_type'] = 'automatic'
                         elif change[2] == 'fireWest':
-                            print("AI core: Ignoring", change[2])
+                            print(i, ":AI core:", change[2], "from agent", change[0], change[1])
+                            self.fire_handler(datafw, change)
                         elif change[2] == 'fireNorth':
-                            print("AI core: Ignoring", change[2])
+                            print(i, ":AI core:", change[2], "from agent", change[0], change[1])
+                            self.fire_handler(datafw, change)
                         elif change[2] == 'fireEast':
-                            print("AI core: Ignoring", change[2])
+                            print(i, ":AI core:", change[2], "from agent", change[0], change[1])
+                            self.fire_handler(datafw, change)
                         elif change[2] == 'fireSouth':
-                            print("AI core: Ignoring", change[2])
+                            print(i, ":AI core:", change[2], "from agent", change[0], change[1])
+                            self.fire_handler(datafw, change)
                         elif change[2] == 'pickUp':
                             datafw['world'][datafw['objeto']]['captured'] = True
                             datafw['world'][datafw['objeto']]['owner'] = (change[0], change[1])
@@ -355,17 +538,45 @@ class Think(multiprocessing.Process):
             elif self.agent_conn.poll():
                 from_agent = self.agent_conn.recv()
                 
-                if isinstance(from_agent[1], str):
-                    if from_agent[0] == self.plan_cc and from_agent[1] == 'bored':
-                        print("Bored received with cc="+str(from_agent[0])+" expected "+str(self.plan_cc))
-                        self.bored = True
-                        self.sended = False
+                if isinstance(from_agent[1], tuple):
+                    if from_agent[1][0] == 'bored':
+                        print("Bored received with cc="+str(from_agent[0])+" expected "+str(self.plan_cc))                
+                        if from_agent[0] == self.plan_cc:   # plan control code
+                            self.bored = True
+                            self.sended = False
+                            world_in_sync = from_agent[1][1]
+                            print("WORLD_IN_SYNC=", world_in_sync)
+                            if not self.reactive_mode:
+                                self.high_level_action_completed = True
+
+                        else:
+                            self.high_level_action_completed = True
       
-            if thinking:
+            if thinking and world_in_sync:
                 if self.bored:
-                    if len(self.high_level_plan) > 0:
+                    if self.reactive_mode:
+                        if len(self.pending_reactions)==0:
+                            self.reactive_mode = False
+                            print("Reactive Mode =OFF")
+                        else:
+                            reaction = self.pending_reactions.pop()               
+                            try:
+                                reaction_info = self.check_react(datafw, self.agent_id, reaction[2], reaction[0], reaction[1])   # threat persist?
+                            except KeyError:
+                                print("Zone identification error. Disabling reaction...")
+                                traceback.print_exc()
+                            else:
+                                print(" ** need_reaction (synced)=", reaction_info[0])    
+                                if reaction_info[0]:
+                                    self.plan=self.react(datafw, **reaction_info[1])   # reactive was splitted into two parts
+                                    self.send_plan()              
+                    elif not self.high_level_action_completed or len(self.high_level_plan)>0:
                         self.bored = False
-                        action = self.high_level_plan.pop(0)
+                        if len(self.high_level_plan)>0 and self.high_level_action_completed:
+                            action = self.high_level_plan.pop(0)
+                        else:
+                            print("Resolving (again)", action)
+                            
                         print("Resolving", action)
                         if action[0] == 'change_gun':
                             self.plan = []
@@ -393,12 +604,13 @@ class Think(multiprocessing.Process):
                         elif action[0] == 'pick_up':
                             agent_id = action[1]
                             asset_id = action[2]                        
-                            pos = (datafw['world'][datafw['objeto']]['pos'][0]+16,datafw['world'][datafw['objeto']]['pos'][1])
+                            pos = datafw['world'][datafw['objeto']]['pos']
+                            targets = self.surrounding_coords(datafw, pos, diagonal=True)
                             asset_pos = datafw['world'][datafw['agent_map'][agent_id][asset_id]]['pos'] 
                             allowed_area = datafw['zone_coord'][datafw['coord_zone'][pos]]
                             datafw['world'][datafw['objeto']]['captured'] = True
                             datafw['world'][datafw['objeto']]['owner'] = (agent_id, asset_id)
-                            start_node = A_starNode(None, asset_pos, asset_id, {pos}, allowed_area)
+                            start_node = A_starNode(None, asset_pos, asset_id, targets, allowed_area)
                             self.a_star.load(start_node)
                             self.plan = [(asset_id, 'pickUp')]
                             self.required_star = True
@@ -413,7 +625,8 @@ class Think(multiprocessing.Process):
                             lever_s = action[3]
                             targets = set()
                             for lever_index in datafw['lever_name'][lever_s]:
-                                targets.add((datafw['world'][lever_index]['pos'][0]+16,datafw['world'][lever_index]['pos'][1]))
+                                pos = datafw['world'][lever_index]['pos']
+                                targets.update(self.surrounding_coords(datafw, pos, diagonal=True))
                             asset_pos = datafw['world'][datafw['agent_map'][agent_id][asset_id]]['pos'] 
                             allowed_area = datafw['zone_coord'][datafw['coord_zone'][asset_pos]]
                             start_node = A_starNode(None, asset_pos, asset_id, targets, allowed_area)
@@ -429,7 +642,7 @@ class Think(multiprocessing.Process):
                         self.plan[:0] = plan
                         self.send_plan()                            
 
-                time.sleep(0.1)                
+                time.sleep(0.01)                
                             
 
 class FakeAgent:
@@ -480,11 +693,16 @@ class FakeAgent:
         self.last_action = action
     
     
-    def actionCompleted(self):
+    def actionCompleted(self, actually_done=True):
         """
         The current action has been completed.
         """
-        self.server.update((self.agent_id, self.last_action[0], self.last_action[1]))
+        if actually_done:
+            if self.last_action[1][:4] == 'move':  # patch to solve incorrect FakeAgent positioning
+                model = self.List[self.last_action[0]]
+                self.server.update((self.agent_id, self.last_action[0], (model.x, model.y)))
+            else:
+                self.server.update((self.agent_id, self.last_action[0], self.last_action[1]))
         
     def updateHealth(self, asset_id, health):
         pass
@@ -545,17 +763,19 @@ class Agent:
             self.plan_cc, self.plan = self.think_conn.recv()
             self.pos = 0
             self.engaged = True
-            print("Agent ID", self.agent_id, "is now engaged!")
+            #print("Agent ID", self.agent_id, "is now engaged! ->", self.plan)
                     
         if self.engaged:
             if self.pos == len(self.plan):
-                self.think_conn.send((self.plan_cc, 'bored'))
+                self.think_conn.send((self.plan_cc, ('bored', self.action_done)))
                 self.engaged = False
             elif self.action_done:
                 action = self.plan[self.pos]
                 self.action_done = False
                 asset = self.List[action[0]]
-                print("Agent ID", self.agent_id, "is doing", action[1])
+                self.last_command = action[1]
+                self.last_asset = action[0]
+                #print("Agent ID", self.agent_id, "is doing", action[1])
 
                 if action[1] == 'moveEast':
                     asset.moveEast()
@@ -589,13 +809,15 @@ class Agent:
         """
         pass    
     
-    def actionCompleted(self):
+    def actionCompleted(self, actually_done=True):
         """
         The current action has been completed.
         """
         self.action_done = True
-        self.server.update((self.agent_id, self.plan[self.pos][0], self.plan[self.pos][1]))
-        self.pos += 1
+        if actually_done:
+            #print("Agent ID", self.agent_id, "did", self.last_command)
+            self.server.update((self.agent_id, self.last_asset, self.last_command))
+            self.pos += 1
         
     def updateHealth(self, asset_id, health):
         print("Update Health request from agent", self.agent_id, "- asset", asset_id, "with value", health)
