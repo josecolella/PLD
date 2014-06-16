@@ -604,6 +604,7 @@ class Laser(pygame.Rect):
                 dx = abs(Laser.List[-1].x - self.x)
                 dy = abs(Laser.List[-1].y - self.y)
                 if dx < 50 and dy < 50 and self.type == 'shotgun':
+                    self.boss.agent.actionCompleted(False)  # will make AI insist
                     return
                 else:
                     self.boss.agent.actionCompleted()

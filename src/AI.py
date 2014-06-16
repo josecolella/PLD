@@ -693,15 +693,16 @@ class FakeAgent:
         self.last_action = action
     
     
-    def actionCompleted(self):
+    def actionCompleted(self, actually_done=True):
         """
         The current action has been completed.
         """
-        if self.last_action[1][:4] == 'move':  # patch to solve incorrect FakeAgent positioning
-            model = self.List[self.last_action[0]]
-            self.server.update((self.agent_id, self.last_action[0], (model.x, model.y)))
-        else:
-            self.server.update((self.agent_id, self.last_action[0], self.last_action[1]))
+        if actually_done:
+            if self.last_action[1][:4] == 'move':  # patch to solve incorrect FakeAgent positioning
+                model = self.List[self.last_action[0]]
+                self.server.update((self.agent_id, self.last_action[0], (model.x, model.y)))
+            else:
+                self.server.update((self.agent_id, self.last_action[0], self.last_action[1]))
         
     def updateHealth(self, asset_id, health):
         pass
@@ -774,7 +775,7 @@ class Agent:
                 asset = self.List[action[0]]
                 self.last_command = action[1]
                 self.last_asset = action[0]
-                #print("Agent ID", self.agent_id, "is doing", action[1])
+                print("Agent ID", self.agent_id, "is doing", action[1])
 
                 if action[1] == 'moveEast':
                     asset.moveEast()
@@ -808,13 +809,15 @@ class Agent:
         """
         pass    
     
-    def actionCompleted(self):
+    def actionCompleted(self, actually_done=True):
         """
         The current action has been completed.
         """
         self.action_done = True
-        self.server.update((self.agent_id, self.last_asset, self.last_command))
-        self.pos += 1
+        if actually_done:
+            print("Agent ID", self.agent_id, "did", self.last_command)
+            self.server.update((self.agent_id, self.last_asset, self.last_command))
+            self.pos += 1
         
     def updateHealth(self, asset_id, health):
         print("Update Health request from agent", self.agent_id, "- asset", asset_id, "with value", health)
