@@ -1,62 +1,66 @@
 {
     "robot": [
         {
-            "x": 464,
             "gun": 0,
             "y": 240,
+            "direction": "s",
             "isTreasureCaptured": false,
             "health": 100,
-            "direction": "s"
+            "x": 464
         },
         {
-            "x": 528,
             "gun": 0,
             "y": 240,
+            "direction": "s",
             "isTreasureCaptured": false,
             "health": 100,
-            "direction": "s"
-        }
-    ],
-    "player": {
-        "x": 384,
-        "gun": 0,
-        "y": 400,
-        "isTreasureCaptured": false,
-        "health": 100,
-        "direction": "n"
-    },
-    "enemy": {
-        "x": 960,
-        "gun": 0,
-        "y": 672,
-        "isTreasureCaptured": false,
-        "health": 100,
-        "direction": "w"
-    },
-    "object": {
-        "x": 496,
-        "y": 80,
-        "isCaptured": false
-    },
-    "level": 1,
-    "lever": [
-        {
-            "id": "m",
-            "off": true
-        },
-        {
-            "id": "l",
-            "off": false
+            "x": 528
         }
     ],
     "door": [
         {
-            "toggled": false,
-            "id": "q"
+            "id": "p",
+            "toggled": true
         },
         {
-            "toggled": true,
-            "id": "p"
+            "id": "o",
+            "toggled": true
+        },
+        {
+            "id": "q",
+            "toggled": true
         }
-    ]
+    ],
+    "lever": [
+        {
+            "id": "l",
+            "off": false
+        },
+        {
+            "id": "m",
+            "off": false
+        }
+    ],
+    "player": {
+        "gun": 1,
+        "y": 496,
+        "direction": "w",
+        "isTreasureCaptured": false,
+        "health": 100,
+        "x": 624
+    },
+    "object": {
+        "isCaptured": false,
+        "y": 80,
+        "x": 496
+    },
+    "enemy": {
+        "gun": 0,
+        "y": 640,
+        "direction": "n",
+        "isTreasureCaptured": false,
+        "health": 100,
+        "x": 960
+    },
+    "level": 1
 }

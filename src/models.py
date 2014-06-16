@@ -266,7 +266,7 @@ class Character(pygame.Rect):
         Method that allows the Character to fire the current gun to the left
         fireWest() -> Character will rotate west and fire
         """
-        self.agent.inform((self.asset_id, 'fireWest'))        
+        self.agent.inform((self.asset_id, 'fireWest'))
         self.rotate('w')
         gun = Laser(self)
         gun.shoot('w')
@@ -276,7 +276,7 @@ class Character(pygame.Rect):
         Method that allows the Character to fire the current gun up
         fireWest() -> Character will rotate north and fire
         """
-        self.agent.inform((self.asset_id, 'fireNorth'))        
+        self.agent.inform((self.asset_id, 'fireNorth'))
         self.rotate('n')
         gun = Laser(self)
         gun.shoot('n')
@@ -286,7 +286,7 @@ class Character(pygame.Rect):
         Method that allows the Character to fire the current gun east
         fireWest() -> Character will rotate east and fire
         """
-        self.agent.inform((self.asset_id, 'fireEast'))        
+        self.agent.inform((self.asset_id, 'fireEast'))
         self.rotate('e')
         gun = Laser(self)
         gun.shoot('e')
@@ -296,7 +296,7 @@ class Character(pygame.Rect):
         Method that allows the Character to fire the current gun down
         fireWest() -> Character will rotate down and fire
         """
-        self.agent.inform((self.asset_id, 'fireSouth'))            
+        self.agent.inform((self.asset_id, 'fireSouth'))
         self.rotate('s')
         gun = Laser(self)
         gun.shoot('s')
@@ -318,28 +318,28 @@ class Character(pygame.Rect):
         """
         moveEast() -> The Character will move east one tile
         """
-        self.agent.inform((self.asset_id, 'moveEast'))        
+        self.agent.inform((self.asset_id, 'moveEast'))
         self._move('e', Tile.HorizontalDifference)
 
     def moveWest(self):
         """
         moveWest() -> The Character will move west one tile
         """
-        self.agent.inform((self.asset_id, 'moveWest'))        
+        self.agent.inform((self.asset_id, 'moveWest'))
         self._move('w', - Tile.HorizontalDifference)
 
     def moveNorth(self):
         """
         moveNorth() -> The Character will move north one tile
         """
-        self.agent.inform((self.asset_id, 'moveNorth'))        
+        self.agent.inform((self.asset_id, 'moveNorth'))
         self._move('n', - Tile.VerticalDifference)
 
     def moveSouth(self):
         """
         moveSouth() -> The Character will move south one tile
         """
-        self.agent.inform((self.asset_id, 'moveSouth'))        
+        self.agent.inform((self.asset_id, 'moveSouth'))
         self._move('s', Tile.VerticalDifference)
 
     def pickUpObject(self):
@@ -355,28 +355,29 @@ class Character(pygame.Rect):
                     self.pickedUpObject = pickableObject
                     pickableObject.isCaptured = True
                     pickableObject.showCaptured()
-        self.agent.actionCompleted()                    
+        self.agent.actionCompleted()
 
-    def dropObject(self):
+    def dropObject(self, notifyCompletion=True):
         """
         """
-        self.agent.inform((self.asset_id, 'drop'))       
+        self.agent.inform((self.asset_id, 'drop'))
         if self.treasureCaptured:
             self.treasureCaptured = False
             self.pickedUpObject.x = self.x
             self.pickedUpObject.y = self.y
             self.pickedUpObject.img = pygame.image.load(Treasure.treasure_img[0])
-        self.agent.actionCompleted()            
+        if notifyCompletion:
+            self.agent.actionCompleted()
 
     def toggleObject(self):
         toggableObjects = Lever.allLevers
-        self.agent.inform((self.asset_id, 'toggle'))    
+        self.agent.inform((self.asset_id, 'toggle'))
         for toggableObject in toggableObjects:
             distance2 = (toggableObject.rect.x-self.x)*(toggableObject.rect.x-self.x)+(
                 toggableObject.rect.y-self.y)*(toggableObject.rect.y-self.y)
             if distance2 < 4 * (toggableObject.width * toggableObject.width+ toggableObject.height*toggableObject.height):
                 toggableObject.toggle()
-        self.agent.actionCompleted()                
+        self.agent.actionCompleted()
 
     def spawn(self):
         """
@@ -388,7 +389,9 @@ class Character(pygame.Rect):
         if self.health <= 0:
             self.health = self.__class__.health
             self.x = self.spawnPosition[0]
+            self.tx = self.spawnPosition[0]
             self.y = self.spawnPosition[1]
+            self.ty = self.spawnPosition[1]
             self.__class__.List.append(self)
 
     def _draw(self, screen):
@@ -419,6 +422,8 @@ class Character(pygame.Rect):
             screen.blit(img, (self.x + h, self.y - h))
 
         if self.health <= 0:
+            if self.treasureCaptured:
+                self.dropObject(notifyCompletion=False)
             self.__class__.List.remove(self)
             self.spawn()
 
@@ -454,7 +459,7 @@ class MainCharacter(Character):
         self.health = MainCharacter.health
         self.description = "maincharacter"
         self.direction = 'w'
-        self.velocity = 4
+        self.velocity = 8
         self.imgPath = 'img/player_'
         self.img = pygame.image.load(self.imgPath+'w.png')
 
