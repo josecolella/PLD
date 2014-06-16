@@ -484,8 +484,12 @@ class Think(multiprocessing.Process):
                         if change[0] == self.agent_id and not world_in_sync:
                             world_in_sync = True
                             print("WORLD SYNCED")                 
-                            
-                        if change[2] == 'moveEast':
+                        
+                        if isinstance(change[2], tuple):  # patch to solve incorrect FakeAgent positioning
+                            datafw['world'][datafw['agent_map'][change[0]][change[1]]]['pos'] = change[2]
+                            # the Character subclass instance tends to have a different position
+                            # from the position in AI data structure
+                        elif change[2] == 'moveEast':
                             self.movement_handler(datafw, change)
                         elif change[2] == 'moveWest':
                             self.movement_handler(datafw, change)
@@ -693,7 +697,11 @@ class FakeAgent:
         """
         The current action has been completed.
         """
-        self.server.update((self.agent_id, self.last_action[0], self.last_action[1]))
+        if self.last_action[1][:4] == 'move':  # patch to solve incorrect FakeAgent positioning
+            model = self.List[self.last_action[0]]
+            self.server.update((self.agent_id, self.last_action[0], (model.x, model.y)))
+        else:
+            self.server.update((self.agent_id, self.last_action[0], self.last_action[1]))
         
     def updateHealth(self, asset_id, health):
         pass
