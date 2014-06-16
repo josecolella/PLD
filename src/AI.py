@@ -775,7 +775,7 @@ class Agent:
                 asset = self.List[action[0]]
                 self.last_command = action[1]
                 self.last_asset = action[0]
-                print("Agent ID", self.agent_id, "is doing", action[1])
+                #print("Agent ID", self.agent_id, "is doing", action[1])
 
                 if action[1] == 'moveEast':
                     asset.moveEast()
@@ -815,7 +815,7 @@ class Agent:
         """
         self.action_done = True
         if actually_done:
-            print("Agent ID", self.agent_id, "did", self.last_command)
+            #print("Agent ID", self.agent_id, "did", self.last_command)
             self.server.update((self.agent_id, self.last_asset, self.last_command))
             self.pos += 1
         

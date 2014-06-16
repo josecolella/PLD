@@ -609,7 +609,7 @@ class Laser(pygame.Rect):
                 else:
                     self.boss.agent.actionCompleted()
             except Exception:
-                pass
+                self.boss.agent.actionCompleted(False)
         else:
             self.boss.agent.actionCompleted()
 
