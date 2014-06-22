@@ -143,6 +143,7 @@ class Game:
                     level = currentLevel['levelIndex']
                     currentLevelList.currentLevel = level
                     self.initializeLoadedGame(currentLevel)
+
                 winCoordinates = currentLevel['level'].coordinates(('-',))['-']
                 # make unbuildable and unwalkable objects unwalkable (walls)
                 for y in range(0, self.screen.get_height(), 16):
@@ -200,14 +201,15 @@ class Game:
                         else:
                             taken = False
 
-                        if mainCharacter.satifiesWinConditions(winCoordinates):
+                        if mainCharacter.satifiesWinConditions(winCoordinates) or enemy.satifiesWinConditions(winCoordinates):
                             currentLevelList.clearCurrentLevel()
                             levelContinue = True
-                            level += 1
-                            currentLevelList.currentLevel += 1
                             self.loadgame = False
                             if self.soundOptions['game_music']:
                                 self.restartMainThemeMusic()
+                            if mainCharacter.satifiesWinConditions(winCoordinates):
+                                level += 1
+                                currentLevelList.currentLevel += 1
 
                         # Drawing of the Characters in the currentLevel
 
