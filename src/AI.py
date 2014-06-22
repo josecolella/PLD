@@ -158,11 +158,11 @@ class MinimaxNode:
             asset_list = self.assets_not_engaged[:]
             depth = self.depth
             asset_list.remove(asset)
+            depth = self.depth+1            
             
             if len(asset_list)==0:
                 agent_list.pop()
                 if len(agent_list)==0:
-                    depth = self.depth+1
                     agent_list = list(self.agent_map.keys())
                     agent = agent_list[-1]
 
@@ -276,6 +276,7 @@ class AB(threading.Thread):
     def fathom(self):
         self.iter_depth += 1
         self.load_event.set()
+        return self.iter_depth >= self.start_node.horizont 
                     
     def is_done(self):
         return self.idle_event.is_set()
@@ -483,7 +484,8 @@ class Think(multiprocessing.Process):
         self.sended = True
         self.bored = False     
         self.reactive_mode = False   
-        self.high_level_action_completed = True             
+        self.high_level_action_completed = True
+        self.persecuting_victim = False          
         self.pending_reactions = set()          
 
     def check_react(self, datafw, agent_id, fireEvent, threat_agent_id, threat_asset_id):
@@ -601,6 +603,10 @@ class Think(multiprocessing.Process):
            
         return shooting_coords
 
+    def cancel_operations(self):
+        self.plan = []   # cancel Agent operations in course
+        self.send_plan()   # make Agent send a "bored" request with sync information
+
     def fire_handler(self, datafw, change):
         try:
             reaction_info = self.check_react(datafw, self.agent_id, change[2], change[0], change[1])
@@ -611,9 +617,9 @@ class Think(multiprocessing.Process):
             print(" ** need_reaction =", reaction_info[0])
             if reaction_info[0]:   # do not know yet if world is in sync
                 self.pending_reactions.add(change)   # will check again when world in sync
+                self.persecuting_victim = False   # cancel 'hurt' readjusting 
                 if not self.reactive_mode:   # if there is not a reaction in course
-                    self.plan = []   # cancel Agent operations in course
-                    self.send_plan()   # make Agent send a "bored" request with sync information
+                    self.cancel_operations()   # cancel Agent operations in course
                     self.reactive_mode = True
                     print("Reactive Mode = ON")
                     self.high_level_action_completed = False
@@ -649,6 +655,9 @@ class Think(multiprocessing.Process):
         actual_high = False
         next_high = False
         actual_comp = False
+        next_comp = False
+        max_depth_reached = False
+        first_run_done = False
         datafw = self.child_conn.recv()
         self.a_star.start()
         self.ab.start()
@@ -677,12 +686,48 @@ class Think(multiprocessing.Process):
                             # from the position in AI data structure
                         elif change[2] == 'moveEast':
                             self.movement_handler(datafw, change)
+                            # Check if the target of hurt action has changed its position while action is in course
+                            if action[0] == 'hurt' and action[3] == change[0] and action[4] == change[1]:
+                                fire_lines = { sl[direction] for direction in sl }
+                                victim_pos = datafw['world'][datafw['agent_map'][change[0]][change[1]]]['pos']
+                                # Check if the change in position is relevant
+                                if victim_pos not in fire_lines and not self.reactive_mode:
+                                    self.high_level_action_completed = False   # Requires path re-planification
+                                    self.persecuting_victim = True
+                                    self.cancel_operations()
                         elif change[2] == 'moveWest':
                             self.movement_handler(datafw, change)
+                            # Check if the target of hurt action has changed its position while action is in course
+                            if action[0] == 'hurt' and action[3] == change[0] and action[4] == change[1]:
+                                fire_lines = { sl[direction] for direction in sl }
+                                victim_pos = datafw['world'][datafw['agent_map'][change[0]][change[1]]]['pos']
+                                # Check if the change in position is relevant
+                                if victim_pos not in fire_lines and not self.reactive_mode:
+                                    self.high_level_action_completed = False   # Requires path re-planification
+                                    self.persecuting_victim = True
+                                    self.cancel_operations()
                         elif change[2] == 'moveNorth':
                             self.movement_handler(datafw, change)
+                            # Check if the target of hurt action has changed its position while action is in course
+                            if action[0] == 'hurt' and action[3] == change[0] and action[4] == change[1]:
+                                fire_lines = { sl[direction] for direction in sl }
+                                victim_pos = datafw['world'][datafw['agent_map'][change[0]][change[1]]]['pos']
+                                # Check if the change in position is relevant
+                                if victim_pos not in fire_lines and not self.reactive_mode:
+                                    self.high_level_action_completed = False   # Requires path re-planification
+                                    self.persecuting_victim = True
+                                    self.cancel_operations()
                         elif change[2] == 'moveSouth':
                             self.movement_handler(datafw, change)
+                            # Check if the target of hurt action has changed its position while action is in course
+                            if action[0] == 'hurt' and action[3] == change[0] and action[4] == change[1]:
+                                fire_lines = { sl[direction] for direction in sl }
+                                victim_pos = datafw['world'][datafw['agent_map'][change[0]][change[1]]]['pos']
+                                # Check if the change in position is relevant
+                                if victim_pos not in fire_lines and not self.reactive_mode:
+                                    self.high_level_action_completed = False   # Requires path re-planification
+                                    self.persecuting_victim = True
+                                    self.cancel_operations()
                         elif change[2] == 'changeGun':
                             bullet_t = datafw['world'][datafw['agent_map'][change[0]][change[1]]]['bullet_type']
                             if bullet_t == 'automatic':
@@ -720,6 +765,18 @@ class Think(multiprocessing.Process):
                                             for door_index in datafw['door_name'][tog]:
                                                 print("Made toggle of", tog, "door ;)")
                                                 datafw['world'][door_index]['opened'] = not datafw['world'][door_index]['opened']
+                        elif change[3] == 'no-action-healthUpdate':
+                            print(change)
+                            victim_health = change[2]
+                            victim_max_health = datafw['world'][datafw['agent_map'][change[0]][change[1]]]['max_health']
+                            if victim_health <= 0.0:
+                                if datafw['world'][datafw['objeto']]['captured'] and datafw['world'][datafw['objeto']]['owner'] == (change[0], change[1]):
+                                    datafw['world'][datafw['objeto']]['captured'] = False
+                                    datafw['world'][datafw['objeto']]['pos'] = datafw['world'][datafw['agent_map'][change[0]][change[1]]]['pos']                
+                                datafw['world'][datafw['agent_map'][change[0]][change[1]]]['health'] = victim_max_health
+                                datafw['world'][datafw['agent_map'][change[0]][change[1]]]['pos'] = datafw['world'][datafw['agent_map'][change[0]][change[1]]]['spawn_pos']
+                            else:
+                                datafw['world'][datafw['agent_map'][change[0]][change[1]]]['health'] = victim_health
                             
             elif self.agent_conn.poll():
                 from_agent = self.agent_conn.recv()
@@ -732,7 +789,7 @@ class Think(multiprocessing.Process):
                             self.sended = False
                             world_in_sync = from_agent[1][1]
                             print("WORLD_IN_SYNC=", world_in_sync)
-                            if not self.reactive_mode:
+                            if not self.reactive_mode and not self.persecuting_victim:
                                 self.high_level_action_completed = True
 
                         else:
@@ -760,8 +817,18 @@ class Think(multiprocessing.Process):
                     elif not self.high_level_action_completed or next_high or actual_high:
                         self.bored = False
                         if (next_high or actual_high) and self.high_level_action_completed:
-                            action = actual_action
+                            if next_high:
+                                print("Resolving with next action")
+                                action = next_action
+                            else:
+                                print("Resolving with actual action")
+                                action = actual_action
+
+                            next_high = False
                             actual_high = False
+                            actual_comp = False
+                            next_comp = False
+                            max_depth_reached = False
                         else:
                             print("Resolving (again)", action)
                             
@@ -834,13 +901,16 @@ class Think(multiprocessing.Process):
                             self.required_star = True
                             
                     elif not actual_comp:
-                        start_node = MinimaxNode(datafw, alfa=-2147483648, beta=2147483647, minmax_layout = self.minmax_layout, profile_layout = self.profile_layout, depth=0, horizont = self.depth, max_iter_depth=2, agents_not_engaged = list(range(self.agent_id+1)), assets_not_engaged = list(datafw['agent_map'][self.agent_id].keys()), action = None, agent_at_max = self.agent_id, is_root = True)
-                        self.ab.load(start_node)
+                        print("Calculating actual action")
+                        start_Mnode = MinimaxNode(datafw, alfa=-2147483648, beta=2147483647, minmax_layout = self.minmax_layout, profile_layout = self.profile_layout, depth=0, horizont = self.depth, max_iter_depth=2, agents_not_engaged = list(range(self.agent_id+1)), assets_not_engaged = list(datafw['agent_map'][self.agent_id].keys()), action = None, agent_at_max = self.agent_id, is_root = True)
+                        self.ab.load(start_Mnode)
                         actual_comp = True
                     elif self.ab.is_done():
+                        print("Actual action calculated")
                         actual_action = self.ab.get()
                         actual_high = True
-                        actual_comp = False # Provisional
+                        first_run_done = True
+#                        actual_comp = False # Provisional
                 elif not self.sended:
                     if not self.required_star:                 
                         self.send_plan()
@@ -860,7 +930,23 @@ class Think(multiprocessing.Process):
                             plan = self.a_star.get()[0]
                             
                         self.plan[:0] = plan
-                        self.send_plan()                            
+                        self.send_plan()
+                elif first_run_done:
+                    if not next_comp:
+                        print("Calculating next action")
+                        next_node = MinimaxNode(datafw, alfa=-2147483648, beta=2147483647, minmax_layout = self.minmax_layout, profile_layout = self.profile_layout, depth=0, horizont = self.depth, max_iter_depth=2, agents_not_engaged = list(range(self.agent_id+1)), assets_not_engaged = list(datafw['agent_map'][self.agent_id].keys()), action = None, agent_at_max = self.agent_id, is_root = True)
+                        temp_node = next_node.copy()
+                        descendant = temp_node.generate_descendants([(action, [0], [0], 0)])[0]  # only matters action
+                        next_node.world = descendant.world           # assume current action will succeed and look ahead
+                        next_node.datafw['world'] = next_node.world  # the action changes this hypothetical world
+                        self.ab.load(next_node)   # the computation begins earlier than planned
+                        next_comp = True
+                    elif self.ab.is_done() and not max_depth_reached:
+                        print("Next action calculated")
+                        next_action = self.ab.get()
+                        max_depth_reached = self.ab.fathom()
+                        print("Incremented depth +1. Horizont reached =", max_depth_reached)
+                        next_high = True                        
 
                 time.sleep(0.01)                
                             
@@ -925,7 +1011,7 @@ class FakeAgent:
                 self.server.update((self.agent_id, self.last_action[0], self.last_action[1]))
         
     def updateHealth(self, asset_id, health):
-        pass
+        self.server.update((self.agent_id, asset_id, health, 'no-action-healthUpdate'))
 
 
 class Agent:
@@ -1040,7 +1126,7 @@ class Agent:
             self.pos += 1
         
     def updateHealth(self, asset_id, health):
-        print("Update Health request from agent", self.agent_id, "- asset", asset_id, "with value", health)
+        self.server.update((self.agent_id, asset_id, health, 'no-action-healthUpdate'))
 
 class AgentServer:
     """

@@ -684,7 +684,7 @@ class Laser(pygame.Rect):
                     """
 
                     character.health -= Laser.gun_dmg[bullet.type]
-                    # character.agent.updateHealth(character.asset_id, character.health)
+                    character.agent.updateHealth(character.asset_id, character.health)
                     character.healthbar.update()
                     character.healthbar.draw(screen)
 
