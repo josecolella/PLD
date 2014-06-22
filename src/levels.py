@@ -321,7 +321,7 @@ class Level:
                 
             door_map[(b,a)] = door_map[(a,b)]
         
-        owner = (0,0)
+        owner = (-1,-1)
         agent_map = {}                  # agent_map
         for model_name in ('robot', 'player', 'enemy'):
             for model in ( c for s in self.objects[model_name] for c in self.built_models[s] ):

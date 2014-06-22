@@ -11,71 +11,189 @@ import time
 import traceback
 
 
-class MinimaxNode:
-    def __init__(self, zone_coord, coord_zone, zone_ady, door_map, door_name, agent_map, objeto, lever_name, toggle, world, alfa, beta, minmax_layout, depth, horizont):
-        self.zone_coord = zone_coord
-        self.coord_zone = coord_zone
-        self.zone_ady = zone_ady
-        self.door_map = door_map
-        self.door_name = door_name
-        self.agent_map = agent_map
-        self.objeto = objeto
-        self.lever_name = lever_name
-        self.toggle = toggle
-        self.world = copy.deepcopy(world)
-        self.depth = depth
-        self.horizont = horizont
+def accessible_coords(datafw, pos):
+    zone = datafw['coord_zone'][pos]
+    h = [ (zone, new_zone) for new_zone in datafw['zone_ady'][zone] ]
 
-        try:
-            self.assets_not_engaged.pop()
-        except IndexError:
-            try:
-                self.agent_playing = self.agents_not_engaged.pop()
-            except IndexError:
-                self.depth += 1
-                self.agents_not_engaged = list(self.agent_map.keys())
-                self.agent_playing = self.agents_not_engaged.pop()
-                
-            self.assets_not_engaged = list(self.agent_map[self.agent_playing].keys())
-            self.assets_not_engaged.pop()
-                
+    nh = [None]
+    while len(nh) > 0:
+        nh = []
+        for p in h:
+            for q in h:
+                np = (p[0], q[1])
+                if p[1] == q[0] and np not in h and np not in nh:
+                    nh.append(np)
+        h.extend(nh)
+
+    ac =  set(datafw['zone_coord'][zone])
+
+    for z1, z2 in h:
+        for door_index in datafw['door_map'][(z1, z2)]:
+            if datafw['world'][door_index]['opened']:
+                ac.add(datafw['world'][door_index]['pos'])
+                ac.update(datafw['zone_coord'][z1])
+                ac.update(datafw['zone_coord'][z2])
+
+    return ac
+
+class MinimaxNode:
+    def __init__(self, datafw, alfa, beta, minmax_layout, profile_layout, depth, horizont, max_iter_depth, agents_not_engaged, assets_not_engaged, action, agent_at_max, is_root = False):
+        self.datafw = datafw.copy()  # shallow copy
+        self.zone_coord = datafw['zone_coord']
+        self.coord_zone = datafw['coord_zone']
+        self.zone_ady = datafw['zone_ady']
+        self.door_map = datafw['door_map']
+        self.door_name = datafw['door_name']
+        self.agent_map = datafw['agent_map']
+        self.objeto = datafw['objeto']
+        self.lever_name = datafw['lever_name']
+        self.toggle = datafw['toggle']
+        self.exit_zone = datafw['exit_zone']
+        self.world = copy.deepcopy(datafw['world'])  # deep copy
+        self.datafw['world'] = self.world   # update the world reference in datafw
+        self.agents_not_engaged = agents_not_engaged[:]
+        self.assets_not_engaged = assets_not_engaged[:]
+        self.depth = depth
+        self.max_iter_depth = max_iter_depth
+        self.horizont = horizont
+        self.agent_playing = self.agents_not_engaged[-1]                
         self.minmax_layout = minmax_layout
-        self.is_max_node = self.minmax_layout[self.agent_playing]
-        self.h_value = 0
+        self.profile_layout = profile_layout
         self.alfa = alfa
         self.beta = beta
+        self.action = action
+        self.is_root = is_root
+        self.agent_at_max = agent_at_max        
+
+        
+    def copy(self):
+        return MinimaxNode(self.datafw, self.alfa, self.beta, self.minmax_layout, self.profile_layout, self.depth, self.horizont, self.max_iter_depth, self.agents_not_engaged, self.assets_not_engaged, self.action, self.agent_at_max, self.is_root)
         
     def is_leaf(self):
-        return self.depth == self.horizont
+        win_or_lose = self.world[self.objeto]['captured'] and self.coord_zone[self.world[self.objeto]['pos']] in self.exit_zone
+        return self.depth == self.max_iter_depth or win_or_lose
+        
+    def set_iter_depth(self, nd):
+        self.max_iter_depth = nd
+        
+    def max_depth_reached(self):
+        return self.max_iter_depth >= self.horizont
     
+    def is_max_node(self):
+        return self.minmax_layout[self.agent_playing]
+        
+    def heuristic_eval(self):
+        val = 0
+        positive_agents = { i for i, v in enumerate(self.minmax_layout) if v == True }
+        negative_agents = set(range(len(self.minmax_layout))).difference(positive_agents)
+        
+        for agent_id in positive_agents:
+            if self.profile_layout[agent_id] == 'thief':
+                if self.world[self.objeto]['captured']:
+                    owner = self.world[self.objeto]['owner']
+                    if owner[0] == agent_id:
+                        val += 100000000.0
+                        accessible = accessible_coords(self.datafw, self.world[self.agent_map[owner[0]][owner[1]]]['pos'])
+                        for ez in self.exit_zone:
+                            exit_coord = next(iter(self.zone_coord[ez]))
+                            if exit_coord in accessible:
+                                val += 10000000.0
 
+                        if self.coord_zone[self.world[self.agent_map[owner[0]][owner[1]]]['pos']] in self.exit_zone:
+                            val += 1000000000.0
+                               
+            else:
+                if self.world[self.objeto]['captured']:
+                    if self.world[self.objeto]['owner'][0] == agent_id:
+                        val += 100000000.0
+
+            for asset_id in self.agent_map[agent_id]:
+                accessible = accessible_coords(self.datafw, self.world[self.agent_map[agent_id][asset_id]]['pos'])
+
+                if self.world[self.objeto]['pos'] in accessible:
+                    val += 1000.0
+
+                if self.coord_zone[self.world[self.objeto]['pos']] == self.coord_zone[self.world[self.agent_map[agent_id][asset_id]]['pos']]:
+                    val += 10000.0
+                                   
+                val += self.world[self.agent_map[agent_id][asset_id]]['health']/10
+
+        for agent_id in negative_agents:
+            if self.profile_layout[agent_id] == 'thief':
+                if self.world[self.objeto]['captured']:
+                    owner = self.world[self.objeto]['owner']
+                    if owner[0] == agent_id:
+                        val -= 100000000.0
+                        accessible = accessible_coords(self.datafw, self.world[self.agent_map[owner[0]][owner[1]]]['pos'])
+                        for ez in self.exit_zone:
+                            exit_coord = next(iter(self.zone_coord[ez]))
+                            if exit_coord in accessible:
+                                val -= 10000000.0
+
+                        if self.coord_zone[self.world[self.agent_map[owner[0]][owner[1]]]['pos']] in self.exit_zone:
+                            val -= 1000000000.0
+                               
+            else:
+                if self.world[self.objeto]['captured']:
+                    if self.world[self.objeto]['owner'][0] == agent_id:
+                        val -= 100000000.0
+
+            for asset_id in self.agent_map[agent_id]:
+                accessible = accessible_coords(self.datafw, self.world[self.agent_map[agent_id][asset_id]]['pos'])
+
+                if self.world[self.objeto]['pos'] in accessible:
+                    val -= 1000.0
+
+                if self.coord_zone[self.world[self.objeto]['pos']] == self.coord_zone[self.world[self.agent_map[agent_id][asset_id]]['pos']]:
+                    val -= 10000.0
+                                   
+                val -= self.world[self.agent_map[agent_id][asset_id]]['health']/10
+
+        return val
+    
     def applicable_actions(self):
         l = []
         for asset in self.assets_not_engaged:
+            agent_list = self.agents_not_engaged[:]
+            asset_list = self.assets_not_engaged[:]
+            depth = self.depth
+            asset_list.remove(asset)
+            
+            if len(asset_list)==0:
+                agent_list.pop()
+                if len(agent_list)==0:
+                    depth = self.depth+1
+                    agent_list = list(self.agent_map.keys())
+                    agent = agent_list[-1]
+
+                agent = agent_list[-1]    
+                asset_list = list(self.agent_map[agent].keys())
+                
             zone = self.coord_zone[self.world[self.agent_map[self.agent_playing][asset]]['pos']]
             adjacent_zones = self.zone_ady[zone]
+
             for new_zone in adjacent_zones:
                 for door_index in self.door_map[(zone, new_zone)]:
                     if self.world[door_index]['opened']:
-                        l.append(('change_zone', self.agent_playing, asset, new_zone))
+                        l.append((('change_zone', self.agent_playing, asset, new_zone), agent_list, asset_list, depth))
                         break
             
-            l.append(('change_gun', self.agent_playing, asset))
+            l.append((('change_gun', self.agent_playing, asset), agent_list, asset_list, depth))
             
             if not self.world[self.objeto]['captured'] and zone == self.coord_zone[self.world[self.objeto]['pos']]:
-                l.append(('pick_up', self.agent_playing, asset))
+                l.append((('pick_up', self.agent_playing, asset), agent_list, asset_list, depth))
                 
             if self.world[self.objeto]['owner'] == (self.agent_playing, asset):
-                l.append(('drop', self.agent_playing, asset))
+                l.append((('drop', self.agent_playing, asset), agent_list, asset_list, depth))
                 
             for agent_id in self.agent_map:
                 for asset_id in self.agent_map[agent_id]:
-                    if zone == self.coord_zone[self.world[self.agent_map[agent_id][asset_id]]['pos']]:
-                        l.append(('hurt', self.agent_playing, asset, agent_id, asset_id))
+                    if zone == self.coord_zone[self.world[self.agent_map[agent_id][asset_id]]['pos']] and ((agent_id != self.agent_playing) or ( asset != asset_id)):
+                        l.append((('hurt', self.agent_playing, asset, agent_id, asset_id), agent_list, asset_list, depth))
             for lever in self.lever_name:
                 for lever_index in self.lever_name[lever]:
                     if zone == self.coord_zone[self.world[lever_index]['pos']]:
-                        l.append(('switch', self.agent_playing, asset, lever))
+                        l.append((('switch', self.agent_playing, asset, lever), agent_list, asset_list, depth))
                         break
                         
         return l
@@ -83,19 +201,22 @@ class MinimaxNode:
 
     def generate_descendants(self, action_list):
         l = []
-        for action in action_list:
-            node = MinimaxNode(self.zone_coord, self.coord_zone, self.zone_ady, self.door_map, self.door_name, self.agent_map, self.objeto, self.lever_name, self.toggle, self.world, self.alfa, self.beta, self.minmax_layout, self.depth, self.horizont)
+        for action, agent_list, asset_list, depth in action_list:
+            node = MinimaxNode(self.datafw, self.alfa, self.beta, self.minmax_layout, self.profile_layout, depth, self.horizont, self.max_iter_depth, agent_list, asset_list, action, self.agent_at_max)
             if action[0] == 'change_zone':
-                zone = self.coord_zone[node.world[self.agent_map[action[1]][action[2]]]['pos']]
-                arbitrary_door_index = iter(self.door_map[(zone, action[3])]).next()
+                zone = self.coord_zone[node.world[self.agent_map[action[1]][action[2]]]['pos']]              
+                arbitrary_door_index = next(iter(self.door_map[(zone, action[3])]))
                 side1 = node.world[arbitrary_door_index]['side1']
                 
-                if side1 in zone_coord[zone]:
+                if side1 in self.zone_coord[zone]:
                     new_pos = node.world[arbitrary_door_index]['side2']
                 else:
                     new_pos = side1
                     
                 node.world[self.agent_map[action[1]][action[2]]]['pos'] = new_pos
+                if node.world[self.objeto]['captured']:
+                    owner = node.world[self.objeto]['owner']
+                    node.world[self.objeto]['pos'] = node.world[self.agent_map[owner[0]][owner[1]]]['pos']
             elif action[0] == 'change_gun':
                 bullet_t = node.world[self.agent_map[action[1]][action[2]]]['bullet_type']
                 if bullet_t == 'automatic':
@@ -105,6 +226,7 @@ class MinimaxNode:
             elif action[0] == 'pick_up':
                 node.world[self.objeto]['captured'] = True
                 node.world[self.objeto]['owner'] = (action[1], action[2])
+                node.world[self.objeto]['pos'] = node.world[self.agent_map[action[1]][action[2]]]['pos']
             elif action[0] == 'drop':
                 node.world[self.objeto]['captured'] = False
                 node.world[self.objeto]['pos'] = node.world[self.agent_map[action[1]][action[2]]]['pos']
@@ -119,37 +241,115 @@ class MinimaxNode:
                     victim_health -= victim_max_health / 6 + 1
                     
                 if victim_health <= 0.0:
+                    if node.world[self.objeto]['captured'] and node.world[self.objeto]['owner'] == (action[3], action[4]):
+                        node.world[self.objeto]['captured'] = False
+                        node.world[self.objeto]['pos'] = node.world[self.agent_map[action[3]][action[4]]]['pos']                
                     node.world[self.agent_map[action[3]][action[4]]]['health'] = victim_max_health
                     node.world[self.agent_map[action[3]][action[4]]]['pos'] = node.world[self.agent_map[action[3]][action[4]]]['spawn_pos']
+                                          
                 else:
                     node.world[self.agent_map[action[3]][action[4]]]['health'] = victim_health
             elif action[0] == 'switch':
                 for tog in self.toggle[action[3]]:
                     for door_index in self.door_name[tog]:
                         node.world[door_index]['opened'] = not node.world[door_index]['opened']
-                        
+            #print(node.action, node.action[1], node.action[2], '->', node.heuristic_eval(), 'at', depth)           
             l.append(node)
 
         return l 
 
+class ABAbortSearch(Exception):
+    pass
 
 class AB(threading.Thread):
+    def __init__(self):
+        threading.Thread.__init__(self)
+        self.load_event = threading.Event()
+        self.stop_event = threading.Event()
+        self.idle_event = threading.Event()
 
-    def __init__(self, initial_state, depth):
-        threading.Thread.__init__(self)    
-        pass
-
-
-    def __str__(self):
-        pass
-
-
+    def load(self, start_node):
+        self.start_node = start_node
+        self.iter_depth = start_node.max_iter_depth
+        self.load_event.set()
+    
     def fathom(self):
-        pass        
+        self.iter_depth += 1
+        self.load_event.set()
+                    
+    def is_done(self):
+        return self.idle_event.is_set()
+        
+    def get(self):
+        return self.action
+    
+    def stop(self):
+        self.stop_event.set()
+        self.load_event.set()
+        self.join()
+        
+    def ab(self, node):
+        if self.stop_event.is_set() or self.load_event.is_set():
+            raise ABAbortSearch
+            
+        if node.is_leaf():
+            return node.heuristic_eval()
 
+        actions = node.applicable_actions()       
+        if len(actions)==0:
+            return node.heuristic_eval()
 
-    def max_depth_reached(self):
-        pass
+        descendants = node.generate_descendants(actions)
+        if node.is_max_node():
+            for n in descendants:
+                h_eval = self.ab(n)
+                if node.is_root:
+                    print(n.action, '->', h_eval)
+                if h_eval > node.alfa:
+                    node.alfa = h_eval
+                    if node.is_root:
+                        node.action = n.action
+                    
+                if node.alfa >= node.beta:
+                    return node.beta
+            return node.alfa
+        else:
+            for n in descendants:
+                node.beta = min(node.beta, self.ab(n))
+                if node.beta <= node.alfa:
+                    return node.alfa
+            return node.beta
+            
+    def run(self):
+        solution_found = False
+        ignore = True
+                
+        while not self.stop_event.is_set():
+            while not solution_found and not ignore and not self.stop_event.is_set() and not self.load_event.is_set():             
+                try:
+                    self.ab(root_node)
+                except ABAbortSearch:
+                    solution_found = False
+                else:
+                    solution_found = True
+            
+            if not self.stop_event.is_set():
+                if self.load_event.is_set():
+                    root_node = self.start_node.copy()
+                    solution_found = False
+                    ignore = False
+                    if self.iter_depth == root_node.max_iter_depth:
+                        self.action = None
+                    else:
+                        root_node.set_iter_depth(self.iter_depth)                                        
+                    self.load_event.clear()        
+                else:
+                    if solution_found:
+                        self.action = root_node.action
+                        
+                    self.idle_event.set()
+                    self.load_event.wait()
+                    self.idle_event.clear()
 
 
 class A_starNode:
@@ -213,7 +413,6 @@ class A_star(threading.Thread):
         self.idle_event = threading.Event()
 
     def load(self, start_node):
-        print("Thinking...")
         self.start_node = start_node
         self.load_event.set()
     
@@ -221,7 +420,7 @@ class A_star(threading.Thread):
         return self.idle_event.is_set()
         
     def get(self):
-        return self.plan
+        return self.plan, self.pos
     
     def stop(self):
         self.stop_event.set()
@@ -249,21 +448,25 @@ class A_star(threading.Thread):
                     closed = set()
                     solution_found = False
                     plan = []
+                    pos = (0, 0)
                     self.load_event.clear()        
                 else:
                     if solution_found:
                         plan = actual.get_root_path()
+                        pos = actual.asset_pos
                     else:
                         plan = []
+                        pos = (0, 0)
                         
                     self.plan = plan[:]
+                    self.pos = pos
                     self.idle_event.set()
                     self.load_event.wait()
                     self.idle_event.clear()
 
 
 class Think(multiprocessing.Process):
-    def __init__(self, agent_conn, child_conn, depth, agent_id):
+    def __init__(self, agent_conn, child_conn, depth, agent_id, minmax_layout, profile_layout):
         multiprocessing.Process.__init__(self)
         self.agent_conn = agent_conn
         self.child_conn = child_conn
@@ -271,8 +474,11 @@ class Think(multiprocessing.Process):
         self.plan_cc = 0
         self.plan = []
         self.agent_id = agent_id
-        self.high_level_plan = [('switch', 0, 0, 'm'), ('change_zone', 0, 0, 3), ('pick_up', 0, 0), ('change_zone', 0, 0, 4), ('change_zone', 0, 0, 19)]
+        self.minmax_layout = minmax_layout
+        self.profile_layout = profile_layout
+        self.high_level_plan = []# [('switch', 0, 0, 'm'), ('change_zone', 0, 0, 3), ('hurt', 0, 0, 1, 0), ('pick_up', 0, 0), ('change_zone', 0, 0, 4), ('change_zone', 0, 0, 19)]
         self.a_star = A_star()
+        self.ab = AB()
         self.required_star = False
         self.sended = True
         self.bored = False     
@@ -371,31 +577,6 @@ class Think(multiprocessing.Process):
             sc.add((pos[0]+d[0], pos[1]+d[1]))
             
         return sc.intersection(datafw['zone_coord'][datafw['coord_zone'][pos]])
-
-    def accessible_coords(self, datafw, pos):
-        zone = datafw['coord_zone'][pos]
-        h = [ (zone, new_zone) for new_zone in datafw['zone_ady'][zone] ]
-
-        nh = [None]
-        while len(nh) > 0:
-            nh = []
-            for p in h:
-                for q in h:
-                    np = (p[0], q[1])
-                    if p[1] == q[0] and np not in h and np not in nh:
-                        nh.append(np)
-            h.extend(nh)
-
-        ac =  set()
-        
-        for z1, z2 in h:
-            for door_index in datafw['door_map'][(z1, z2)]:
-                if datafw['world'][door_index]['opened']:
-                    ac.add(datafw['world'][door_index]['pos'])
-                    ac.update(datafw['zone_coord'][z1])
-                    ac.update(datafw['zone_coord'][z2])
-
-        return ac
              
     def shooting_line(self, datafw, agent_id, asset_id, door_crossing = True):
         shooting_coords = {'north':set(), 'west':set(), 'south':set(), 'east':set()}
@@ -403,9 +584,9 @@ class Think(multiprocessing.Process):
         asset_pos = datafw['world'][datafw['agent_map'][agent_id][asset_id]]['pos']
 
         if door_crossing:
-            accessible_coords = self.accessible_coords(datafw, asset_pos)
+            ac_coords = accessible_coords(datafw, asset_pos)
         else:
-            accessible_coords = datafw['zone_coord'][datafw['coor_zone'][pos]]
+            ac_coords = datafw['zone_coord'][datafw['coord_zone'][asset_pos]]
 
         for center in ((asset_pos[0], asset_pos[1]), (asset_pos[0]+16, asset_pos[1]+16)):
             for direction in ('north', 'west', 'south', 'east'):
@@ -413,7 +594,7 @@ class Think(multiprocessing.Process):
                 line_pos = center
                 while obstacle_not_reached:
                     line_pos = (line_pos[0]+direction_diff[direction]['w'], line_pos[1]+direction_diff[direction]['h'])
-                    if line_pos in accessible_coords:
+                    if line_pos in ac_coords:
                         shooting_coords[direction].add(line_pos)
                     else:
                         obstacle_not_reached = False
@@ -465,8 +646,13 @@ class Think(multiprocessing.Process):
         i = 0
         thinking = True
         world_in_sync = True
+        actual_high = False
+        next_high = False
+        actual_comp = False
         datafw = self.child_conn.recv()
         self.a_star.start()
+        self.ab.start()
+#        generated_max = False
         while thinking:
             if self.child_conn.poll():
                 from_server = self.child_conn.recv()
@@ -570,10 +756,12 @@ class Think(multiprocessing.Process):
                                 if reaction_info[0]:
                                     self.plan=self.react(datafw, **reaction_info[1])   # reactive was splitted into two parts
                                     self.send_plan()              
-                    elif not self.high_level_action_completed or len(self.high_level_plan)>0:
+#                    elif not self.high_level_action_completed or len(self.high_level_plan)>0:
+                    elif not self.high_level_action_completed or next_high or actual_high:
                         self.bored = False
-                        if len(self.high_level_plan)>0 and self.high_level_action_completed:
-                            action = self.high_level_plan.pop(0)
+                        if (next_high or actual_high) and self.high_level_action_completed:
+                            action = actual_action
+                            actual_high = False
                         else:
                             print("Resolving (again)", action)
                             
@@ -608,8 +796,6 @@ class Think(multiprocessing.Process):
                             targets = self.surrounding_coords(datafw, pos, diagonal=True)
                             asset_pos = datafw['world'][datafw['agent_map'][agent_id][asset_id]]['pos'] 
                             allowed_area = datafw['zone_coord'][datafw['coord_zone'][pos]]
-                            datafw['world'][datafw['objeto']]['captured'] = True
-                            datafw['world'][datafw['objeto']]['owner'] = (agent_id, asset_id)
                             start_node = A_starNode(None, asset_pos, asset_id, targets, allowed_area)
                             self.a_star.load(start_node)
                             self.plan = [(asset_id, 'pickUp')]
@@ -618,7 +804,20 @@ class Think(multiprocessing.Process):
                             self.plan = [(action[2], action[0])]
                             self.required_star = False
                         elif action[0] == 'hurt':
-                            pass
+                            agent_id = action[1]
+                            asset_id = action[2]
+                            victim_agent_id = action[3]
+                            victim_asset_id = action[4]
+                            sl = self.shooting_line(datafw, victim_agent_id, victim_asset_id, door_crossing = False)
+                            targets = set()
+                            for direction in sl:
+                                targets.update(sl[direction])
+                            asset_pos = datafw['world'][datafw['agent_map'][agent_id][asset_id]]['pos'] 
+                            allowed_area = datafw['zone_coord'][datafw['coord_zone'][asset_pos]]
+                            start_node = A_starNode(None, asset_pos, asset_id, targets, allowed_area)
+                            self.a_star.load(start_node)
+                            self.plan = []
+                            self.required_star = True                         
                         elif action[0] == 'switch':
                             agent_id = action[1]
                             asset_id = action[2]
@@ -634,11 +833,32 @@ class Think(multiprocessing.Process):
                             self.plan = [(asset_id, 'toggle')]
                             self.required_star = True
                             
+                    elif not actual_comp:
+                        start_node = MinimaxNode(datafw, alfa=-2147483648, beta=2147483647, minmax_layout = self.minmax_layout, profile_layout = self.profile_layout, depth=0, horizont = self.depth, max_iter_depth=2, agents_not_engaged = list(range(self.agent_id+1)), assets_not_engaged = list(datafw['agent_map'][self.agent_id].keys()), action = None, agent_at_max = self.agent_id, is_root = True)
+                        self.ab.load(start_node)
+                        actual_comp = True
+                    elif self.ab.is_done():
+                        actual_action = self.ab.get()
+                        actual_high = True
+                        actual_comp = False # Provisional
                 elif not self.sended:
                     if not self.required_star:                 
                         self.send_plan()
                     elif self.a_star.is_done():
-                        plan = self.a_star.get()
+                        if action[0] == 'hurt':
+                            plan, pos = self.a_star.get()
+
+                            if pos in sl['north']:
+                                plan.append((action[2], 'fireSouth'))
+                            elif pos in sl['west']:
+                                plan.append((action[2], 'fireEast'))
+                            elif pos in sl['south']:
+                                plan.append((action[2], 'fireNorth'))
+                            elif pos in sl['east']:
+                                plan.append((action[2], 'fireWest'))
+                        else:
+                            plan = self.a_star.get()[0]
+                            
                         self.plan[:0] = plan
                         self.send_plan()                            
 
@@ -845,14 +1065,14 @@ class AgentServer:
         self.running = False
       
 
-    def newAgent(self, depth):
+    def newAgent(self, depth, minmax_layout, profile_layout):
         """
         Creates a new agent and prepares data structures.
         """
         think_conn, agent_conn = multiprocessing.Pipe()
         parent_conn, child_conn = multiprocessing.Pipe()
         agent = Agent(think_conn, len(self.core_list), self)
-        think = Think(agent_conn, child_conn, depth, len(self.core_list))
+        think = Think(agent_conn, child_conn, depth, len(self.core_list), minmax_layout, profile_layout)
         self.core_list.append((agent, think, parent_conn))
         return agent
 

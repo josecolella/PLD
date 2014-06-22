@@ -1063,7 +1063,7 @@ class LevelList:
         This also configures the AI core layout
         """
         AI_server = AgentServer.get()
-        values['e']['agent'] = AI_server.newAgent(2)
+        values['e']['agent'] = AI_server.newAgent(3, [True, False, False], ['thief','guardian','thief'])
         #values['r']['agent'] = AI_server.newAgent(2)
         values['r']['agent'] = AI_server.newFakeAgent()
         values['j']['agent'] = AI_server.newFakeAgent()
@@ -1154,7 +1154,7 @@ class LevelList:
         This also configures the AI core layout
         """
         AI_server = AgentServer.get()
-        values['e']['agent'] = AI_server.newAgent(2)
+        values['e']['agent'] = AI_server.newAgent(3, [True, False, False], ['thief','guardian','thief'])
         values['r']['agent'] = AI_server.newFakeAgent()
         values['j']['agent'] = AI_server.newFakeAgent()
 
