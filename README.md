@@ -1,13 +1,5 @@
-PLD
-===
+Treasure Hunters
+================
 
-Practicas de PLD
 
-Estas practicas van a ser programadas en pygame
-
-Todo
-----
-
-Crear binarios para Windows y Linux
-Integrar objeto a robar y cuando el jugador lo toca lo pueda coger 
-
+We are developing a puzzle-action game buil using python3 and pygame. We are nearing a stable version 1.0, so stay with us
